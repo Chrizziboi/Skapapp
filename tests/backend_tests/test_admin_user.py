@@ -1,1 +1,1 @@
-from pytest import pytest
+import pytest
