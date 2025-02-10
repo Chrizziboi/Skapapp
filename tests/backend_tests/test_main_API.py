@@ -5,7 +5,7 @@ BASE_URL = "http://localhost:8080"
 
 # Tester at API-et returnerer riktig melding for root-endepunktet, vil bare fungere under drift av app
 # derfor er denne ignorert.
-@pytest.skip
+@pytest.mark.skipif
 def test_read_root():
     response = requests.get(f"{BASE_URL}/")
     assert response.status_code == 200
