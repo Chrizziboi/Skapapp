@@ -8,7 +8,8 @@ DATABASE_URL = "sqlite:///./database.db"
 # Oppretter en database-motor
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
-# Oppretter en session factory
+# Oppretter en session factory, der autocommit er valget om endringer i
+# databasen skal lagres automatisk eller ikke etter en session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Deklarativ baseklasse for modeller
