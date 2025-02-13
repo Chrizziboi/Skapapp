@@ -1,18 +1,60 @@
 import pytest
-import requests
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from main import api, Base, get_db
 
-BASE_URL = "http://localhost:8080"
+# Konfigurasjon av testdatabasen
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db" # SQLite-database for testing
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Tester at API-et returnerer riktig melding for root-endepunktet, vil bare fungere under drift av app
-# derfor er denne ignorert.
-@pytest.mark.skipif
-def test_read_root():
-    response = requests.get(f"{BASE_URL}/")
+# Opprett tabellene i testdatabasen
+#Base.metadata.create_all(bind=engine)
+
+@pytest.fixture(scope="function")
+def test_db():
+    """Fixture for å gi en ny databaseøkt til hver test."""
+    Base.metadata.create_all(bind=engine)  # Opprett tabellene her
+    session = TestingSessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
+        Base.metadata.drop_all(bind=engine)  # Slett tabellene etter hver test
+
+
+@pytest.fixture(scope="function")
+def client(test_db):
+    """Fixture for å lage en testklient og bruke testdatabasen."""
+    def override_get_db():
+        yield test_db
+
+    api.dependency_overrides[get_db] = override_get_db
+    with TestClient(api) as c:
+        yield c
+
+
+# Test for å opprette et nytt garderoberom
+def test_create_room(client):
+    response = client.post("/locker_rooms/?name=TestRom")
     assert response.status_code == 200
-    assert response.json() == {"message": "Hello from Raspberry Pi and FastAPI!"}
+    assert response.json() == {
+        "message": "Garderoberom opprettet",
+        "navn": "TestRom"
+    }
 
-# Tester at skapstatus returneres korrekt
-"""def test_read_locker():
-    response = requests.get(f"{BASE_URL}/lockers/123")
+# Test for å lage et nytt garderobeskap
+def test_create_locker(client):
+    response = client.post("/lockers/?locker_room_id=1")
     assert response.status_code == 200
-    assert response.json() == {"Skap_id": 123, "status": "låst"}"""
+    assert response.json() == {
+        "message": "Garderobeskap Opprettet",
+        "garderobeskaps_id": 1
+    }
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup():
+    """Sletter databasen etter at alle testene er ferdige."""
+    yield  # Vent til alle testene er fullført
+    Base.metadata.drop_all(bind=engine)

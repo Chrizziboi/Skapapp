@@ -35,7 +35,7 @@ def create_room(name: str, db: Session = Depends(get_db)):
     Endepunkt for å opprette et nytt garderoberom.
     """
     locker_room = create_locker_room(name=name, db=db)
-    return {"message": "Garderoberom opprettet", "rom_id": locker_room.id, "navn": locker_room.name}
+    return {"message": "Garderoberom opprettet", "navn": locker_room.name}
 
 
 @api.post("/lockers/")
@@ -44,7 +44,7 @@ def create_locker(locker_room_id: int, db: Session = Depends(get_db)):
     Endepunkt for å opprette et nytt autogenerert garderobeskap i et garderoberom.
     """
     locker = add_locker(locker_room_id=locker_room_id, db=db)
-    return {"message": "Garderobeskap Opprettet", "skap_id": locker.id, "garderobeskaps_id": locker.locker_room_id}
+    return {"message": "Garderobeskap Opprettet", "garderobeskaps_id": locker.locker_room_id}
 
 
 @api.get("/lockers/{id}")
