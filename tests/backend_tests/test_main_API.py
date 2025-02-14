@@ -5,24 +5,20 @@ from sqlalchemy.orm import sessionmaker
 from main import api, Base, get_db
 
 # Konfigurasjon av testdatabasen
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db" # SQLite-database for testing
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Opprett tabellene i testdatabasen
-#Base.metadata.create_all(bind=engine)
+SQLALCHEMY_TESTDB_URL = "sqlite:///./database.db" # SQLite-database for testing
+test_engine = create_engine(SQLALCHEMY_TESTDB_URL, connect_args={"check_same_thread": False})
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 @pytest.fixture(scope="function")
 def test_db():
     """Fixture for å gi en ny databaseøkt til hver test."""
-    Base.metadata.create_all(bind=engine)  # Opprett tabellene her
+    Base.metadata.create_all(bind=test_engine)
     session = TestingSessionLocal()
     try:
         yield session
     finally:
         session.close()
-        Base.metadata.drop_all(bind=engine)  # Slett tabellene etter hver test
-
+        Base.metadata.drop_all(bind=test_engine)
 
 @pytest.fixture(scope="function")
 def client(test_db):
@@ -55,6 +51,5 @@ def test_create_locker(client):
 
 @pytest.fixture(scope="session", autouse=True)
 def cleanup():
-    """Sletter databasen etter at alle testene er ferdige."""
     yield  # Vent til alle testene er fullført
-    Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=test_engine)

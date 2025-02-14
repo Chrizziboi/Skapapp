@@ -8,9 +8,7 @@ from database import Base, engine, SessionLocal
 # Opprett tabellene
 Base.metadata.create_all(bind=engine)
 
-
 api = FastAPI()
-
 
 # Dependency for databaseøkter
 def get_db():
