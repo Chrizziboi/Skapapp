@@ -23,23 +23,23 @@ logging.basicConfig(
 
 class ErrorHandler:
     """
-    A class to handle error messages and control program flow during problematic runtime events.
+    En klasse for å håndtere feilmeldinger og kontrollere programflyten under problematiske kjøretidshendelser.
     """
 
     def __init__(self, log_errors=True):
         """
-        Initializes the ErrorHandler.
+        Initialiserer ErrorHandler.
 
-        :param log_errors: Boolean flag to indicate whether errors should be logged.
+        :param log_errors: Boolsk flagg for å indikere om feil skal logges.
         """
         self.log_errors = log_errors
         self.error_log = []
 
     def log_error(self, error_message):
         """
-        Logs an error message.
+        Logger en feilmelding.
 
-        :param error_message: The error message to log.
+        :param error_message: Feilmeldingen for å logge.
         """
         if self.log_errors:
             self.error_log.append(error_message)
@@ -48,10 +48,10 @@ class ErrorHandler:
 
     def handle_error(self, error_message, raise_exception=False):
         """
-        Handles an error by logging it and optionally raising an exception.
+        Håndterer en feil ved å logge den og eventuelt gjøre et unntak.
 
-        :param error_message: The error message to handle.
-        :param raise_exception: Whether to raise an exception after logging.
+        :param error_message: Feilmeldingen som skal håndteres.
+        :param raise_exception: Om et unntak skal tas opp etter logging.
         """
         self.log_error(error_message)
         if raise_exception:
@@ -59,15 +59,15 @@ class ErrorHandler:
 
     def get_error_log(self):
         """
-        Returns the list of logged errors.
+        Returnerer listen over loggede feil.
 
-        :return: List of error messages.
+        :return: Liste over feilmeldinger.
         """
         return self.error_log
 
     def clear_log(self):
         """
-        Clears the error log.
+        Tømmer feilloggen.
         """
         self.error_log.clear()
         print("Error log cleared.")
