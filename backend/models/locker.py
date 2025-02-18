@@ -34,3 +34,23 @@ def add_locker(locker_room_id: int, db: Session):
     db.refresh(locker)
 
     return locker
+
+
+from sqlalchemy.orm import Session
+from backend.models.locker import Locker
+
+
+def add_note_to_locker(locker_id: int, note: str, db: Session):
+    """
+    Lar en administrator legge til eller oppdatere et notat på et spesifikt garderobeskap.
+    """
+    locker = db.query(Locker).filter(Locker.id == locker_id).first()
+
+    if not locker:
+        return None  # Returnerer None hvis skapet ikke finnes
+
+    locker.note = note  # Oppdaterer notatet
+    db.commit()
+    db.refresh(locker)  # Oppdaterer objektet etter commit
+
+    return locker

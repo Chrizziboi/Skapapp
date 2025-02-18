@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+    <link rel="stylesheet" href="/static/styles/main_page.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Locker System</h1>
+        <p>Select your role to proceed:</p>
+        <div class="button-container">
+            <button class="role-button admin" onclick="redirectTo('admin')">Admin</button>
+            <button class="role-button user" onclick="redirectTo('user')">Standard User</button>
+        </div>
+    </div>
+
+    <script>
+        function redirectTo(role) {
+            if (role === 'admin') {
+                window.location.href = "/admin_page";
+            } else {
+                window.location.href = "/available_lockers";
+            }
+        }
+    </script>
+</body>
+</html>
