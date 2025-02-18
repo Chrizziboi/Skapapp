@@ -7,6 +7,7 @@ from backend.models.locker import Locker, add_locker, add_note_to_locker
 from backend.models.locker_room import locker_room, create_locker_room
 from database import Base, engine, SessionLocal
 from backend.exception_Service.error_handler import fastapi_error_handler
+import os
 
 # Opprett tabellene
 Base.metadata.create_all(bind=engine)
@@ -14,8 +15,12 @@ Base.metadata.create_all(bind=engine)
 # Initialiser FastAPI
 api = FastAPI()
 
-# Mount static files (for CSS, images, JS)
-api.mount("/static", StaticFiles(directory="static"), name="static")
+# Dynamisk sti til static-mappen, slik at det fungerer uansett hvor testen kjører fra
+static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+if not os.path.exists(static_dir):
+    os.makedirs(static_dir)
+
+api.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Sett opp templating-motoren (Jinja2)
 templates = Jinja2Templates(directory="templates")
