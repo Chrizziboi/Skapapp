@@ -136,7 +136,7 @@ def update_locker_note(locker_id: int, note: str, db: Session = Depends(get_db))
     return {"message": "Notat lagt til", "locker_id": locker.id, "note": locker.note}
 
 
-@api.get("/locker_rooms/{locker_room_id}/available_lockers")
+@api.get("/locker_rooms/locker_room_id/available_lockers")
 def get_available_lockers(locker_room_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å hente antall ledige skap i et spesifikt garderoberom.
@@ -149,7 +149,7 @@ def get_available_lockers(locker_room_id: int, db: Session = Depends(get_db)):
     return {"locker_room_id": locker_room_id, "available_lockers": available_lockers}
 
 
-@api.put("/lockers/{locker_id}/unlock")
+@api.put("/lockers/locker_id/unlock")
 def unlock_locker(locker_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å låse opp et skap eksternt.
