@@ -7,6 +7,7 @@ from backend.models.locker import Locker, add_locker, add_note_to_locker
 from backend.models.locker_room import locker_room, create_locker_room
 from database import Base, engine, SessionLocal
 from backend.exception_Service.error_handler import fastapi_error_handler
+import os
 
 # Opprett tabellene
 Base.metadata.create_all(bind=engine)
@@ -14,9 +15,14 @@ Base.metadata.create_all(bind=engine)
 # Initialiser FastAPI
 api = FastAPI()
 
-# Mount static files (for CSS, images, JS)
-api.mount("/static", StaticFiles(directory="static"), name="static")
+# Finn absolutt sti til prosjektets rotmappe
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Sett riktig sti til "static/"
+static_path = os.path.join(BASE_DIR, "static")
+
+# Koble statiske filer til FastAPI
+api.mount("/static", StaticFiles(directory=static_path), name="static")
 # Sett opp templating-motoren (Jinja2)
 templates = Jinja2Templates(directory="templates")
 
@@ -96,7 +102,8 @@ def create_locker(locker_room_id: int, db: Session = Depends(get_db)):
     Endepunkt for å opprette et nytt autogenerert garderobeskap i et garderoberom.
     """
     locker = add_locker(locker_room_id=locker_room_id, db=db)
-    return {"message": "Garderobeskap Opprettet", "garderobeskaps_id": locker.locker_room_id}
+    return {"message": "Garderobeskap Opprettet", "garderobeskaps_id": locker_room_id}
+
 @api.post("/lockers/")
 def create_locker(locker_room_id: int, db: Session = Depends(get_db)):
     """
