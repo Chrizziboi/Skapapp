@@ -15,14 +15,13 @@ Base.metadata.create_all(bind=engine)
 # Initialiser FastAPI
 api = FastAPI()
 
-# Finn absolutt sti til prosjektets rotmappe
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Dynamisk sti til static-mappen, slik at det fungerer uansett hvor testen kjører fra
+static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+if not os.path.exists(static_dir):
+    os.makedirs(static_dir)
 
-# Sett riktig sti til "static/"
-static_path = os.path.join(BASE_DIR, "static")
+api.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-# Koble statiske filer til FastAPI
-api.mount("/static", StaticFiles(directory=static_path), name="static")
 # Sett opp templating-motoren (Jinja2)
 templates = Jinja2Templates(directory="templates")
 
@@ -143,7 +142,7 @@ def update_locker_note(locker_id: int, note: str, db: Session = Depends(get_db))
     return {"message": "Notat lagt til", "locker_id": locker.id, "note": locker.note}
 
 
-@api.get("/locker_rooms/{locker_room_id}/available_lockers")
+@api.get("/locker_rooms/locker_room_id/available_lockers")
 def get_available_lockers(locker_room_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å hente antall ledige skap i et spesifikt garderoberom.
@@ -156,7 +155,7 @@ def get_available_lockers(locker_room_id: int, db: Session = Depends(get_db)):
     return {"locker_room_id": locker_room_id, "available_lockers": available_lockers}
 
 
-@api.put("/lockers/{locker_id}/unlock")
+@api.put("/lockers/locker_id/unlock")
 def unlock_locker(locker_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å låse opp et skap eksternt.
