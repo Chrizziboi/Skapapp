@@ -37,7 +37,8 @@ def test_create_room(client):
     assert response.status_code == 200
     assert response.json() == {
         "message": "Garderoberom opprettet",
-        "name": "TestRom"
+        "name": "TestRom",
+        "room_id": 1
     }
 
 # Test for å lage et nytt garderobeskap
