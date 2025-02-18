@@ -43,7 +43,7 @@ class ErrorHandler:
         """
         if self.log_errors:
             self.error_log.append(error_message)
-            logging.error(error_message)  # **Nå logger vi også til fil**
+            logging.error(error_message)
             print(f"Error logged: {error_message}")
 
     def handle_error(self, error_message, raise_exception=False):

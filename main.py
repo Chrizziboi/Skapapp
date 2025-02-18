@@ -3,8 +3,6 @@ from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-import os
-
 from backend.models.locker import Locker, add_locker, add_note_to_locker
 from backend.models.locker_room import locker_room, create_locker_room
 from database import Base, engine, SessionLocal
@@ -123,7 +121,7 @@ def read_locker(locker_id: int, db: Session = Depends(get_db)):
       return {"locker_id": locker.id, "status": locker.status, "note": locker.note}
     except HTTPException as http_err:
         raise http_err  # Beholder riktig statuskode
-       except Exception as e:
+    except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
 
 
