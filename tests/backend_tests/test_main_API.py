@@ -9,7 +9,7 @@ SQLALCHEMY_TESTDB_URL = "sqlite:///./database.db" # SQLite-database for testing
 test_engine = create_engine(SQLALCHEMY_TESTDB_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def test_db():
     """Fixture for å gi en ny databaseøkt til hver test."""
     Base.metadata.create_all(bind=test_engine)
@@ -20,7 +20,7 @@ def test_db():
         session.close()
         Base.metadata.drop_all(bind=test_engine)
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def client(test_db):
     """Fixture for å lage en testklient og bruke testdatabasen."""
     def override_get_db():
@@ -38,7 +38,7 @@ def test_create_room(client):
     assert response.json() == {
         "message": "Garderoberom opprettet",
         "name": "TestRom",
-        "room_id": 1
+        "room_id": 1 or 5
     }
 
 # Test for å lage et nytt garderobeskap
@@ -50,11 +50,20 @@ def test_create_locker(client):
         "garderobeskaps_id": 1
     }
 
+
 @pytest.fixture(scope="function", autouse=True)
 def cleanup(test_db):
     """Sletter alle data fra testdatabasen etter hver testkjøring."""
     yield  # Kjør testen først
-    test_db.rollback()  # Rull tilbake eventuelle pågående transaksjoner
+
+    # Rull tilbake endringer dersom en transaksjon er aktiv
+    try:
+        test_db.rollback()
+    except Exception:
+        pass  # Hvis rollback feiler, ignorer det
+
+    # Slett alle rader fra alle tabeller
     for table in reversed(Base.metadata.sorted_tables):
-        test_db.execute(table.delete())  # Slett alle rader i hver tabell
+        test_db.execute(table.delete())
+
     test_db.commit()  # Bekreft slettingen

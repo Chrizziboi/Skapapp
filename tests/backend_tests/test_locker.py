@@ -101,11 +101,20 @@ def test_add_note_to_nonexistent_locker(client):
     assert response.status_code == 404
     assert response.json()["detail"] == "Locker not found"
 
+
 @pytest.fixture(scope="function", autouse=True)
 def cleanup(test_db):
     """Sletter alle data fra testdatabasen etter hver testkjøring."""
     yield  # Kjør testen først
-    test_db.rollback()  # Rull tilbake eventuelle pågående transaksjoner
+
+    # Rull tilbake endringer dersom en transaksjon er aktiv
+    try:
+        test_db.rollback()
+    except Exception:
+        pass  # Hvis rollback feiler, ignorer det
+
+    # Slett alle rader fra alle tabeller
     for table in reversed(Base.metadata.sorted_tables):
-        test_db.execute(table.delete())  # Slett alle rader i hver tabell
+        test_db.execute(table.delete())
+
     test_db.commit()  # Bekreft slettingen
