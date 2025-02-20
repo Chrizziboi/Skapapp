@@ -94,15 +94,6 @@ def get_all_lockers(db: Session = Depends(get_db)):
         for locker in lockers
     ]
 
-
-@api.post("/lockers/")
-def create_locker(locker_room_id: int, db: Session = Depends(get_db)):
-    """
-    Endepunkt for å opprette et nytt autogenerert garderobeskap i et garderoberom.
-    """
-    locker = add_locker(locker_room_id=locker_room_id, db=db)
-    return {"message": "Garderobeskap Opprettet", "garderobeskaps_id": locker_room_id}
-
 @api.post("/lockers/")
 def create_locker(locker_room_id: int, db: Session = Depends(get_db)):
     """
