@@ -35,11 +35,9 @@ def client(test_db):
 def test_create_room(client):
     response = client.post("/locker_rooms/?name=TestRom")
     assert response.status_code == 200
-    assert response.json() == {
-        "message": "Garderoberom opprettet",
-        "name": "TestRom",
-        "room_id": 1 or 5
-    }
+    assert response.json()["message"] == "Garderoberom opprettet"
+    assert response.json()["name"] == "TestRom"
+    assert response.json()["room_id"] in {1, 5}
 
 # Test for å lage et nytt garderobeskap
 def test_create_locker(client):
