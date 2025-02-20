@@ -5,17 +5,17 @@ from sqlalchemy.orm import sessionmaker
 from main import api, Base, get_db
 
 # Konfigurer testdatabasen
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SQLALCHEMY_TESTDB_URL = "sqlite:///./database.db"
+test_engine = create_engine(SQLALCHEMY_TESTDB_URL, connect_args={"check_same_thread": False})
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 # Opprett tabellene i testdatabasen
-Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=test_engine)
 
 @pytest.fixture(scope="session")
 def test_db():
     """Fixture for å gi en ny databaseøkt til hver test."""
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=test_engine)
     session = TestingSessionLocal()
     try:
         yield session

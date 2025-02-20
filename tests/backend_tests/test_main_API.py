@@ -50,7 +50,11 @@ def test_create_locker(client):
         "garderobeskaps_id": 1
     }
 
-@pytest.fixture(scope="session", autouse=True)
-def cleanup():
-    yield  # Vent til alle testene er fullført
-    Base.metadata.drop_all(bind=test_engine)
+@pytest.fixture(scope="function", autouse=True)
+def cleanup(test_db):
+    """Sletter alle data fra testdatabasen etter hver testkjøring."""
+    yield  # Kjør testen først
+    test_db.rollback()  # Rull tilbake eventuelle pågående transaksjoner
+    for table in reversed(Base.metadata.sorted_tables):
+        test_db.execute(table.delete())  # Slett alle rader i hver tabell
+    test_db.commit()  # Bekreft slettingen
