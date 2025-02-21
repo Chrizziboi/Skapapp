@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
+from sqlalchemy import delete
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from backend.models.locker import Locker, add_locker, add_note_to_locker
@@ -8,10 +9,13 @@ from backend.models.locker_room import locker_room, create_locker_room
 from database import Base, engine, SessionLocal
 from backend.exception_Service.error_handler import fastapi_error_handler
 import os
+from pydantic import BaseModel
 
 # Opprett tabellene
 Base.metadata.create_all(bind=engine)
 
+class RoomCreate(BaseModel):
+    name: str
 # Initialiser FastAPI
 api = FastAPI()
 
@@ -60,6 +64,19 @@ def serve_admin_page(request: Request):
     """
     return templates.TemplateResponse("admin_page.html", {"request": request})
 
+@api.get("/admin_rooms")
+def serve_admin_rooms(request: Request):
+    """
+    Serverer admin_rooms.html for admin-brukere.
+    """
+    return templates.TemplateResponse("admin_rooms.html", {"request": request})
+
+@api.get("/admin_lockers")
+def serve_admin_lockers(request: Request):
+    """
+    Serverer admin_lockers.html for admin-brukere.
+    """
+    return templates.TemplateResponse("admin_lockers.html", {"request": request})
 
 @api.get("/locker_rooms/")
 def get_all_rooms(db: Session = Depends(get_db)):
@@ -71,17 +88,30 @@ def get_all_rooms(db: Session = Depends(get_db)):
 
 
 @api.post("/locker_rooms/")
-def create_room(name: str, db: Session = Depends(get_db)):
+def create_room(room: RoomCreate, db: Session = Depends(get_db)):
     """
     Endepunkt for å opprette et nytt garderoberom.
     """
     try:
-
-      locker_room = create_locker_room(name=name, db=db)
-      return {"message": "Garderoberom opprettet", "room_id": locker_room.id, "name": locker_room.name}
+        locker_room = create_locker_room(name=room.name, db=db)
+        return {"message": "Garderoberom opprettet", "room_id": locker_room.id, "name": locker_room.name}
+    except HTTPException as http_err:
+        raise http_err  # Beholder riktig statuskode for allerede eksisterende rom
     except Exception as e:
-        return fastapi_error_handler(f"Feil ved oppretting av nytt garderoberom. {str(e)}", status_code=500)
+        return fastapi_error_handler(f"Feil ved oppretting av nytt garderoberom: {str(e)}", status_code=500)
 
+@api.delete("/locker_rooms/{room_id}")
+def delete_room(room_id: int, db: Session = Depends(get_db)):
+    """
+    Slett et garderoberom.
+    """
+    room = db.query(locker_room).filter(locker_room.id == room_id).first()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    db.delete(room)
+    db.commit()
+    return {"message": "Room deleted"}
 
 @api.get("/lockers/")
 def get_all_lockers(db: Session = Depends(get_db)):
@@ -90,7 +120,12 @@ def get_all_lockers(db: Session = Depends(get_db)):
     """
     lockers = db.query(Locker).all()
     return [
-        {"locker_id": locker.id, "status": locker.status, "user_id": locker.user_id}
+        {
+            "locker_id": locker.id,
+            "locker_room_id": locker.locker_room_id,  # Legger til rom-ID
+            "status": locker.status,
+            "note": locker.note if locker.note else "N/A"  # Hvis notat er None, sett "N/A"
+        }
         for locker in lockers
     ]
 
@@ -105,6 +140,11 @@ def create_locker(locker_room_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av garderobeskap: {str(e)}", status_code=500)
 
+@api.post("/lockers/locker_id/remove")
+def remove_locker(locker_id: int, db: Session = Depends(get_db)):
+    db.execute(delete(Locker).where(Locker.id == locker_id))
+    db.commit()
+    return {"message": f"Locker {locker_id} has been removed"}
 
 @api.get("/lockers/locker_id")
 def read_locker(locker_id: int, db: Session = Depends(get_db)):
@@ -133,7 +173,7 @@ def update_locker_note(locker_id: int, note: str, db: Session = Depends(get_db))
     return {"message": "Notat lagt til", "locker_id": locker.id, "note": locker.note}
 
 
-@api.get("/locker_rooms/locker_room_id/available_lockers")
+@api.get("/locker_rooms/{locker_room_id}/available_lockers")
 def get_available_lockers(locker_room_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å hente antall ledige skap i et spesifikt garderoberom.

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Locker Management</title>
+    <link rel="stylesheet" href="/static/styles/admin_lockers.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Locker Management</h1>
+
+        <h2>Create a New Locker</h2>
+        <select id="roomSelect">
+            <!-- Room options will be dynamically added here -->
+        </select>
+        <button onclick="createLocker()">Create Locker</button>
+
+        <h2>Existing Lockers</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Locker ID</th>
+                    <th>Status</th>
+                    <th>Room ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="locker-table">
+                <!-- Lockers will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchRooms();
+            fetchLockers();
+        });
+
+        function fetchRooms() {
+            fetch("/locker_rooms/")
+                .then(response => response.json())
+                .then(data => {
+                    const roomSelect = document.getElementById("roomSelect");
+                    roomSelect.innerHTML = "";
+                    data.forEach(room => {
+                        let option = `<option value="${room.room_id}">${room.name} (ID: ${room.room_id})</option>`;
+                        roomSelect.innerHTML += option;
+                    });
+                })
+                .catch(error => console.error("Error fetching rooms:", error));
+        }
+
+        function fetchLockers() {
+            fetch("/lockers/")
+                .then(response => response.json())
+                .then(data => {
+                    const lockerTable = document.getElementById("locker-table");
+                    lockerTable.innerHTML = "";
+
+                    data.forEach(locker => {
+                        let row = `<tr>
+                            <td>${locker.locker_id}</td>
+                            <td>${locker.status}</td>
+                            <td>${locker.locker_room_id}</td>
+                            <td>
+                                <button onclick="unlockLocker(${locker.locker_id})">Unlock</button>
+                                <button onclick="removeLocker(${locker.locker_id})">Remove</button>
+                            </td>
+                        </tr>`;
+                        lockerTable.innerHTML += row;
+                    });
+                })
+                .catch(error => console.error("Error fetching lockers:", error));
+        }
+
+        function createLocker() {
+            const roomId = document.getElementById("roomSelect").value;
+            if (!roomId) return alert("Please select a room.");
+
+            fetch("/lockers/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ locker_room_id: roomId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("Locker created successfully!");
+                fetchLockers();
+            })
+            .catch(error => console.error("Error creating locker:", error));
+        }
+
+        function unlockLocker(lockerId) {
+            fetch(`/lockers/${lockerId}/unlock`, { method: "PUT" })
+                .then(response => response.json())
+                .then(data => {
+                    alert(`Locker ${lockerId} unlocked.`);
+                    fetchLockers();
+                })
+                .catch(error => console.error("Error unlocking locker:", error));
+        }
+
+        function removeLocker(lockerId) {
+            fetch(`/lockers/${lockerId}/remove`, { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    alert(`Locker ${lockerId} removed.`);
+                    fetchLockers();
+                })
+                .catch(error => console.error("Error removing locker:", error));
+        }
+    </script>
+</body>
+</html>
