@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
+from sqlalchemy import delete
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from backend.models.locker import Locker, add_locker, add_note_to_locker
@@ -70,6 +71,13 @@ def serve_admin_rooms(request: Request):
     """
     return templates.TemplateResponse("admin_rooms.html", {"request": request})
 
+@api.get("/admin_lockers")
+def serve_admin_lockers(request: Request):
+    """
+    Serverer admin_lockers.html for admin-brukere.
+    """
+    return templates.TemplateResponse("admin_lockers.html", {"request": request})
+
 @api.get("/locker_rooms/")
 def get_all_rooms(db: Session = Depends(get_db)):
     """
@@ -126,20 +134,17 @@ def create_locker(locker_room_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å opprette et nytt autogenerert garderobeskap i et garderoberom.
     """
-    locker = add_locker(locker_room_id=locker_room_id, db=db)
-    return {"message": "Garderobeskap Opprettet", "garderobeskaps_id": locker_room_id}
-
-@api.post("/lockers/")
-def create_locker(locker_room_id: int, db: Session = Depends(get_db)):
-    """
-    Endepunkt for å opprette et nytt autogenerert garderobeskap i et garderoberom.
-    """
     try:
         locker = add_locker(locker_room_id=locker_room_id, db=db)
         return {"message": "Garderobeskap Opprettet", "garderobeskaps_id": locker.locker_room_id}
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av garderobeskap: {str(e)}", status_code=500)
 
+@api.post("/lockers/locker_id/remove")
+def remove_locker(locker_id: int, db: Session = Depends(get_db)):
+    db.execute(delete(Locker).where(Locker.id == locker_id))
+    db.commit()
+    return {"message": f"Locker {locker_id} has been removed"}
 
 @api.get("/lockers/locker_id")
 def read_locker(locker_id: int, db: Session = Depends(get_db)):

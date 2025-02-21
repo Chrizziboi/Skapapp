@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, update, delete
 from sqlalchemy.orm import Session, relationship
 from database import Base
 
@@ -55,3 +55,7 @@ def add_note_to_locker(locker_id: int, note: str, db: Session):
     db.refresh(locker)  # Oppdaterer objektet etter commit
 
     return locker
+
+def remove_locker(locker_room_id: int, db: Session):
+    db.execute(delete(Locker).where(Locker.id == locker_id))
+    db.commit()
