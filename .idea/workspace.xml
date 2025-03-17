@@ -5,13 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/static/styles/admin_rooms.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/admin_rooms.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/database.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/models/locker.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/models/Locker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/models/locker_room.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/models/LockerRoom.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database.db" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_page.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,6 +24,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -34,12 +37,12 @@
     &quot;assignee&quot;: &quot;hannan0912&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Chrizziboi/Skapapp.git",
-    "accountId": "6b9804fe-42a4-4abd-88d9-7330bcb4597e"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Chrizziboi/Skapapp.git&quot;,
+    &quot;accountId&quot;: &quot;6b9804fe-42a4-4abd-88d9-7330bcb4597e&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 7
@@ -51,6 +54,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
     "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "Python tests.pytest in test_locker.py.executor": "Run",
     "Python tests.pytest in test_main_API.py.executor": "Run",
@@ -58,7 +62,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "mer__kaos",
+    "git-widget-placeholder": "reformat",
     "last_opened_file_path": "C:/Users/hanna/OneDrive/Dokumenter/GitHub/Skapapp",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
