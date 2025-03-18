@@ -1,3 +1,4 @@
+import os
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -9,14 +10,22 @@ from backend.models.Locker import Locker, add_locker, add_note_to_locker
 from backend.models.LockerRoom import create_locker_room
 from database import Base, engine, SessionLocal
 from backend.exception_Service.error_handler import fastapi_error_handler
-import os
+
 from pydantic import BaseModel
 
-# Opprett tabellene
-Base.metadata.create_all(bind=engine)
+def setup_database():
+    """
+    Oppretter database-tabeller dersom de ikke eksisterer.
+    """
+    Base.metadata.create_all(bind=engine)
 
+setup_database()
+
+'''
 class RoomCreate(BaseModel):
     name: str
+'''
+
 # Initialiser FastAPI
 api = FastAPI()
 
@@ -37,6 +46,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 @api.get("/")
 def serve_main_page_endpoint(request: Request):
@@ -65,6 +75,7 @@ def serve_admin_page_endpoint(request: Request):
     """
     return templates.TemplateResponse("admin_page.html", {"request": request})
 
+
 @api.get("/admin_rooms")
 def serve_admin_rooms_endpoint(request: Request):
     """
@@ -72,12 +83,14 @@ def serve_admin_rooms_endpoint(request: Request):
     """
     return templates.TemplateResponse("admin_rooms.html", {"request": request})
 
+
 @api.get("/admin_lockers")
 def serve_admin_lockers_endpoint(request: Request):
     """
     Serverer admin_lockers.html for admin-brukere.
     """
     return templates.TemplateResponse("admin_lockers.html", {"request": request})
+
 
 @api.get("/locker_rooms/")
 def get_all_rooms_endpoint(db: Session = Depends(get_db)):
@@ -88,18 +101,19 @@ def get_all_rooms_endpoint(db: Session = Depends(get_db)):
     return [{"room_id": room.id, "name": room.name} for room in rooms]
 
 
-@api.post("/locker_rooms/")
-def create_room_endpoint(room: RoomCreate, db: Session = Depends(get_db)):
+@api.post("/locker_rooms/{name}")
+def create_room_endpoint(room: str, db: Session = Depends(get_db)):
     """
     Endepunkt for å opprette et nytt garderoberom.
     """
     try:
-        locker_room = create_locker_room(name=room.name, db=db)
+        locker_room = create_locker_room(name=room, db=db)
         return {"message": "Garderoberom opprettet", "room_id": locker_room.id, "name": locker_room.name}
     except HTTPException as http_err:
         raise http_err  # Beholder riktig statuskode for allerede eksisterende rom
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av nytt garderoberom: {str(e)}", status_code=500)
+
 
 @api.delete("/locker_rooms/{room_id}")
 def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
@@ -116,6 +130,7 @@ def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()  # Sørger for at feilen ikke etterlater en halvferdig transaksjon.
         raise HTTPException(status_code=500, detail=f"En feil har oppstått under sletting av garderoberom: {str(e)}")
+
 
 @api.get("/lockers/")
 def get_all_lockers_endpoint(db: Session = Depends(get_db)):

@@ -22,7 +22,6 @@ def add_locker(locker_room_id: int, db: Session):
     return locker
 
 
-
 def add_note_to_locker(locker_id: int, note: str, db: Session):
     """
     Lar en administrator legge til eller oppdatere et notat på et spesifikt garderobeskap.
