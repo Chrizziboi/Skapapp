@@ -9,6 +9,7 @@ class Locker(Base):
     id = Column(Integer, primary_key=True, index=True)
     status = Column(String, default="Ledig")
     note = Column(String, nullable=True)  #Legger til notatfelt
+    user_id = Column(Integer, ForeignKey("standard_users.id", ondelete="SET NULL"), nullable=True)  #Knytter skap til en bruker
 
     locker_room_id = Column(Integer, ForeignKey("locker_rooms.id"))
     locker_room = relationship("LockerRoom", back_populates="lockers")
