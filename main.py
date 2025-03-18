@@ -1,21 +1,31 @@
+import os
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import delete
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from backend.models.locker import Locker, add_locker, add_note_to_locker
-from backend.models.locker_room import locker_room, create_locker_room
+from backend.models import LockerRoom
+from backend.models.Locker import Locker, add_locker, add_note_to_locker
+from backend.models.LockerRoom import create_locker_room
 from database import Base, engine, SessionLocal
 from backend.exception_Service.error_handler import fastapi_error_handler
-import os
+
 from pydantic import BaseModel
 
-# Opprett tabellene
-Base.metadata.create_all(bind=engine)
+def setup_database():
+    """
+    Oppretter database-tabeller dersom de ikke eksisterer.
+    """
+    Base.metadata.create_all(bind=engine)
 
+setup_database()
+
+'''
 class RoomCreate(BaseModel):
     name: str
+'''
+
 # Initialiser FastAPI
 api = FastAPI()
 
@@ -37,8 +47,9 @@ def get_db():
     finally:
         db.close()
 
+
 @api.get("/")
-def serve_main_page(request: Request):
+def serve_main_page_endpoint(request: Request):
     """
     Serverer main_page.html som hovedsiden.
     """
@@ -49,7 +60,7 @@ def serve_main_page(request: Request):
 
 
 @api.get("/available_lockers")
-def serve_standard_user_page(request: Request):
+def serve_standard_user_page_endpoint(request: Request):
     """
     Serverer standard_user_page.html for vanlige brukere.
     """
@@ -58,63 +69,71 @@ def serve_standard_user_page(request: Request):
 
 
 @api.get("/admin_page")
-def serve_admin_page(request: Request):
+def serve_admin_page_endpoint(request: Request):
     """
     Serverer admin_page.html for admin-brukere.
     """
     return templates.TemplateResponse("admin_page.html", {"request": request})
 
+
 @api.get("/admin_rooms")
-def serve_admin_rooms(request: Request):
+def serve_admin_rooms_endpoint(request: Request):
     """
     Serverer admin_rooms.html for admin-brukere.
     """
     return templates.TemplateResponse("admin_rooms.html", {"request": request})
 
+
 @api.get("/admin_lockers")
-def serve_admin_lockers(request: Request):
+def serve_admin_lockers_endpoint(request: Request):
     """
     Serverer admin_lockers.html for admin-brukere.
     """
     return templates.TemplateResponse("admin_lockers.html", {"request": request})
 
+
 @api.get("/locker_rooms/")
-def get_all_rooms(db: Session = Depends(get_db)):
+def get_all_rooms_endpoint(db: Session = Depends(get_db)):
     """
     Endepunkt for å hente ALLE garderoberommene med riktige navn.
     """
-    rooms = db.query(locker_room).all()
+    rooms = db.query(LockerRoom).all()
     return [{"room_id": room.id, "name": room.name} for room in rooms]
 
 
-@api.post("/locker_rooms/")
-def create_room(room: RoomCreate, db: Session = Depends(get_db)):
+@api.post("/locker_rooms/{name}")
+def create_room_endpoint(room: str, db: Session = Depends(get_db)):
     """
     Endepunkt for å opprette et nytt garderoberom.
     """
     try:
-        locker_room = create_locker_room(name=room.name, db=db)
+        locker_room = create_locker_room(name=room, db=db)
         return {"message": "Garderoberom opprettet", "room_id": locker_room.id, "name": locker_room.name}
     except HTTPException as http_err:
         raise http_err  # Beholder riktig statuskode for allerede eksisterende rom
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av nytt garderoberom: {str(e)}", status_code=500)
 
+
 @api.delete("/locker_rooms/{room_id}")
-def delete_room(room_id: int, db: Session = Depends(get_db)):
+def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
     """
     Slett et garderoberom.
     """
-    room = db.query(locker_room).filter(locker_room.id == room_id).first()
+    room = db.query(LockerRoom).filter(LockerRoom.id == room_id).first()
     if not room:
-        raise HTTPException(status_code=404, detail="Room not found")
+        raise HTTPException(status_code=404, detail=f"Garderoberom med id: {room_id} ikke funnet.")
+    try:
+        db.delete(room)
+        db.commit()
+        return {"message": "Garderoberom er nå slettet."}
+    except Exception as e:
+        db.rollback()  # Sørger for at feilen ikke etterlater en halvferdig transaksjon.
+        raise HTTPException(status_code=500, detail=f"En feil har oppstått under sletting av garderoberom: {str(e)}")
 
-    db.delete(room)
-    db.commit()
-    return {"message": "Room deleted"}
 
 @api.get("/lockers/")
-def get_all_lockers(db: Session = Depends(get_db)):
+def get_all_lockers_endpoint(db: Session = Depends(get_db)):
     """
     Endepunkt for å hente ALLE skap.
     """
@@ -129,32 +148,36 @@ def get_all_lockers(db: Session = Depends(get_db)):
         for locker in lockers
     ]
 
+
 @api.post("/lockers/")
-def create_locker(locker_room_id: int, db: Session = Depends(get_db)):
+def create_locker_endpoint(locker_room_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å opprette et nytt autogenerert garderobeskap i et garderoberom.
     """
     try:
         locker = add_locker(locker_room_id=locker_room_id, db=db)
-        return {"message": "Garderobeskap Opprettet", "garderobeskaps_id": locker.locker_room_id}
+        return {"message": "Garderobeskap Opprettet", "locker_id": locker.id}
+
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av garderobeskap: {str(e)}", status_code=500)
 
+
 @api.post("/lockers/locker_id/remove")
-def remove_locker(locker_id: int, db: Session = Depends(get_db)):
+def remove_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
     db.execute(delete(Locker).where(Locker.id == locker_id))
     db.commit()
-    return {"message": f"Locker {locker_id} has been removed"}
+    return {"message": f"Garderobeskap med id: {locker_id} er blitt slettet."}
+
 
 @api.get("/lockers/locker_id")
-def read_locker(locker_id: int, db: Session = Depends(get_db)):
+def read_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å finne valgt garderobeskap.
     """
     try:
       locker = db.query(Locker).filter(Locker.id == locker_id).first()
       if locker is None:
-          raise HTTPException(status_code=404, detail="Skap ikke funnet")
+          raise HTTPException(status_code=404, detail="Garderobeskap ikke funnet.")
       return {"locker_id": locker.id, "status": locker.status, "note": locker.note}
     except HTTPException as http_err:
         raise http_err  # Beholder riktig statuskode
@@ -163,7 +186,7 @@ def read_locker(locker_id: int, db: Session = Depends(get_db)):
 
 
 @api.put("/lockers/locker_id/note")
-def update_locker_note(locker_id: int, note: str, db: Session = Depends(get_db)):
+def update_locker_note_endpoint(locker_id: int, note: str, db: Session = Depends(get_db)):
     """
     Endepunkt for å legge til eller oppdatere et notat på et garderobeskap.
     """
@@ -174,7 +197,7 @@ def update_locker_note(locker_id: int, note: str, db: Session = Depends(get_db))
 
 
 @api.get("/locker_rooms/{locker_room_id}/available_lockers")
-def get_available_lockers(locker_room_id: int, db: Session = Depends(get_db)):
+def get_available_lockers_endpoint(locker_room_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å hente antall ledige skap i et spesifikt garderoberom.
     """
@@ -187,17 +210,17 @@ def get_available_lockers(locker_room_id: int, db: Session = Depends(get_db)):
 
 
 @api.put("/lockers/locker_id/unlock")
-def unlock_locker(locker_id: int, db: Session = Depends(get_db)):
+def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å låse opp et skap eksternt.
     """
     locker = db.query(Locker).filter(Locker.id == locker_id).first()
     if locker is None:
-        raise HTTPException(status_code=404, detail="Locker not found")
+        raise HTTPException(status_code=404, detail="Garderobeskap ikke funnet.")
 
     locker.status = "ledig"
     db.commit()
-    return {"message": f"Locker {locker_id} has been unlocked."}
+    return {"message": f"Garderobeskap med id: {locker_id} er nå åpnet."}
 
 
 if __name__ == "__main__":
