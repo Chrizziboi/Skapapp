@@ -1,30 +1,23 @@
 import os
 import uvicorn
+
 from fastapi import FastAPI, Depends, HTTPException, Request
-from sqlalchemy.orm import Session
-from sqlalchemy import delete
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+
+from sqlalchemy.orm import Session
+
+from backend.models.AdminUser import AdminUser, create_admin
+from backend.models.StandardUser import StandardUser, reserve_locker
 from backend.models import LockerRoom
 from backend.models.Locker import Locker, add_locker, add_note_to_locker
 from backend.models.LockerRoom import create_locker_room
-from database import Base, engine, SessionLocal
-from backend.exception_Service.error_handler import fastapi_error_handler
+from backend.ExceptionService.ErrorHandler import fastapi_error_handler
+from database import Base, engine, SessionLocal, setup_database
 
-from pydantic import BaseModel
 
-def setup_database():
-    """
-    Oppretter database-tabeller dersom de ikke eksisterer.
-    """
-    Base.metadata.create_all(bind=engine)
 
 setup_database()
-
-'''
-class RoomCreate(BaseModel):
-    name: str
-'''
 
 # Initialiser FastAPI
 api = FastAPI()
@@ -102,12 +95,12 @@ def get_all_rooms_endpoint(db: Session = Depends(get_db)):
 
 
 @api.post("/locker_rooms/{name}")
-def create_room_endpoint(room: str, db: Session = Depends(get_db)):
+def create_room_endpoint(name: str, db: Session = Depends(get_db)):
     """
     Endepunkt for å opprette et nytt garderoberom.
     """
     try:
-        locker_room = create_locker_room(name=room, db=db)
+        locker_room = create_locker_room(name=name, db=db)
         return {"message": "Garderoberom opprettet", "room_id": locker_room.id, "name": locker_room.name}
     except HTTPException as http_err:
         raise http_err  # Beholder riktig statuskode for allerede eksisterende rom
@@ -162,11 +155,16 @@ def create_locker_endpoint(locker_room_id: int, db: Session = Depends(get_db)):
         return fastapi_error_handler(f"Feil ved oppretting av garderobeskap: {str(e)}", status_code=500)
 
 
-@api.post("/lockers/locker_id/remove")
+@api.delete("/lockers/{locker_id}")
 def remove_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
-    db.execute(delete(Locker).where(Locker.id == locker_id))
+    locker = db.query(Locker).filter(Locker.id == locker_id).first()
+    if not locker:
+        raise HTTPException(status_code=404, detail="Garderobeskap ikke funnet.")
+
+    db.delete(locker)
     db.commit()
-    return {"message": f"Garderobeskap med id: {locker_id} er blitt slettet."}
+    return {"message": f"Garderobeskap med id: {locker_id} har blitt slettet."}
+
 
 
 @api.get("/lockers/locker_id")
@@ -209,7 +207,7 @@ def get_available_lockers_endpoint(locker_room_id: int, db: Session = Depends(ge
     return {"locker_room_id": locker_room_id, "available_lockers": available_lockers}
 
 
-@api.put("/lockers/locker_id/unlock")
+@api.put("/lockers/{locker_id}/unlock")
 def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å låse opp et skap eksternt.
@@ -220,7 +218,31 @@ def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
 
     locker.status = "ledig"
     db.commit()
+    db.refresh(locker)  # Sikrer at endringer reflekteres i objektet
     return {"message": f"Garderobeskap med id: {locker_id} er nå åpnet."}
+
+
+@api.put("/lockers/reserve")
+def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Depends(get_db)):
+    """
+    Reserverer det ledige skapet med lavest nummer i et spesifikt garderoberom for en bruker.
+    """
+    try:
+        reserve_locker(user_id=user_id, locker_room_id=locker_room_id, db=db)
+        return {"message": "Garderobeskap reservert!", "locker_id": Locker.id}
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved reservering av garderobeskap: {str(e)}", status_code=500)
+
+@api.post("/admin_users/")
+def create_admin_user(username: str, password: str, is_superadmin: bool, db: Session = Depends(get_db)):
+    """
+    Oppretter en ny administratorbruker.
+    """
+    try:
+        admin = create_admin(username=username, password=password, is_superadmin=is_superadmin, db=db)
+        return {"message": "Administrator opprettet", "admin_id": admin.id}
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved oppretting av administrator: {str(e)}", status_code=500)
 
 
 if __name__ == "__main__":
