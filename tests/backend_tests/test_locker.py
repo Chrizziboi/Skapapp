@@ -34,13 +34,13 @@ def client(test_db):
 
 # **Test for å opprette et garderoberom**
 def test_create_locker_room(client):
-    response = client.post("/locker_rooms/?name=TestRoom")
+    response = client.post("/locker_rooms/TestRoom")
     assert response.status_code == 200, f"Feil ved opprettelse av garderoberom: {response.json()}"
     assert "room_id" in response.json()
 
 # **Test for å opprette et garderobeskap**
 def test_create_locker(client):
-    response = client.post("/locker_rooms/?name=TestRoom")
+    response = client.post("/locker_rooms/TestRoom")
     room_id = response.json()["room_id"]
 
     response = client.post(f"/lockers/?locker_room_id={room_id}")
