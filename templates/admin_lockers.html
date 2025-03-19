@@ -63,7 +63,7 @@
                         let row = `<tr>
                             <td>${locker.locker_id}</td>
                             <td>${locker.status}</td>
-                            <td>${locker.locker_room_id}</td>
+                            <td>${locker.locker_room_id || "N/A"}</td>
                             <td>
                                 <button onclick="unlockLocker(${locker.locker_id})">Unlock</button>
                                 <button onclick="removeLocker(${locker.locker_id})">Remove</button>
@@ -76,20 +76,30 @@
         }
 
         function createLocker() {
-            const roomId = document.getElementById("roomSelect").value;
-            if (!roomId) return alert("Please select a room.");
+            const roomSelect = document.getElementById("roomSelect");
 
-            fetch("/lockers/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ locker_room_id: roomId })
+            if (!roomSelect) {
+                console.error("Element with ID 'roomSelect' not found.");
+                alert("Error: Could not find the room selection dropdown.");
+                return;
+            }
+
+            const roomId = roomSelect.value;
+
+            if (!roomId) {
+                alert("Please select a room before creating a locker.");
+                return;
+            }
+
+            fetch(`http://localhost:8080/lockers/?locker_room_id=${roomId}`, {
+                method: "POST"
             })
             .then(response => response.json())
             .then(data => {
-                alert("Locker created successfully!");
+                alert(data.message);
                 fetchLockers();
             })
-            .catch(error => console.error("Error creating locker:", error));
+            .catch(error => console.error("Feil ved oppretting av skap:", error));
         }
 
         function unlockLocker(lockerId) {
@@ -103,13 +113,15 @@
         }
 
         function removeLocker(lockerId) {
-            fetch(`/lockers/${lockerId}/remove`, { method: "POST" })
-                .then(response => response.json())
-                .then(data => {
-                    alert(`Locker ${lockerId} removed.`);
-                    fetchLockers();
-                })
-                .catch(error => console.error("Error removing locker:", error));
+            fetch(`http://localhost:8080/lockers/${lockerId}`, {
+                method: "DELETE"
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                fetchLockers();
+            })
+            .catch(error => console.error("Feil ved sletting av skap:", error));
         }
     </script>
 </body>
