@@ -43,10 +43,11 @@ def add_multiple_lockers(locker_room_id: int, quantity: int, db: Session):
 
     # Hent skapene PÅ NYTT fra databasen for å få riktige ID-er
     saved_lockers = db.query(Locker).filter(Locker.locker_room_id == locker_room_id).order_by(Locker.id.desc()).limit(quantity).all()
+    locker_details = [{"locker_id": locker.id, "locker_room_id": locker.locker_room_id, "status": locker.status} for locker in saved_lockers]
 
     return {
         "message": f"{quantity} garderobeskap er opprettet i rom {locker_room_id}.",
-        "locker_ids": [locker.id for locker in saved_lockers]
+        "multiple_locker_ids": locker_details
     }
 
 

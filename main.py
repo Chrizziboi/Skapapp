@@ -1,11 +1,12 @@
 import os
 import uvicorn
 import logging
+
+from database import SessionLocal, setup_database
+
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-
-from database import SessionLocal, setup_database
 
 from backend.model import LockerRoom
 from backend.model import Locker
@@ -106,9 +107,11 @@ def get_all_rooms_endpoint(db: Session = Depends(get_db)):
     """
     Endepunkt for å hente ALLE garderoberommene med riktige navn.
     """
-    rooms = db.query(LockerRoom).all()
-    return [{"room_id": room.id, "name": room.name} for room in rooms]
-
+    try:
+        rooms = db.query(LockerRoom).all()
+        return [{"room_id": room.id, "name": room.name} for room in rooms]
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
 
 @api.get("/lockers/locker_id")
 def read_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
@@ -135,25 +138,30 @@ def get_available_lockers_endpoint(locker_room_id: int, db: Session = Depends(ge
         Locker.locker_room_id == locker_room_id,
         Locker.status.ilike("ledig")
     ).count()
+    try:
+        return {"locker_room_id": locker_room_id, "available_lockers": available_lockers}
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
 
-    return {"locker_room_id": locker_room_id, "available_lockers": available_lockers}
 
 @api.get("/lockers/")
 def get_all_lockers_endpoint(db: Session = Depends(get_db)):
     """
     Endepunkt for å hente ALLE skap.
     """
-    lockers = db.query(Locker).all()
-    return [
-        {
-            "locker_id": locker.id,
-            "locker_room_id": locker.locker_room_id,  # Legger til rom-ID
-            "status": locker.status,
-            "note": locker.note if locker.note else "N/A"  # Hvis notat er None, sett "N/A"
-        }
-        for locker in lockers
-    ]
-
+    try:
+        lockers = db.query(Locker).all()
+        return [
+            {
+                "locker_id": locker.id,
+                "locker_room_id": locker.locker_room_id,  # Legger til rom-ID
+                "status": locker.status,
+                "note": locker.note if locker.note else "N/A"  # Hvis notat er None, sett "N/A"
+            }
+            for locker in lockers
+        ]
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
 
 
 ''' POST CALLS '''
@@ -180,7 +188,6 @@ def create_locker_endpoint(locker_room_id: int, db: Session = Depends(get_db)):
     try:
         locker = add_locker(locker_room_id=locker_room_id, db=db)
         return {"message": "Garderobeskap Opprettet", "locker_id": locker.id}
-
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av garderobeskap: {str(e)}", status_code=500)
 
@@ -192,9 +199,10 @@ def create_multiple_lockers_endpoint(locker_room_id: int, quantity: int, db: Ses
     """
     try:
         multiple_lockers = add_multiple_lockers(locker_room_id, quantity, db)
-        return {"message": f"{quantity} Garderobeskap er nå opprettet i {locker_room_id}.", "multiple_locker_ids": []}
+        return multiple_lockers
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av garderobeskap: {str(e)}", status_code=500)
+
 
 @api.post("/admin_users/")
 def create_admin_user(username: str, password: str, is_superadmin: bool, db: Session = Depends(get_db)):
@@ -214,10 +222,13 @@ def update_locker_note_endpoint(locker_id: int, note: str, db: Session = Depends
     """
     Endepunkt for å legge til eller oppdatere et notat på et garderobeskap.
     """
-    locker = add_note_to_locker(locker_id=locker_id, note=note, db=db)
-    if locker is None:
-        raise HTTPException(status_code=404, detail="Locker not found")
-    return {"message": "Notat lagt til", "locker_id": locker.id, "note": locker.note}
+    try:
+        locker = add_note_to_locker(locker_id=locker_id, note=note, db=db)
+        if locker is None:
+            raise HTTPException(status_code=404, detail="Locker not found")
+        return {"message": "Notat lagt til", "locker_id": locker.id, "note": locker.note}
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved oppdatering av notat: {str(e)}", status_code=500)
 
 
 @api.put("/lockers/{locker_id}/unlock")
@@ -225,14 +236,16 @@ def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å låse opp et skap eksternt.
     """
-    locker = db.query(Locker).filter(Locker.id == locker_id).first()
-    if locker is None:
-        raise HTTPException(status_code=404, detail="Garderobeskap ikke funnet.")
-
-    locker.status = "ledig"
-    db.commit()
-    db.refresh(locker)  # Sikrer at endringer reflekteres i objektet
-    return {"message": f"Garderobeskap med id: {locker_id} er nå åpnet."}
+    try:
+        locker = db.query(Locker).filter(Locker.id == locker_id).first()
+        if locker is None:
+            raise HTTPException(status_code=404, detail="Garderobeskap ikke funnet.")
+        locker.status = "ledig"
+        db.commit()
+        db.refresh(locker)  # Sikrer at endringer reflekteres i objektet
+        return {"message": f"Garderobeskap med id: {locker_id} er nå åpnet."}
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
 
 
 @api.put("/lockers/reserve")
@@ -250,13 +263,18 @@ def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Dep
 
 @api.delete("/lockers/{locker_id}")
 def remove_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
-    locker = db.query(Locker).filter(Locker.id == locker_id).first()
-    if not locker:
-        raise HTTPException(status_code=404, detail="Garderobeskap ikke funnet.")
+    """
 
-    db.delete(locker)
-    db.commit()
-    return {"message": f"Garderobeskap med id: {locker_id} har blitt slettet."}
+    """
+    try:
+        locker = db.query(Locker).filter(Locker.id == locker_id).first()
+        if not locker:
+            raise HTTPException(status_code=404, detail="Garderobeskap ikke funnet.")
+        db.delete(locker)
+        db.commit()
+        return {"message": f"Garderobeskap med id: {locker_id} har blitt slettet."}
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved sletting av garderoberom: {str(e)}", status_code=500)
 
 
 @api.delete("/locker_rooms/{room_id}")
@@ -270,10 +288,10 @@ def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
     try:
         db.delete(room)
         db.commit()
-        return {"message": "Garderoberom er nå slettet."}
+        return {"message": f"Garderoberom {LockerRoom.name} er nå slettet."}
     except Exception as e:
         db.rollback()  # Sørger for at feilen ikke etterlater en halvferdig transaksjon.
-        raise HTTPException(status_code=500, detail=f"En feil har oppstått under sletting av garderoberom: {str(e)}")
+        return fastapi_error_handler(f"En feil har oppstått under sletting av garderoberom: {str(e)}", status_code=500)
 
 ''' STATISTIC CALLS '''
 
