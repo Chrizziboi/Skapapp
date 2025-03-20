@@ -12,76 +12,18 @@
         <p>Manage lockers and rooms</p>
 
         <div class="actions">
-            <button onclick="fetchLockers()">Refresh Lockers</button>
-            <button onclick="fetchRooms()">Refresh Rooms</button>
             <button onclick="goToAvailableLockers()">Available Lockers</button>
-            <button onclick="goToRoomAdmin()">Room Administration</button>
-            <button onclick="window.location.href='/admin_lockers'">Locker Management</button>
+            <button onclick="goToLockerRoomManagement()">Locker & Room Management</button>
         </div>
-
-        <h2>Locker Overview</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Locker ID</th>
-                    <th>Status</th>
-                    <th>User ID</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="locker-table">
-                <!-- Lockers will be dynamically added here -->
-            </tbody>
-        </table>
-
-        <h2>Room Management</h2>
-        <ul id="room-list">
-            <!-- Rooms will be dynamically added here -->
-        </ul>
     </div>
 
     <script>
-        function fetchLockers() {
-            fetch("http://localhost:8080/lockers")
-                .then(response => response.json())
-                .then(data => {
-                    const lockerTable = document.getElementById("locker-table");
-                    lockerTable.innerHTML = "";
-                    data.forEach(locker => {
-                        let row = `<tr>
-                            <td>${locker.id}</td>
-                            <td>${locker.status}</td>
-                            <td>${locker.user_id || 'N/A'}</td>
-                            <td><button onclick="unlockLocker(${locker.id})">Unlock</button></td>
-                        </tr>`;
-                        lockerTable.innerHTML += row;
-                    });
-                });
-        }
-
-        function fetchRooms() {
-            fetch("http://localhost:8080/locker_rooms/")
-                .then(response => response.json())
-                .then(data => {
-                    const roomList = document.getElementById("room-list");
-                    roomList.innerHTML = "";
-                    data.forEach(room => {
-                        let listItem = `<li>${room.name} (ID: ${room.room_id})</li>`;
-                        roomList.innerHTML += listItem;
-                    });
-                });
-        }
-
-        function unlockLocker(lockerId) {
-            fetch(`http://localhost:8080/lockers/${lockerId}/unlock`, { method: "PUT" })
-                .then(response => response.json())
-                .then(data => alert(`Locker ${lockerId} unlocked.`));
-        }
         function goToAvailableLockers() {
             window.location.href = "/available_lockers";
         }
-        function goToRoomAdmin() {
-            window.location.href = "/admin_rooms";
+
+        function goToLockerRoomManagement() {
+            window.location.href = "/admin_rooms";  // Oppdater om nødvendig
         }
     </script>
 </body>

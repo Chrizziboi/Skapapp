@@ -14,7 +14,7 @@ from backend.model.Statistic import *
 from backend.model.AdminUser import create_admin
 from backend.model.StandardUser import reserve_locker
 from backend.model.Locker import Locker, add_locker, add_note_to_locker, add_multiple_lockers
-from backend.model.LockerRoom import create_locker_room
+from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
 
 # Initialiser SQLite3
@@ -281,22 +281,7 @@ def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
     """
     Sletter et garderoberom samt alle skap tilknyttet det rommet.
     """
-    room = db.query(LockerRoom).filter(LockerRoom.id == room_id).first()
-    if not room:
-        raise HTTPException(status_code=404, detail=f"Garderoberom med id: {room_id} ikke funnet.")
-
-    try:
-        # Slett alle skap i rommet først
-        db.query(Locker).filter(Locker.locker_room_id == room_id).delete()
-
-        # Slett selve rommet
-        db.delete(room)
-        db.commit()
-
-        return {"message": f"Garderoberom med id {room_id} og tilhørende skap er nå slettet."}
-    except Exception as e:
-        db.rollback()  # Sørger for at feilen ikke etterlater en halvferdig transaksjon.
-        raise HTTPException(status_code=500, detail=f"En feil oppstod under sletting: {str(e)}")
+    return delete_locker_room(room_id, db)
 
 ''' STATISTIC CALLS '''
 
