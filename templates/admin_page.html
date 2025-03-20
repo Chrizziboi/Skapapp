@@ -15,8 +15,7 @@
             <button onclick="fetchLockers()">Refresh Lockers</button>
             <button onclick="fetchRooms()">Refresh Rooms</button>
             <button onclick="goToAvailableLockers()">Available Lockers</button>
-            <button onclick="goToRoomAdmin()">Room Administration</button>
-            <button onclick="window.location.href='/admin_lockers'">Locker Management</button>
+            <button onclick="goToAdminWardrobeManagement()">Wardrobe Administration</button>
         </div>
 
         <h2>Locker Overview</h2>
@@ -80,8 +79,8 @@
         function goToAvailableLockers() {
             window.location.href = "/available_lockers";
         }
-        function goToRoomAdmin() {
-            window.location.href = "/admin_rooms";
+        function goToAdminWardrobeManagement() {
+            window.location.href = "/admin_wardrobe_management";
         }
     </script>
 </body>

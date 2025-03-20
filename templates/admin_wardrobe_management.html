@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Garderobe håndtering</title>
+    <link rel="stylesheet" href="/static/styles/admin_rooms.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Wardrobe Management</h1>
+
+        <!-- Room Management (Fixed) -->
+        <div class="section" id="room-management">
+            <h2>Room Management</h2>
+            <input type="text" id="roomName" placeholder="Enter room name">
+            <button onclick="createRoom()">Create Room</button>
+
+            <h3>Existing Rooms</h3>
+            <ul id="room-list"></ul>
+        </div>
+
+        <!-- Locker Management (Expands) -->
+        <div class="section" id="locker-section">
+            <h2>Lockers in Selected Room</h2>
+            <h3 id="selected-room-name">No Room Selected</h3>
+            <button id="create-locker-btn" onclick="createLocker()" disabled>Create Locker</button>
+
+              <div class="multiple-lockers">
+                <input type="number" id="lockerQuantity" min="1" placeholder="Number of lockers">
+                <button id="create-multiple-lockers-btn" onclick="createMultipleLockers()" disabled>Create Multiple Lockers</button>
+              </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Locker ID</th>
+                        <th>Status</th>
+                        <th>Note</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="locker-table"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchRooms();
+            fetchLockers();
+        });
+
+        // Henter alle garderoberom
+        function fetchRooms() {
+            fetch("/locker_rooms/")
+                .then(response => response.json())
+                .then(data => {
+                    const roomList = document.getElementById("room-list");
+                    roomList.innerHTML = "";
+
+                    data.forEach(room => {
+                        let listItem = document.createElement("li");
+                        listItem.textContent = `${room.name} (ID: ${room.room_id})`;
+                        listItem.classList.add("room-item");
+                        listItem.onclick = () => selectRoom(room.room_id, room.name);
+
+                        let deleteButton = document.createElement("button");
+                        deleteButton.textContent = "Delete";
+                        deleteButton.onclick = (event) => {
+                            event.stopPropagation();
+                            deleteRoom(room.room_id);
+                        };
+
+                        listItem.appendChild(deleteButton);
+                        roomList.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error("Error fetching rooms:", error));
+        }
+
+        // Velger et rom og viser skapene i det
+        function selectRoom(roomId, roomName) {
+            selectedRoomId = roomId;  // Sørg for at denne blir oppdatert
+            document.getElementById("selected-room-name").textContent = `Selected Room: ${roomName}`;
+            document.getElementById("create-locker-btn").disabled = false;
+            document.getElementById("create-multiple-lockers-btn").disabled = false;  // Aktiver knappen
+            fetchLockersInRoom(roomId);
+        }
+
+
+        // Oppretter et nytt garderoberom
+        function createRoom() {
+            const roomName = document.getElementById("roomName").value.trim();
+            if (!roomName) {
+                alert("Please enter a room name.");
+                return;
+            }
+
+            fetch(`http://localhost:8080/locker_rooms/${encodeURIComponent(roomName)}`, { method: "POST" })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.detail); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchRooms();
+                })
+                .catch(error => {
+                    console.error("Error creating room:", error);
+                    alert("Failed to create room: " + error.message);
+                });
+
+            document.getElementById("roomName").value = "";
+        }
+
+        function createMultipleLockers() {
+            if (!selectedRoomId) {
+                alert("Please select a room before creating lockers.");
+                return;
+            }
+
+            const quantity = document.getElementById("lockerQuantity").value;
+
+            if (quantity < 1) {
+                alert("Please enter a valid number of lockers.");
+                return;
+            }
+
+            fetch(`http://localhost:8080/lockers/multiple_lockers?locker_room_id=${selectedRoomId}&quantity=${quantity}`, {
+                method: "POST"
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                fetchLockersInRoom(selectedRoomId);
+            })
+            .catch(error => console.error("Error creating multiple lockers:", error));
+        }
+
+        // Sletter et garderoberom
+        function deleteRoom(roomId) {
+            fetch(`/locker_rooms/${roomId}`, { method: "DELETE" })
+                .then(response => response.json())
+                .then(() => {
+                    alert("Room deleted!");
+                    fetchRooms();
+                    if (roomId === selectedRoomId) {
+                        selectedRoomId = null;
+                        document.getElementById("selected-room-name").textContent = "No Room Selected";
+                        document.getElementById("create-locker-btn").disabled = true;
+                        document.getElementById("locker-table").innerHTML = "";
+                    }
+                })
+                .catch(error => console.error("Error deleting room:", error));
+        }
+
+        // Henter skap i et spesifikt rom
+        function fetchLockersInRoom(roomId) {
+            fetch("/lockers/")
+                .then(response => response.json())
+                .then(data => {
+                    const lockerTable = document.getElementById("locker-table");
+                    lockerTable.innerHTML = "";
+
+                    const roomLockers = data.filter(locker => locker.locker_room_id == roomId);
+
+                    roomLockers.forEach(locker => {
+                        let row = `<tr>
+                            <td>${locker.locker_id}</td>
+                            <td>${locker.status}</td>
+                            <td>${locker.note || "N/A"}</td>
+                            <td>
+                                <button onclick="unlockLocker(${locker.locker_id})">Unlock</button>
+                                <button onclick="removeLocker(${locker.locker_id})">Remove</button>
+                            </td>
+                        </tr>`;
+                        lockerTable.innerHTML += row;
+                    });
+                })
+                .catch(error => console.error("Error fetching lockers:", error));
+        }
+
+        // Oppretter et nytt skap
+        function createLocker() {
+            if (!selectedRoomId) {
+                alert("Please select a room before creating a locker.");
+                return;
+            }
+
+            fetch(`http://localhost:8080/lockers/?locker_room_id=${selectedRoomId}`, { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchLockersInRoom(selectedRoomId);
+                })
+                .catch(error => console.error("Error creating locker:", error));
+        }
+
+        // Låser opp et skap
+        function unlockLocker(lockerId) {
+            fetch(`/lockers/${lockerId}/unlock`, { method: "PUT" })
+                .then(response => response.json())
+                .then(data => {
+                    alert(`Locker ${lockerId} unlocked.`);
+                    fetchLockersInRoom(selectedRoomId);
+                })
+                .catch(error => console.error("Error unlocking locker:", error));
+        }
+
+        // Sletter et skap
+        function removeLocker(lockerId) {
+            fetch(`http://localhost:8080/lockers/${lockerId}`, { method: "DELETE" })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchLockersInRoom(selectedRoomId);
+                })
+                .catch(error => console.error("Error deleting locker:", error));
+        }
+    </script>
+</body>
+</html>

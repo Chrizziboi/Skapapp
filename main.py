@@ -80,24 +80,15 @@ def serve_admin_page_endpoint(request: Request):
         return fastapi_error_handler(f"Feil ved henting av adminsiden. {str(e)}", status_code=500)
 
 
-@api.get("/admin_rooms")
-def serve_admin_rooms_endpoint(request: Request):
+@api.get("/admin_wardrobe_management")
+def serve_admin_wardrobe_management_endpoint(request: Request):
     """
     Serverer admin_rooms.html for admin-brukere.
     """
     try:
-        return templates.TemplateResponse("admin_rooms.html", {"request": request})
+        return templates.TemplateResponse("admin_wardrobe_management.html", {"request": request})
     except Exception as e:
-        return fastapi_error_handler(f"Feil ved henting av rom-siden. {str(e)}", status_code=500)
-
-
-@api.get("/admin_lockers")
-def serve_admin_lockers_endpoint(request: Request):
-    """
-    Serverer admin_lockers.html for admin-brukere.
-    """
-    return templates.TemplateResponse("admin_lockers.html", {"request": request})
-
+        return fastapi_error_handler(f"Feil ved henting av siden. {str(e)}", status_code=500)
 
 ''' GET CALLS '''
 
