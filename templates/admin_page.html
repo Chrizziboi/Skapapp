@@ -13,7 +13,8 @@
 
         <div class="actions">
             <button onclick="goToAvailableLockers()">Available Lockers</button>
-            <button onclick="goToLockerRoomManagement()">Locker & Room Management</button>
+            <button onclick="goToAdminWardrobeManagement()">Wardrobe Administration</button>
+
         </div>
     </div>
 
@@ -21,9 +22,10 @@
         function goToAvailableLockers() {
             window.location.href = "/available_lockers";
         }
+      
+        function goToAdminWardrobeManagement() {
+            window.location.href = "/admin_wardrobe_management";
 
-        function goToLockerRoomManagement() {
-            window.location.href = "/admin_rooms";  // Oppdater om nødvendig
         }
     </script>
 </body>
