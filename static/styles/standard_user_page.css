@@ -24,44 +24,12 @@ h1 {
     font-size: 24px;
 }
 
-.department-list {
-    margin-top: 20px;
-}
-
-.department-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    margin: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background 0.3s;
-}
-
-.department-btn:hover {
-    background-color: #0056b3;
-}
-
-#locker-info {
-    margin-top: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    background: #e9ecef;
-    border-radius: 5px;
-}
-
-.hidden {
-    display: none;
-}
-
-ul {
+#room-list {
     list-style: none;
     padding: 0;
 }
 
-ul li {
+#room-list li {
     background: white;
     margin: 5px 0;
     padding: 10px;
