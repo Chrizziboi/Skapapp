@@ -2,8 +2,8 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import Session
 from database import Base
 from fastapi import HTTPException
-from backend.models.Locker import Locker
-from backend.models.LockerRoom import LockerRoom
+from backend.model.Locker import Locker
+from backend.model.LockerRoom import LockerRoom
 
 class StandardUser(Base):
     __tablename__ = "standard_users"

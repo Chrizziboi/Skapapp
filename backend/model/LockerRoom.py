@@ -28,3 +28,5 @@ def create_locker_room(name: str, db: Session):
     db.commit()
     db.refresh(new_locker_room)
     return new_locker_room
+
+

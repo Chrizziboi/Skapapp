@@ -1,9 +1,13 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import Session, relationship
+from backend.Service.ErrorHandler import fastapi_error_handler
 from database import Base
 
 
 class Locker(Base):
+    """
+    Klasse for alle skap.
+    """
     __tablename__ = "lockers"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -21,6 +25,30 @@ def add_locker(locker_room_id: int, db: Session):
     db.commit()
     db.refresh(locker)
     return locker
+
+
+def add_multiple_lockers(locker_room_id: int, quantity: int, db: Session):
+    """
+    Legger til flere skap i et spesifikt garderoberom.
+    """
+    if quantity <= 0:
+        raise fastapi_error_handler(status_code=400, detail="Antall skap må være større enn 0.")
+
+    # Opprett alle skapene i en liste
+    new_lockers = [Locker(locker_room_id=locker_room_id, status="Ledig") for _ in range(quantity)]
+
+    # Lagre alle skapene i databasen
+    db.bulk_save_objects(new_lockers)
+    db.commit()
+
+    # Hent skapene PÅ NYTT fra databasen for å få riktige ID-er
+    saved_lockers = db.query(Locker).filter(Locker.locker_room_id == locker_room_id).order_by(Locker.id.desc()).limit(quantity).all()
+    locker_details = [{"locker_id": locker.id, "locker_room_id": locker.locker_room_id, "status": locker.status} for locker in saved_lockers]
+
+    return {
+        "message": f"{quantity} garderobeskap er opprettet i rom {locker_room_id}.",
+        "multiple_locker_ids": locker_details
+    }
 
 
 def add_note_to_locker(locker_id: int, note: str, db: Session):
