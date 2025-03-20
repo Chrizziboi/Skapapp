@@ -72,27 +72,32 @@
         }
 
         function createRoom() {
-            const roomName = document.getElementById("roomName").value;
-            if (!roomName) return alert("Please enter a room name.");
+            const roomName = document.getElementById("roomName").value.trim();  // Endret ID her
+            if (!roomName) {
+                alert("Please enter a room name.");
+                return;
+            }
 
-            fetch("/locker_rooms/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: roomName })
+            fetch(`http://localhost:8080/locker_rooms/${encodeURIComponent(roomName)}`, {
+                method: "POST"
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.detail) { // Hvis API-et sender en feilmelding
-                    alert(`Error: ${data.detail}`);
-                } else {
-                    alert("Room created successfully!");
-                    fetchRooms(); // Oppdater listen
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.detail); });
                 }
+                return response.json();
             })
-            .catch(error => console.error("Error creating room:", error));
+            .then(data => {
+                alert(data.message);
+                fetchRooms();  // Oppdater listen over rom
+            })
+            .catch(error => {
+                console.error("Error creating room:", error);
+                alert("Failed to create room: " + error.message);
+            });
+
+            document.getElementById("roomName").value = ""; // Tøm inputfeltet etter opprettelse
         }
-
-
 
         function deleteRoom(roomId) {
             fetch(`/locker_rooms/${roomId}`, { method: "DELETE" })

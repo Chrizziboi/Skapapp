@@ -17,7 +17,6 @@ from backend.model.Locker import Locker, add_locker, add_note_to_locker, add_mul
 from backend.model.LockerRoom import create_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
 
-
 # Initialiser SQLite3
 setup_database()
 
@@ -280,18 +279,24 @@ def remove_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
 @api.delete("/locker_rooms/{room_id}")
 def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
     """
-    Slett et garderoberom.
+    Sletter et garderoberom samt alle skap tilknyttet det rommet.
     """
     room = db.query(LockerRoom).filter(LockerRoom.id == room_id).first()
     if not room:
         raise HTTPException(status_code=404, detail=f"Garderoberom med id: {room_id} ikke funnet.")
+
     try:
+        # Slett alle skap i rommet først
+        db.query(Locker).filter(Locker.locker_room_id == room_id).delete()
+
+        # Slett selve rommet
         db.delete(room)
         db.commit()
-        return {"message": f"Garderoberom {LockerRoom.name} er nå slettet."}
+
+        return {"message": f"Garderoberom med id {room_id} og tilhørende skap er nå slettet."}
     except Exception as e:
         db.rollback()  # Sørger for at feilen ikke etterlater en halvferdig transaksjon.
-        return fastapi_error_handler(f"En feil har oppstått under sletting av garderoberom: {str(e)}", status_code=500)
+        raise HTTPException(status_code=500, detail=f"En feil oppstod under sletting: {str(e)}")
 
 ''' STATISTIC CALLS '''
 
