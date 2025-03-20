@@ -8,22 +8,17 @@
 </head>
 <body>
     <div class="container">
-        <h1>Velg Rom</h1>
-        <div id="department-list" class="department-list">
-            <!-- Dynamisk genererte knapper for rom -->
-        </div>
-
-        <div id="locker-info" class="hidden">
-            <h2 id="department-title"></h2>
-            <ul id="locker-list"></ul>
-        </div>
+        <h1>Ledige Skap i Alle Rom</h1>
+        <ul id="room-list">
+            <!-- Rom og ledige skap vil bli fylt inn dynamisk -->
+        </ul>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            fetchRooms();
+            fetchRoomsWithLockers();
 
-            function fetchRooms() {
+            function fetchRoomsWithLockers() {
                 fetch("http://localhost:8080/locker_rooms/")
                     .then(response => {
                         if (!response.ok) {
@@ -32,48 +27,27 @@
                         return response.json();
                     })
                     .then(rooms => {
-                        const departmentList = document.getElementById('department-list');
-                        departmentList.innerHTML = ''; // Tømmer tidligere innhold
+                        const roomList = document.getElementById("room-list");
+                        roomList.innerHTML = '';
 
                         rooms.forEach(room => {
-                            let button = document.createElement('button');
-                            button.className = "department-btn";
-                            button.textContent = room.name; // Viser romnavnene riktig
-                            button.onclick = () => showLockers(room.room_id);
-                            departmentList.appendChild(button);
+                            fetch(`http://localhost:8080/locker_rooms/${room.room_id}/available_lockers`)
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`Kunne ikke hente skapdata for ${room.name}`);
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    let listItem = document.createElement('li');
+                                    listItem.innerText = `${room.name}: ${data.available_lockers} ledige skap`;
+                                    roomList.appendChild(listItem);
+                                })
+                                .catch(error => console.error("Feil ved henting av data:", error));
                         });
                     })
                     .catch(error => console.error("Feil ved henting av rom:", error));
             }
-
-            function showLockers(lockerRoomId) {
-                fetch(`http://localhost:8080/locker_rooms/${lockerRoomId}/available_lockers`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error("Kunne ikke hente skapdata.");
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        const titleElement = document.getElementById('department-title');
-                        const lockerList = document.getElementById('locker-list');
-                        const lockerInfo = document.getElementById('locker-info');
-
-                        if (titleElement && lockerList && lockerInfo) {
-                            titleElement.innerText = `Ledige skap i rom ${data.locker_room_id}`;
-                            lockerList.innerHTML = '';
-
-                            let listItem = document.createElement('li');
-                            listItem.innerText = `Antall ledige skap: ${data.available_lockers}`;
-                            lockerList.appendChild(listItem);
-
-                            lockerInfo.classList.remove('hidden');
-                        }
-                    })
-                    .catch(error => console.error("Feil ved henting av data:", error));
-            }
-
-            window.showLockers = showLockers; // Gjør funksjonen tilgjengelig globalt
         });
     </script>
 </body>
