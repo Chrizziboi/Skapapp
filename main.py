@@ -82,9 +82,7 @@ def serve_admin_page_endpoint(request: Request):
 
 @api.get("/admin_wardrobe_management")
 def serve_admin_wardrobe_management_endpoint(request: Request):
-    """
-    Serverer admin_rooms.html for admin-brukere.
-    """
+
     try:
         return templates.TemplateResponse("admin_wardrobe_management.html", {"request": request})
     except Exception as e:
