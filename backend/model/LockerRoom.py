@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship, Session
+
 from database import Base
 from fastapi import HTTPException
 from backend.model.Locker import Locker  # Importer Locker-modellen
@@ -11,7 +12,7 @@ class LockerRoom(Base):
     name = Column(String, unique=True, index=True)
     location = Column(String, default="None", index=True)
 
-    lockers = relationship("Locker", back_populates="locker_room", cascade="all, delete-orphan")
+    lockers = relationship("Locker", back_populates="locker_rooms", cascade="all, delete-orphan")
 
 def create_locker_room(name: str, db: Session):
     """

@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import Session, relationship
+
 from backend.Service.ErrorHandler import fastapi_error_handler
 from database import Base
 
@@ -11,16 +12,45 @@ class Locker(Base):
     __tablename__ = "lockers"
 
     id = Column(Integer, primary_key=True, index=True)
+    combi_id = Column(String, nullable=True)
     status = Column(String, default="Ledig")
     note = Column(String, nullable=True)  #Legger til notatfelt
     user_id = Column(Integer, ForeignKey("standard_users.id", ondelete="SET NULL"), nullable=True)  #Knytter skap til en bruker
 
     locker_room_id = Column(Integer, ForeignKey("locker_rooms.id"))
-    locker_room = relationship("LockerRoom", back_populates="lockers")
+    locker_rooms = relationship("LockerRoom", back_populates="lockers")
 
 
 def add_locker(locker_room_id: int, db: Session):
-    locker = Locker(locker_room_id=locker_room_id, status="Ledig")
+    """
+    Legger til et nytt skap med unik combi_id basert på romnavn og høyeste eksisterende nummer.
+    """
+    from backend.model.LockerRoom import LockerRoom
+    locker_room = db.query(LockerRoom).filter_by(id=locker_room_id).first()
+    if not locker_room:
+        raise fastapi_error_handler(status_code=404, detail="Garderoberom ikke funnet.")
+
+    room_name = locker_room.name
+
+    # Finn alle combi_id'er som starter med dette romnavnet
+    existing_combis = db.query(Locker.combi_id).filter(
+        Locker.locker_room_id == locker_room_id,
+        Locker.combi_id.like(f"{room_name}-%")
+    ).all()
+
+    # Ekstraher tallene etter romnavnet, f.eks. "HU25-4" -> 4
+    used_numbers = []
+    for combi in existing_combis:
+        try:
+            suffix = int(combi[0].split("-")[-1])
+            used_numbers.append(suffix)
+        except:
+            continue
+
+    next_number = max(used_numbers) + 1 if used_numbers else 1
+    combi_id = f"{room_name}-{next_number}"
+
+    locker = Locker(locker_room_id=locker_room_id, status="Ledig", combi_id=combi_id)
     db.add(locker)
     db.commit()
     db.refresh(locker)
@@ -29,26 +59,66 @@ def add_locker(locker_room_id: int, db: Session):
 
 def add_multiple_lockers(locker_room_id: int, quantity: int, db: Session):
     """
-    Legger til flere skap i et spesifikt garderoberom.
+    Legger til flere nye skap med unike combi_id-er som ikke eksisterer fra før.
     """
     if quantity <= 0:
         raise fastapi_error_handler(status_code=400, detail="Antall skap må være større enn 0.")
 
-    # Opprett alle skapene i en liste
-    new_lockers = [Locker(locker_room_id=locker_room_id, status="Ledig") for _ in range(quantity)]
+    from backend.model.LockerRoom import LockerRoom
+    locker_room = db.query(LockerRoom).filter_by(id=locker_room_id).first()
+    if not locker_room:
+        raise fastapi_error_handler(status_code=404, detail="Garderoberom ikke funnet.")
 
-    # Lagre alle skapene i databasen
-    db.bulk_save_objects(new_lockers)
+    room_name = locker_room.name
+
+    # Hent alle combi_id-er og finn hvilke tall som er brukt
+    existing_combis = db.query(Locker.combi_id).filter(
+        Locker.locker_room_id == locker_room_id,
+        Locker.combi_id.like(f"{room_name}-%")
+    ).all()
+
+    used_numbers = set()
+    for combi in existing_combis:
+        try:
+            suffix = int(combi[0].split("-")[-1])
+            used_numbers.add(suffix)
+        except ValueError:
+            continue
+
+    new_lockers = []
+    current_number = 1
+    lockers_created = 0
+
+    # Fortsett å søke etter neste ledige nummer til vi har ønsket mengde skap
+    while lockers_created < quantity:
+        if current_number not in used_numbers:
+            combi_id = f"{room_name}-{current_number}"
+            locker = Locker(
+                locker_room_id=locker_room_id,
+                status="Ledig",
+                combi_id=combi_id
+            )
+            new_lockers.append(locker)
+            lockers_created += 1
+        current_number += 1
+
+    db.add_all(new_lockers)
     db.commit()
 
-    # Hent skapene PÅ NYTT fra databasen for å få riktige ID-er
-    saved_lockers = db.query(Locker).filter(Locker.locker_room_id == locker_room_id).order_by(Locker.id.desc()).limit(quantity).all()
-    locker_details = [{"locker_id": locker.id, "locker_room_id": locker.locker_room_id, "status": locker.status} for locker in saved_lockers]
+    for locker in new_lockers:
+        db.refresh(locker)
+
+    locker_details = [{
+        "locker_id": locker.id,
+        "combi_id": locker.combi_id,
+        "status": locker.status
+    } for locker in new_lockers]
 
     return {
         "message": f"{quantity} garderobeskap er opprettet i rom {locker_room_id}.",
         "multiple_locker_ids": locker_details
     }
+
 
 
 def add_note_to_locker(locker_id: int, note: str, db: Session):

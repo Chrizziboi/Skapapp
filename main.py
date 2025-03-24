@@ -124,7 +124,7 @@ def get_available_lockers_endpoint(locker_room_id: int, db: Session = Depends(ge
     """
     available_lockers = db.query(Locker).filter(
         Locker.locker_room_id == locker_room_id,
-        Locker.status.ilike("ledig")
+        Locker.status.ilike("Ledig")
     ).count()
     try:
         return {"locker_room_id": locker_room_id, "available_lockers": available_lockers}
@@ -142,6 +142,7 @@ def get_all_lockers_endpoint(db: Session = Depends(get_db)):
         return [
             {
                 "locker_id": locker.id,
+                "combi_id": locker.combi_id,
                 "locker_room_id": locker.locker_room_id,  # Legger til rom-ID
                 "status": locker.status,
                 "note": locker.note if locker.note else "N/A"  # Hvis notat er None, sett "N/A"
@@ -228,7 +229,7 @@ def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
         locker = db.query(Locker).filter(Locker.id == locker_id).first()
         if locker is None:
             raise HTTPException(status_code=404, detail="Garderobeskap ikke funnet.")
-        locker.status = "ledig"
+        locker.status = "Ledig"
         db.commit()
         db.refresh(locker)  # Sikrer at endringer reflekteres i objektet
         return {"message": f"Garderobeskap med id: {locker_id} er nå åpnet."}
