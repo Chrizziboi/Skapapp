@@ -6,7 +6,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
 }
 
 .container {
@@ -75,4 +74,7 @@ th, td {
 th {
     background-color: #007bff;
     color: white;
+}
+html {
+    scroll-behavior: smooth;
 }

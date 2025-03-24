@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Statistikk</title>
+    <link rel="stylesheet" href="/static/styles/admin_statistics.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Statistikkoversikt</h1>
+
+        <div class="summary">
+            <p><strong>Totalt antall skap:</strong> <span id="total-lockers">...</span></p>
+            <p><strong>Ledige skap:</strong> <span id="available-lockers">...</span></p>
+            <p><strong>Opptatte skap:</strong> <span id="occupied-lockers">...</span></p>
+            <p><strong>Totalt antall brukere:</strong> <span id="total-users">...</span></p>
+        </div>
+
+        <h2>Skap per garderoberom</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Romnavn</th>
+                    <th>Antall skap</th>
+                </tr>
+            </thead>
+            <tbody id="lockers-by-room">
+                <!-- Fylles av JS -->
+            </tbody>
+        </table>
+
+        <h2>Rom med flest opptatte skap</h2>
+        <ul id="most-used-rooms"></ul>
+
+        <h2>Mest aktive brukere</h2>
+        <ul id="most-active-users"></ul>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch("/statistic/total_lockers")
+                .then(res => res.json()).then(data => document.getElementById("total-lockers").innerText = data.total_lockers);
+
+            fetch("/statistic/available_lockers")
+                .then(res => res.json()).then(data => document.getElementById("available-lockers").innerText = data.available_lockers);
+
+            fetch("/statistic/occupied_lockers")
+                .then(res => res.json()).then(data => document.getElementById("occupied-lockers").innerText = data.occupied_lockers);
+
+            fetch("/statistic/total_users")
+                .then(res => res.json()).then(data => document.getElementById("total-users").innerText = data.total_users);
+
+            fetch("/statistic/lockers_by_room")
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById("lockers-by-room");
+                    tbody.innerHTML = "";
+                    data.forEach(row => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `<td>${row.room_name}</td><td>${row.locker_count}</td>`;
+                        tbody.appendChild(tr);
+                    });
+                });
+
+            fetch("/statistic/most_used_rooms")
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById("most-used-rooms");
+                    list.innerHTML = "";
+                    data.forEach(room => {
+                        list.innerHTML += `<li>${room.room_name} – ${room.occupied_count} opptatte skap</li>`;
+                    });
+                });
+
+            fetch("/statistic/most_active_users")
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById("most-active-users");
+                    list.innerHTML = "";
+                    data.forEach(user => {
+                        list.innerHTML += `<li>${user.username} – ${user.reservations} reserveringer</li>`;
+                    });
+                });
+        });
+    </script>
+</body>
+</html>
