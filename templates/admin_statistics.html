@@ -21,7 +21,9 @@
             <thead>
                 <tr>
                     <th>Romnavn</th>
-                    <th>Antall skap</th>
+                    <th>Totalt</th>
+                    <th>Ledige</th>
+                    <th>Opptatte</th>
                 </tr>
             </thead>
             <tbody id="lockers-by-room">
@@ -38,49 +40,70 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            const safeFetch = (url, callback, fallbackId) => {
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (Array.isArray(data)) {
+                            callback(data);
+                        } else {
+                            document.getElementById(fallbackId).innerHTML = "<li>Kunne ikke hente data.</li>";
+                            console.error("Ugyldig respons:", data);
+                        }
+                    })
+                    .catch(err => {
+                        document.getElementById(fallbackId).innerHTML = "<li>Feil under lasting av data.</li>";
+                        console.error("Fetch-feil:", err);
+                    });
+            };
+
             fetch("/statistic/total_lockers")
-                .then(res => res.json()).then(data => document.getElementById("total-lockers").innerText = data.total_lockers);
+                .then(res => res.json())
+                .then(data => document.getElementById("total-lockers").innerText = data.total_lockers);
 
             fetch("/statistic/available_lockers")
-                .then(res => res.json()).then(data => document.getElementById("available-lockers").innerText = data.available_lockers);
+                .then(res => res.json())
+                .then(data => document.getElementById("available-lockers").innerText = data.available_lockers);
 
             fetch("/statistic/occupied_lockers")
-                .then(res => res.json()).then(data => document.getElementById("occupied-lockers").innerText = data.occupied_lockers);
+                .then(res => res.json())
+                .then(data => document.getElementById("occupied-lockers").innerText = data.occupied_lockers);
 
             fetch("/statistic/total_users")
-                .then(res => res.json()).then(data => document.getElementById("total-users").innerText = data.total_users);
-
-            fetch("/statistic/lockers_by_room")
                 .then(res => res.json())
-                .then(data => {
-                    const tbody = document.getElementById("lockers-by-room");
-                    tbody.innerHTML = "";
-                    data.forEach(row => {
-                        const tr = document.createElement("tr");
-                        tr.innerHTML = `<td>${row.room_name}</td><td>${row.locker_count}</td>`;
-                        tbody.appendChild(tr);
-                    });
-                });
+                .then(data => document.getElementById("total-users").innerText = data.total_users);
 
-            fetch("/statistic/most_used_rooms")
-                .then(res => res.json())
-                .then(data => {
-                    const list = document.getElementById("most-used-rooms");
-                    list.innerHTML = "";
-                    data.forEach(room => {
-                        list.innerHTML += `<li>${room.room_name} – ${room.occupied_count} opptatte skap</li>`;
-                    });
-                });
 
-            fetch("/statistic/most_active_users")
-                .then(res => res.json())
-                .then(data => {
-                    const list = document.getElementById("most-active-users");
-                    list.innerHTML = "";
-                    data.forEach(user => {
-                        list.innerHTML += `<li>${user.username} – ${user.reservations} reserveringer</li>`;
-                    });
+            safeFetch("/statistic/lockers_by_room", data => {
+                const tbody = document.getElementById("lockers-by-room");
+                tbody.innerHTML = "";
+                data.forEach(row => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${row.room_name}</td>
+                        <td>${row.locker_count}</td>
+                        <td>${row.available}</td>
+                        <td>${row.occupied}</td>
+                    `;
+                    tbody.appendChild(tr);
                 });
+            }, "lockers-by-room");
+
+            safeFetch("/statistic/most_used_rooms", data => {
+                const list = document.getElementById("most-used-rooms");
+                list.innerHTML = "";
+                data.forEach(room => {
+                    list.innerHTML += `<li>${room.room_name} – ${room.occupied_count} opptatte skap</li>`;
+                });
+            }, "most-used-rooms");
+
+            safeFetch("/statistic/most_active_users", data => {
+                const list = document.getElementById("most-active-users");
+                list.innerHTML = "";
+                data.forEach(user => {
+                    list.innerHTML += `<li>${user.username} – ${user.reservations} reserveringer</li>`;
+                });
+            }, "most-active-users");
         });
     </script>
 </body>
