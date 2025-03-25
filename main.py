@@ -328,6 +328,12 @@ def get_most_active_users(db: Session = Depends(get_db)):
     except Exception as e:
         logging.error(f"Feil ved henting av mest aktive brukere: {str(e)}")
         raise HTTPException(status_code=500, detail="Kunne ikke hente mest aktive brukere.")
+@api.get("/admin_statistics")
+def serve_statistics_page(request: Request):
+    try:
+        return templates.TemplateResponse("admin_statistics.html", {"request": request})
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av statistikk-siden. {str(e)}", status_code=500)
 
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ class Statistic:
     """
 
 
+
     def get_all_rooms(db: Session):
         """
         Henter alle garderoberommene.
@@ -77,11 +78,13 @@ class Statistic:
         return db.query(Locker).filter(Locker.status == "Opptatt").count()
 
 
+
     def total_users(db: Session):
         return db.query(StandardUser).count()
 
 
     def lockers_by_room(db: Session):
+
         results = db.query(
             Locker.locker_room_id,
             LockerRoom.name,
@@ -124,10 +127,13 @@ class Statistic:
         ).order_by(
             func.count(Locker.id).desc()
         ).all()
+
+
         return [{"room_name": name, "occupied_count": count} for _, name, count in results]
 
 
     def most_active_users(db: Session):
+
         results = db.query(
             StandardUser.id,
             StandardUser.username,
@@ -139,4 +145,11 @@ class Statistic:
         ).order_by(
             func.count(Locker.id).desc()
         ).all()
-        return [{"username": username, "reservations": count} for _, username, count in results]
+
+        results = db.query(StandardUser.id, StandardUser.username, func.count(Locker.id)) \
+            .join(Locker, StandardUser.id == Locker.user_id, isouter=True) \
+            .group_by(StandardUser.id, StandardUser.username) \
+            .order_by(func.count(Locker.id).desc()) \
+            .all()
+
+
