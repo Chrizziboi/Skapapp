@@ -26,7 +26,11 @@ def create_locker_room(name: str, db: Session):
     db.add(new_locker_room)
     db.commit()
     db.refresh(new_locker_room)
-    return new_locker_room
+    return {
+        "message": f"Garderoberom '{new_locker_room.name}' opprettet.",
+        "room_id": new_locker_room.id,
+        "name": new_locker_room.name
+    }
 
 def delete_locker_room(room_id: int, db: Session):
     """

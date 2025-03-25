@@ -54,7 +54,13 @@ def add_locker(locker_room_id: int, db: Session):
     db.add(locker)
     db.commit()
     db.refresh(locker)
-    return locker
+
+    return {
+  "message": "Skap HU24-5 ble opprettet i rom 'HU24'.",
+  "locker_id": 17,
+  "combi_id": "HU24-5",
+  "room_id": 2
+}
 
 
 def add_multiple_lockers(locker_room_id: int, quantity: int, db: Session):
