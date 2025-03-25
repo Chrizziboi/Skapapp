@@ -8,7 +8,6 @@ from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
-from backend.model import LockerRoom
 from backend.model import Locker
 from backend.model.Statistic import *
 from backend.model.AdminUser import create_admin
@@ -96,8 +95,8 @@ def get_all_rooms_endpoint(db: Session = Depends(get_db)):
     Endepunkt for å hente ALLE garderoberommene med riktige navn.
     """
     try:
-        rooms = db.query(LockerRoom).all()
-        return [{"room_id": room.id, "name": room.name} for room in rooms]
+        rooms = Statistic.get_all_rooms(db)
+        return rooms
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
 
@@ -107,12 +106,10 @@ def read_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
     Endepunkt for å finne valgt garderobeskap.
     """
     try:
-      locker = db.query(Locker).filter(Locker.id == locker_id).first()
+      locker = Statistic.read_locker(locker_id, db)
       if locker is None:
           raise HTTPException(status_code=404, detail="Garderobeskap ikke funnet.")
-      return {"locker_id": locker.id, "status": locker.status, "note": locker.note}
-    except HTTPException as http_err:
-        raise http_err  # Beholder riktig statuskode
+      return locker
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
 
@@ -122,12 +119,9 @@ def get_available_lockers_endpoint(locker_room_id: int, db: Session = Depends(ge
     """
     Endepunkt for å hente antall ledige skap i et spesifikt garderoberom.
     """
-    available_lockers = db.query(Locker).filter(
-        Locker.locker_room_id == locker_room_id,
-        Locker.status.ilike("ledig")
-    ).count()
     try:
-        return {"locker_room_id": locker_room_id, "available_lockers": available_lockers}
+        available_lockers = Statistic.available_lockers(locker_room_id, db)
+        return available_lockers
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
 
@@ -138,16 +132,8 @@ def get_all_lockers_endpoint(db: Session = Depends(get_db)):
     Endepunkt for å hente ALLE skap.
     """
     try:
-        lockers = db.query(Locker).all()
-        return [
-            {
-                "locker_id": locker.id,
-                "locker_room_id": locker.locker_room_id,  # Legger til rom-ID
-                "status": locker.status,
-                "note": locker.note if locker.note else "N/A"  # Hvis notat er None, sett "N/A"
-            }
-            for locker in lockers
-        ]
+        all_lockers = Statistic.all_lockers(db)
+        return all_lockers
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
 
@@ -160,8 +146,8 @@ def create_room_endpoint(name: str, db: Session = Depends(get_db)):
     Endepunkt for å opprette et nytt garderoberom.
     """
     try:
-        locker_room = create_locker_room(name=name, db=db)
-        return {"message": "Garderoberom opprettet", "room_id": locker_room.id, "name": locker_room.name}
+        locker_room = create_locker_room(name, db)
+        return locker_room
     except HTTPException as http_err:
         raise http_err  # Beholder riktig statuskode for allerede eksisterende rom
     except Exception as e:
@@ -174,8 +160,8 @@ def create_locker_endpoint(locker_room_id: int, db: Session = Depends(get_db)):
     Endepunkt for å opprette et nytt autogenerert garderobeskap i et garderoberom.
     """
     try:
-        locker = add_locker(locker_room_id=locker_room_id, db=db)
-        return {"message": "Garderobeskap Opprettet", "locker_id": locker.id}
+        locker = add_locker(locker_room_id, db)
+        return locker
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av garderobeskap: {str(e)}", status_code=500)
 
@@ -199,7 +185,7 @@ def create_admin_user(username: str, password: str, is_superadmin: bool, db: Ses
     """
     try:
         admin = create_admin(username=username, password=password, is_superadmin=is_superadmin, db=db)
-        return {"message": "Administrator opprettet", "admin_id": admin.id}
+        return admin
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av administrator: {str(e)}", status_code=500)
 
@@ -214,7 +200,7 @@ def update_locker_note_endpoint(locker_id: int, note: str, db: Session = Depends
         locker = add_note_to_locker(locker_id=locker_id, note=note, db=db)
         if locker is None:
             raise HTTPException(status_code=404, detail="Locker not found")
-        return {"message": "Notat lagt til", "locker_id": locker.id, "note": locker.note}
+        return locker
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppdatering av notat: {str(e)}", status_code=500)
 
@@ -228,10 +214,10 @@ def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
         locker = db.query(Locker).filter(Locker.id == locker_id).first()
         if locker is None:
             raise HTTPException(status_code=404, detail="Garderobeskap ikke funnet.")
-        locker.status = "ledig"
+        locker.status = "Ledig"
         db.commit()
         db.refresh(locker)  # Sikrer at endringer reflekteres i objektet
-        return {"message": f"Garderobeskap med id: {locker_id} er nå åpnet."}
+        return locker
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
 
@@ -242,8 +228,8 @@ def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Dep
     Reserverer det ledige skapet med lavest nummer i et spesifikt garderoberom for en bruker.
     """
     try:
-        reserve_locker(user_id=user_id, locker_room_id=locker_room_id, db=db)
-        return {"message": "Garderobeskap reservert!", "locker_id": Locker.id}
+        reserved_locker = reserve_locker(user_id=user_id, locker_room_id=locker_room_id, db=db)
+        return reserved_locker
     except Exception as e:
         return fastapi_error_handler(f"Feil ved reservering av garderobeskap: {str(e)}", status_code=500)
 
@@ -270,7 +256,17 @@ def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
     """
     Sletter et garderoberom samt alle skap tilknyttet det rommet.
     """
-    return delete_locker_room(room_id, db)
+    try:
+        result = delete_locker_room(room_id, db)
+        return {
+            "message": f"Garderoberom med ID {room_id} og alle tilhørende skap er slettet.",
+            "room_id": room_id
+        }
+    except HTTPException as http_err:
+        raise http_err  # Behold riktig statuskode for feilhåndtering
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved sletting av garderoberom: {str(e)}", status_code=500)
+
 
 ''' STATISTIC CALLS '''
 
@@ -309,7 +305,8 @@ def get_total_users(db: Session = Depends(get_db)):
 @api.get("/statistic/lockers_by_room")
 def get_lockers_by_room(db: Session = Depends(get_db)):
     try:
-        return Statistic.lockers_by_room(db)
+        lockers_by_room = Statistic.lockers_by_room(db)
+        return lockers_by_room
     except Exception as e:
         logging.error(f"Feil ved henting av skap per garderoberom: {str(e)}")
         raise HTTPException(status_code=500, detail="Kunne ikke hente skap per garderoberom.")
@@ -317,7 +314,8 @@ def get_lockers_by_room(db: Session = Depends(get_db)):
 @api.get("/statistic/most_used_rooms")
 def get_most_used_rooms(db: Session = Depends(get_db)):
     try:
-        return Statistic.most_used_rooms(db)
+        most_used_rooms = Statistic.most_used_rooms(db)
+        return most_used_rooms(db)
     except Exception as e:
         logging.error(f"Feil ved henting av mest brukte garderoberom: {str(e)}")
         raise HTTPException(status_code=500, detail="Kunne ikke hente mest brukte garderoberom.")
@@ -325,7 +323,8 @@ def get_most_used_rooms(db: Session = Depends(get_db)):
 @api.get("/statistic/most_active_users")
 def get_most_active_users(db: Session = Depends(get_db)):
     try:
-        return Statistic.most_active_users(db)
+        most_active_users = Statistic.most_active_users(db)
+        return most_active_users
     except Exception as e:
         logging.error(f"Feil ved henting av mest aktive brukere: {str(e)}")
         raise HTTPException(status_code=500, detail="Kunne ikke hente mest aktive brukere.")
