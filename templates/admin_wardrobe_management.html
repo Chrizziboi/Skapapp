@@ -34,10 +34,10 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Locker ID</th>
+                        <th>Skap ID</th>
                         <th>Status</th>
-                        <th>Note</th>
-                        <th>Actions</th>
+                        <th>Notat</th>
+                        <th>Handlinger</th>
                     </tr>
                 </thead>
                 <tbody id="locker-table"></tbody>
@@ -67,7 +67,7 @@
                         listItem.onclick = () => selectRoom(room.room_id, room.name);
 
                         let deleteButton = document.createElement("button");
-                        deleteButton.textContent = "Delete";
+                        deleteButton.textContent = "Slett";
                         deleteButton.onclick = (event) => {
                             event.stopPropagation();
                             deleteRoom(room.room_id);
