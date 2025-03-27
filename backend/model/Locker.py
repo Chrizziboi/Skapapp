@@ -28,7 +28,7 @@ def add_locker(locker_room_id: int, db: Session):
     from backend.model.LockerRoom import LockerRoom
     locker_room = db.query(LockerRoom).filter_by(id=locker_room_id).first()
     if not locker_room:
-        raise fastapi_error_handler(status_code=404, detail="Garderoberom ikke funnet.")
+        raise fastapi_error_handler("Garderoberom ikke funnet.", status_code=404)
 
     room_name = locker_room.name
 
@@ -56,11 +56,11 @@ def add_locker(locker_room_id: int, db: Session):
     db.refresh(locker)
 
     return {
-  "message": "Skap HU24-5 ble opprettet i rom 'HU24'.",
-  "locker_id": 17,
-  "combi_id": "HU24-5",
-  "room_id": 2
-}
+              "message": "Skap HU24-5 ble opprettet i rom 'HU24'.",
+              "locker_id": 17,
+              "combi_id": "HU24-5",
+              "room_id": 2
+            }
 
 
 def add_multiple_lockers(locker_room_id: int, quantity: int, db: Session):
@@ -68,12 +68,12 @@ def add_multiple_lockers(locker_room_id: int, quantity: int, db: Session):
     Legger til flere nye skap med unike combi_id-er som ikke eksisterer fra før.
     """
     if quantity <= 0:
-        raise fastapi_error_handler(status_code=400, detail="Antall skap må være større enn 0.")
+        raise fastapi_error_handler("Antall skap må være større enn 0.", status_code=400)
 
     from backend.model.LockerRoom import LockerRoom
     locker_room = db.query(LockerRoom).filter_by(id=locker_room_id).first()
     if not locker_room:
-        raise fastapi_error_handler(status_code=404, detail="Garderoberom ikke funnet.")
+        raise fastapi_error_handler("Garderoberom ikke funnet.", status_code=404)
 
     room_name = locker_room.name
 
@@ -124,7 +124,6 @@ def add_multiple_lockers(locker_room_id: int, quantity: int, db: Session):
         "message": f"{quantity} garderobeskap er opprettet i rom {locker_room_id}.",
         "multiple_locker_ids": locker_details
     }
-
 
 
 def add_note_to_locker(locker_id: int, note: str, db: Session):

@@ -1,9 +1,9 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship, Session
 
+from backend.Service.ErrorHandler import fastapi_error_handler
 from database import Base
-from fastapi import HTTPException
-from backend.model.Locker import Locker  # Importer Locker-modellen
+from backend.model.Locker import Locker
 
 class LockerRoom(Base):
     __tablename__ = "locker_rooms"
@@ -20,7 +20,7 @@ def create_locker_room(name: str, db: Session):
     """
     existing_room = db.query(LockerRoom).filter(LockerRoom.name == name).first()
     if existing_room:
-        raise HTTPException(status_code=400, detail=f"Garderoberom med navn '{name}' finnes allerede.")
+        raise fastapi_error_handler(f"Garderoberom med navn '{name}' finnes allerede.", status_code=400)
 
     new_locker_room = LockerRoom(name=name)
     db.add(new_locker_room)
@@ -38,7 +38,7 @@ def delete_locker_room(room_id: int, db: Session):
     """
     room = db.query(LockerRoom).filter(LockerRoom.id == room_id).first()
     if not room:
-        raise HTTPException(status_code=404, detail=f"Garderoberom med id {room_id} ikke funnet.")
+        raise fastapi_error_handler(f"Garderoberom med id {room_id} ikke funnet.", status_code=404)
 
     try:
         # Slett alle skap i rommet
@@ -51,4 +51,4 @@ def delete_locker_room(room_id: int, db: Session):
         return {"message": f"Garderoberom med id {room_id} og tilhørende skap er nå slettet."}
     except Exception as e:
         db.rollback()  # Sørger for at feilen ikke etterlater en halvferdig transaksjon.
-        raise HTTPException(status_code=500, detail=f"En feil oppstod under sletting: {str(e)}")
+        raise fastapi_error_handler(f"En feil oppstod under sletting: {str(e)}", status_code=500)

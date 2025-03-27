@@ -1,7 +1,9 @@
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import Session
+
+from backend.Service.ErrorHandler import fastapi_error_handler
 from database import Base
-from fastapi import HTTPException
+
 
 class AdminUser(Base):
     __tablename__ = "admin_users"
@@ -17,7 +19,7 @@ def create_admin(username: str, password: str, is_superadmin: bool, db: Session)
     """
     existing_admin = db.query(AdminUser).filter(AdminUser.username == username).first()
     if existing_admin:
-        raise HTTPException(status_code=400, detail="Brukernavn finnes allerede.")
+        raise fastapi_error_handler("Brukernavn finnes allerede.", status_code=400)
 
     new_admin = AdminUser(username=username, password=password, is_superadmin=is_superadmin)
     db.add(new_admin)
@@ -37,7 +39,7 @@ def delete_admin(admin_id: int, db: Session):
     """
     admin = db.query(AdminUser).filter(AdminUser.id == admin_id).first()
     if not admin:
-        raise HTTPException(status_code=404, detail="Administrator ikke funnet.")
+        raise fastapi_error_handler("Administrator ikke funnet.", status_code=404)
 
     db.delete(admin)
     db.commit()

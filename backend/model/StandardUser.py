@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import Session
+
+from backend.Service.ErrorHandler import fastapi_error_handler
 from database import Base
-from fastapi import HTTPException
 from backend.model.Locker import Locker
 from backend.model.LockerRoom import LockerRoom
 
@@ -17,7 +18,7 @@ def create_standard_user(rfid_tag: str, db: Session):
     """
     existing_user = db.query(StandardUser).filter(StandardUser.rfid_tag == rfid_tag).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail="rfid_tag finnes allerede.")
+        raise fastapi_error_handler("rfid_tag finnes allerede.", status_code=400)
 
     new_user = StandardUser(rfid_tag=rfid_tag)
     db.add(new_user)
@@ -38,12 +39,12 @@ def reserve_locker(user_id: int, locker_room_id: int, db: Session):
     # Sjekk om brukeren finnes
     user = db.query(StandardUser).filter(StandardUser.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="Brukeren finnes ikke. Registrer deg før du reserverer et skap.")
+        raise fastapi_error_handler("Brukeren finnes ikke. Registrer deg før du reserverer et skap.", status_code=404)
 
     # Sjekk om garderoberommet finnes
     room = db.query(LockerRoom).filter(LockerRoom.id == locker_room_id).first()
     if not room:
-        raise HTTPException(status_code=404, detail="Garderoberommet finnes ikke.")
+        raise fastapi_error_handler("Garderoberommet finnes ikke.", status_code=404)
 
     # Finn det ledige skapet med lavest nummer i det spesifikke garderoberommet
     locker = db.query(Locker).filter(
@@ -53,7 +54,7 @@ def reserve_locker(user_id: int, locker_room_id: int, db: Session):
 
     # Hvis ingen ledige skap finnes i dette rommet
     if not locker:
-        raise HTTPException(status_code=400, detail=f"Ingen ledige garderobeskap i rom '{room.name}'.")
+        raise fastapi_error_handler(f"Ingen ledige garderobeskap i rom '{room.name}'.",status_code=400)
 
     # Oppdater skapstatus og knytt skapet til brukeren
     locker.status = "opptatt"

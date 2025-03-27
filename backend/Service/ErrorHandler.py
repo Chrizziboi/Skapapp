@@ -76,7 +76,7 @@ class ErrorHandler:
 def fastapi_error_handler(error_message, status_code=400):
     handler = ErrorHandler()
     handler.log_error(error_message)
-    raise HTTPException(status_code=status_code, detail=error_message)
+    raise HTTPException( detail=error_message, status_code=status_code)
 
 # Test logging og feilhåndtering
 if __name__ == "__main__":
