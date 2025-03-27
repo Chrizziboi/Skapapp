@@ -36,6 +36,11 @@
 
         <h2>Mest aktive brukere</h2>
         <ul id="most-active-users"></ul>
+
+        <div class="navigation-buttons">
+            <button onclick="location.href='/admin_page'">← Tilbake</button>
+            <button onclick="location.href='/'">🏠 Hjem</button>
+        </div>
     </div>
 
     <script>
@@ -72,7 +77,6 @@
             fetch("/statistic/total_users")
                 .then(res => res.json())
                 .then(data => document.getElementById("total-users").innerText = data.total_users);
-
 
             safeFetch("/statistic/lockers_by_room", data => {
                 const tbody = document.getElementById("lockers-by-room");

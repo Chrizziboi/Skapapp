@@ -79,7 +79,7 @@ def serve_admin_page_endpoint(request: Request):
         return fastapi_error_handler(f"Feil ved henting av adminsiden. {str(e)}", status_code=500)
 
 
-@api.get("/admin_wardrobe_management")
+@api.get("/admin_wardrobe")
 def serve_admin_wardrobe_management_endpoint(request: Request):
 
     try:
