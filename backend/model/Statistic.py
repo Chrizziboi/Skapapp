@@ -10,9 +10,6 @@ class Statistic:
     """
     Klasse for å hente statistikk om garderobeskap og bruksmønstre.
     """
-
-
-
     def get_all_rooms(db: Session):
         """
         Henter alle garderoberommene.
@@ -31,10 +28,8 @@ class Statistic:
         try:
             locker = db.query(Locker).filter(Locker.id == locker_id).first()
             if locker is None:
-                raise fastapi_error_handler(status_code=404, detail="Garderobeskap ikke funnet.")
+                raise fastapi_error_handler("Garderobeskap ikke funnet.", status_code=404)
             return {"locker_id": locker.id, "status": locker.status, "note": locker.note}
-        except fastapi_error_handler as http_err:
-            raise http_err  # Beholder riktig statuskode
         except Exception as e:
             return fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
 

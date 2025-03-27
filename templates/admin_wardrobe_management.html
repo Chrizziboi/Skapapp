@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Garderobe håndtering</title>
+    <title>Admin - Garderobe Administrasjon</title>
     <link rel="stylesheet" href="/static/styles/admin_rooms.css">
 </head>
 <body>
 
     <div class="container">
-        <h1>Wardrobe Management</h1>
+        <h1>Garderobe Administrasjon</h1>
 
         <div class="top-nav">
             <button onclick="goBack()">← Tilbake</button>
@@ -17,32 +17,32 @@
         </div>
         <!-- Room Management (Fixed) -->
         <div class="section" id="room-management">
-            <h2>Room Management</h2>
-            <input type="text" id="roomName" placeholder="Enter room name">
-            <button onclick="createRoom()">Create Room</button>
+            <h2>Garderoberom håndtering</h2>
+            <input type="text" id="roomName" placeholder="Skriv inn romnavn">
+            <button onclick="createRoom()">Opprett garderoberom</button>
 
-            <h3>Existing Rooms</h3>
+            <h3>Eksisterende garderoberom</h3>
             <ul id="room-list"></ul>
         </div>
 
         <!-- Locker Management (Expands) -->
         <div class="section" id="locker-section">
-            <h2>Lockers in Selected Room</h2>
-            <h3 id="selected-room-name">No Room Selected</h3>
-            <button id="create-locker-btn" onclick="createLocker()" disabled>Create Locker</button>
+            <h2>Antall garderobeskap i garderoberom</h2>
+            <h3 id="selected-room-name">Ingen garderoberom valgt</h3>
+            <button id="create-locker-btn" onclick="createLocker()" disabled>Opprett garderobeskap</button>
 
               <div class="multiple-lockers">
                 <input type="number" id="lockerQuantity" min="1" placeholder="Number of lockers">
-                <button id="create-multiple-lockers-btn" onclick="createMultipleLockers()" disabled>Create Multiple Lockers</button>
+                <button id="create-multiple-lockers-btn" onclick="createMultipleLockers()" disabled>Opprett flere garderobeskap</button>
               </div>
 
             <table>
                 <thead>
                     <tr>
-                        <th>Locker ID</th>
+                        <th>Skap ID</th>
                         <th>Status</th>
-                        <th>Note</th>
-                        <th>Actions</th>
+                        <th>Notat</th>
+                        <th>Handlinger</th>
                     </tr>
                 </thead>
                 <tbody id="locker-table"></tbody>
@@ -79,7 +79,7 @@
                         listItem.onclick = () => selectRoom(room.room_id, room.name);
 
                         let deleteButton = document.createElement("button");
-                        deleteButton.textContent = "Delete";
+                        deleteButton.textContent = "Slett";
                         deleteButton.onclick = (event) => {
                             event.stopPropagation();
                             deleteRoom(room.room_id);
