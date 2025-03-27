@@ -28,7 +28,7 @@ class Statistic:
         try:
             locker = db.query(Locker).filter(Locker.id == locker_id).first()
             if locker is None:
-                raise fastapi_error_handler(status_code=404, detail="Garderobeskap ikke funnet.")
+                raise fastapi_error_handler("Garderobeskap ikke funnet.", status_code=404)
             return {"locker_id": locker.id, "status": locker.status, "note": locker.note}
         except Exception as e:
             return fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
