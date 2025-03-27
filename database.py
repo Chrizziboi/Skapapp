@@ -3,7 +3,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 
-
 # SQLite-database lagres i en fil
 DATABASE_URL = "sqlite:///./database.db"
 

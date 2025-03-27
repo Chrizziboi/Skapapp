@@ -43,5 +43,5 @@ jobs:
         PYTHONPATH: .
       run: |
         pytest tests/backend_tests/test_pytest.py
-        pytest tests/backend_tests/test_main_API.py
-        pytest tests/backend_tests/test_locker.py
+        pytest tests/backend_tests/test_backend.py
+        pytest tests/backend_tests/test_AdminUser.py

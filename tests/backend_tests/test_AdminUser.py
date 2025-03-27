@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from backend.model.AdminUser import AdminUser, create_admin, get_admin_by_username, delete_admin
+from backend.model.AdminUser import create_admin, get_admin_by_username, delete_admin
 from database import Base
 
 
