@@ -7,9 +7,14 @@
     <link rel="stylesheet" href="/static/styles/admin_rooms.css">
 </head>
 <body>
+
     <div class="container">
         <h1>Wardrobe Management</h1>
 
+        <div class="top-nav">
+            <button onclick="goBack()">← Tilbake</button>
+            <button onclick="goHome()">🏠 Hjem</button>
+        </div>
         <!-- Room Management (Fixed) -->
         <div class="section" id="room-management">
             <h2>Room Management</h2>
@@ -44,7 +49,14 @@
             </table>
         </div>
     </div>
-
+    <script>
+        function goHome() {
+            window.location.href = "/";
+        }
+        function goBack() {
+            window.history.back();
+        }
+    </script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -222,5 +234,6 @@
                 .catch(error => console.error("Error deleting locker:", error));
         }
     </script>
+
 </body>
 </html>

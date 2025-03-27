@@ -13,8 +13,13 @@
 
         <div class="actions">
             <button onclick="goToAvailableLockers()">Available Lockers</button>
-            <button onclick="goToAdminWardrobeManagement()">Wardrobe Administration</button>
+            <button onclick="goToWardrobe()">Wardrobe Administration</button>
             <button onclick="goToStatistics()">Statistics</button>
+        </div>
+
+        <div class="nav-buttons">
+            <button onclick="goBack()">← Tilbake</button>
+            <button onclick="goHome()">🏠 Hjem</button>
         </div>
     </div>
 
@@ -22,14 +27,17 @@
         function goToAvailableLockers() {
             window.location.href = "/available_lockers";
         }
-      
-        function goToAdminWardrobeManagement() {
-            window.location.href = "/admin_wardrobe_management";
-
+        function goToWardrobe() {
+            window.location.href = "/admin_wardrobe";
         }
         function goToStatistics() {
             window.location.href = "/admin_statistics";
-
+        }
+        function goHome() {
+            window.location.href = "/";
+        }
+        function goBack() {
+            window.history.back();
         }
     </script>
 </body>
