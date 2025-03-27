@@ -56,10 +56,10 @@ def add_locker(locker_room_id: int, db: Session):
     db.refresh(locker)
 
     return {
-              "message": "Skap HU24-5 ble opprettet i rom 'HU24'.",
-              "locker_id": 17,
-              "combi_id": "HU24-5",
-              "room_id": 2
+              f"message": "Skap {combi_id} ble opprettet i rom {room_name}.",
+              "locker_id": Locker.id,
+              f"combi_id": combi_id,
+              "room_id": locker_room_id
             }
 
 
