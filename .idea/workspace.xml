@@ -4,13 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Changed the frontend text to norwegian#2">
-      <change afterPath="$PROJECT_DIR$/tests/backend_tests/test_LockerRoom.py" afterDir="false" />
+    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="fixed all broken and outdated tests so they now test on the current implementation, changed all test_.py files so they have more correct names and made a share-file for all backend tests, but kept some to not make test_backend.py to messy after more tests have been added.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/backend_tests/test_admin_user.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/backend_tests/test_AdminUser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/backend_tests/test_locker.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/backend_tests/test_Locker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/backend_tests/test_main_API.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/backend_tests/test_main_API.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/backend_tests/test_standard_user.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/backend_tests/test_StandardUser.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/admin_wardrobe_management.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_wardrobe_management.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,37 +49,62 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Python tests.pytest for test_Locker.test_add_locker.executor": "Run",
-    "Python tests.pytest in test_AdminUser.py.executor": "Run",
-    "Python tests.pytest in test_Locker.py.executor": "Run",
-    "Python tests.pytest in test_locker.py.executor": "Run",
-    "Python tests.pytest in test_main_API.py.executor": "Run",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "test__fixes",
-    "last_opened_file_path": "C:/Users/hanna/OneDrive/Dokumenter/GitHub/Skapapp",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "MonokaiProSettingsConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_MARK_IGNORED_FILES_AS_EXCLUDED&quot;: &quot;true&quot;,
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Python tests.pytest for test_Locker.test_add_locker.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_Wardrobe.test_admin_user.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_Wardrobe.test_admin_user_crud.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_Wardrobe.test_create_and_delete_locker_room.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_Wardrobe.test_create_locker_room.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_Wardrobe.test_db.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_Wardrobe.test_locker.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_Wardrobe.test_locker_crud.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_Wardrobe.test_locker_room_deletion.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_Wardrobe.test_standard_user_and_reservation.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_Wardrobe.test_statistics.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_backend.test_add_locker_success.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_backend.test_add_locker_to_nonexistent_room.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_backend.test_add_multiple_lockers_zero_quantity.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_backend.test_add_note_to_locker_success.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_backend.test_add_note_to_nonexistent_locker.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_backend.test_create_duplicate_locker_room.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_backend.test_delete_nonexistent_locker_room.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_backend.test_locker_room_deletion.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_backend.test_note_after_room_deletion.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_backend.test_remove_nonexistent_locker.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_main_API.test_admin_wardrobe_management_page_loads.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_main_API.test_db.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest for test_main_API.test_main_page_loads.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest in test_AdminUser.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest in test_Locker.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest in test_Wardrobe.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest in test_backend.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest in test_locker.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.pytest in test_main_API.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;test__fixes&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/hanna/OneDrive/Dokumenter/GitHub/Skapapp&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;MonokaiProSettingsConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\hanna\OneDrive\Dokumenter\GitHub\Skapapp\static\styles" />
       <recent name="C:\Users\hanna\OneDrive\Dokumenter\GitHub\Skapapp\templates" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.pytest for test_Locker.test_add_locker">
+  <component name="RunManager" selected="Python.main">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Skapapp" />
       <option name="ENV_FILES" value="" />
@@ -97,7 +118,6 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -107,7 +127,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="pytest for test_Locker.test_add_locker" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+    <configuration name="pytest for test_backend.test_locker_room_deletion" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
       <module name="Skapapp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -120,7 +140,24 @@
       <option name="_new_keywords" value="&quot;&quot;" />
       <option name="_new_parameters" value="&quot;&quot;" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_Locker.test_add_locker&quot;" />
+      <option name="_new_target" value="&quot;test_backend.test_locker_room_deletion&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest for test_backend.test_note_after_room_deletion" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="Skapapp" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests/backend_tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_parameters" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_backend.test_note_after_room_deletion&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
@@ -141,7 +178,7 @@
       <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="pytest in test_Locker.py" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+    <configuration name="pytest in test_backend.py" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
       <module name="Skapapp" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -154,17 +191,17 @@
       <option name="_new_keywords" value="&quot;&quot;" />
       <option name="_new_parameters" value="&quot;&quot;" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/backend_tests/test_Locker.py&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/backend_tests/test_backend.py&quot;" />
       <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.pytest for test_Locker.test_add_locker" />
-        <item itemvalue="Python tests.pytest in test_Locker.py" />
+        <item itemvalue="Python.main" />
+        <item itemvalue="Python tests.pytest in test_backend.py" />
         <item itemvalue="Python tests.pytest in test_AdminUser.py" />
-        <item itemvalue="Python.main" />
-        <item itemvalue="Python.main" />
+        <item itemvalue="Python tests.pytest for test_backend.test_locker_room_deletion" />
+        <item itemvalue="Python tests.pytest for test_backend.test_note_after_room_deletion" />
       </list>
     </recent_temporary>
   </component>
@@ -221,7 +258,21 @@
       <option name="presentableId" value="LOCAL−00005" />
       <updated>1743075825468</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL−00006" summary="test_AdminUser.py fixed">
+      <option name="closed" value="true" />
+      <created>1743077477493</created>
+      <option name="number" value="LOCAL−00006" />
+      <option name="presentableId" value="LOCAL−00006" />
+      <updated>1743077477493</updated>
+    </task>
+    <task id="LOCAL−00007" summary="fixed all broken and outdated tests so they now test on the current implementation, changed all test_.py files so they have more correct names and made a share-file for all backend tests, but kept some to not make test_backend.py to messy after more tests have been added.">
+      <option name="closed" value="true" />
+      <created>1743086764390</created>
+      <option name="number" value="LOCAL−00007" />
+      <option name="presentableId" value="LOCAL−00007" />
+      <updated>1743086764390</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -244,7 +295,9 @@
     <MESSAGE value="changed all exceptions to go through ErrorHandler.py first.&#10;&#10;corrected some error texts to fit norwegian." />
     <MESSAGE value="Changed the frontend text to norwegian" />
     <MESSAGE value="Changed the frontend text to norwegian#2" />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed the frontend text to norwegian#2" />
+    <MESSAGE value="test_AdminUser.py fixed" />
+    <MESSAGE value="fixed all broken and outdated tests so they now test on the current implementation, changed all test_.py files so they have more correct names and made a share-file for all backend tests, but kept some to not make test_backend.py to messy after more tests have been added." />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed all broken and outdated tests so they now test on the current implementation, changed all test_.py files so they have more correct names and made a share-file for all backend tests, but kept some to not make test_backend.py to messy after more tests have been added." />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1740053942940" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
