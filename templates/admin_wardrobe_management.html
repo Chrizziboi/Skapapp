@@ -32,7 +32,7 @@
             <button id="create-locker-btn" onclick="createLocker()" disabled>Opprett garderobeskap</button>
 
               <div class="multiple-lockers">
-                <input type="number" id="lockerQuantity" min="1" placeholder="Number of lockers">
+                <input type="number" id="lockerQuantity" min="1" placeholder="Skriv inn antall skap">
                 <button id="create-multiple-lockers-btn" onclick="createMultipleLockers()" disabled>Opprett flere garderobeskap</button>
               </div>
 
@@ -158,11 +158,11 @@
             fetch(`/locker_rooms/${roomId}`, { method: "DELETE" })
                 .then(response => response.json())
                 .then(() => {
-                    alert("Room deleted!");
+                    alert("Rom slettet!");
                     fetchRooms();
                     if (roomId === selectedRoomId) {
                         selectedRoomId = null;
-                        document.getElementById("selected-room-name").textContent = "No Room Selected";
+                        document.getElementById("selected-room-name").textContent = "Ingen rom valgt!";
                         document.getElementById("create-locker-btn").disabled = true;
                         document.getElementById("locker-table").innerHTML = "";
                     }
@@ -186,8 +186,8 @@
                             <td>${locker.status}</td>
                             <td>${locker.note || "N/A"}</td>
                             <td>
-                                <button onclick="unlockLocker(${locker.locker_id})">Unlock</button>
-                                <button onclick="removeLocker(${locker.locker_id})">Remove</button>
+                                <button onclick="unlockLocker(${locker.locker_id})">Lås opp</button>
+                                <button onclick="removeLocker(${locker.locker_id})">Slett</button>
                             </td>
                         </tr>`;
                         lockerTable.innerHTML += row;
