@@ -95,7 +95,7 @@
         // Velger et rom og viser skapene i det
         function selectRoom(roomId, roomName) {
             selectedRoomId = roomId;  // Sørg for at denne blir oppdatert
-            document.getElementById("selected-room-name").textContent = `Selected Room: ${roomName}`;
+            document.getElementById("selected-room-name").textContent = `Valgt garderoberom: ${roomName}`;
             document.getElementById("create-locker-btn").disabled = false;
             document.getElementById("create-multiple-lockers-btn").disabled = false;  // Aktiver knappen
             fetchLockersInRoom(roomId);
