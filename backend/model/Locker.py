@@ -32,13 +32,11 @@ def add_locker(locker_room_id: int, db: Session):
 
     room_name = locker_room.name
 
-    # Finn alle combi_id'er som starter med dette romnavnet
     existing_combis = db.query(Locker.combi_id).filter(
         Locker.locker_room_id == locker_room_id,
         Locker.combi_id.like(f"{room_name}-%")
     ).all()
 
-    # Ekstraher tallene etter romnavnet, f.eks. "HU25-4" -> 4
     used_numbers = []
     for combi in existing_combis:
         try:
@@ -56,12 +54,13 @@ def add_locker(locker_room_id: int, db: Session):
     db.refresh(locker)
 
     return {
-              f"message": "Skap {combi_id} ble opprettet i rom {room_name}.",
-              "locker_id": Locker.id,
-              f"combi_id": combi_id,
-              "room_id": locker_room_id
-            }
-
+        "message": f"Skap {combi_id} ble opprettet.",
+        "locker_id": locker.id,
+        "status": locker.status,
+        "combi_id": locker.combi_id,
+        "locker_room_id": locker.locker_room_id,
+        "note": locker.note
+    }
 
 def add_multiple_lockers(locker_room_id: int, quantity: int, db: Session):
     """

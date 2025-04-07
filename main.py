@@ -158,10 +158,11 @@ def create_locker_endpoint(locker_room_id: int, db: Session = Depends(get_db)):
     Endepunkt for å opprette et nytt autogenerert garderobeskap i et garderoberom.
     """
     try:
-        locker = add_locker(locker_room_id, db)
-        return locker
+        result = add_locker(locker_room_id, db)
+        return result
     except Exception as e:
-        return fastapi_error_handler(f"Feil ved oppretting av Garderobeskap med id: {Locker.combi_id}, {str(e)}", status_code=500)
+        return fastapi_error_handler(f"Feil ved oppretting av garderobeskap: {str(e)}", status_code=500)
+
 
 
 @api.post("/lockers/multiple_lockers")

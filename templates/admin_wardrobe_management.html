@@ -59,6 +59,7 @@
     </script>
 
     <script>
+        let selectedRoomId = null;
         document.addEventListener("DOMContentLoaded", function () {
             fetchRooms();
             fetchLockersInRoom();
@@ -131,14 +132,14 @@
 
         function createMultipleLockers() {
             if (!selectedRoomId) {
-                alert("Please select a room before creating lockers.");
+                alert("Vennligst velg et rom før du oppretter flere skap.");
                 return;
             }
 
             const quantity = document.getElementById("lockerQuantity").value;
 
             if (quantity < 1) {
-                alert("Please enter a valid number of lockers.");
+                alert("Oppgi et gyldig antall skap.");
                 return;
             }
 
@@ -147,11 +148,15 @@
             })
             .then(response => response.json())
             .then(data => {
-                alert(data.message);
+                alert(data.message || "Skap opprettet.");
                 fetchLockersInRoom(selectedRoomId);
             })
-            .catch(error => console.error("Error creating multiple lockers:", error));
+            .catch(error => {
+                console.error("Feil ved oppretting av flere skap:", error);
+            });
         }
+
+
 
         // Sletter et garderoberom
         function deleteRoom(roomId) {
@@ -199,18 +204,24 @@
         // Oppretter et nytt skap
         function createLocker() {
             if (!selectedRoomId) {
-                alert("Please select a room before creating a locker.");
+                alert("Vennligst velg et rom først.");
                 return;
             }
 
-            fetch(`http://localhost:8080/lockers/?locker_room_id=${selectedRoomId}`, { method: "POST" })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    fetchLockersInRoom(selectedRoomId);
-                })
-                .catch(error => console.error("Error creating locker:", error));
+            fetch(`http://localhost:8080/lockers/?locker_room_id=${selectedRoomId}`, {
+                method: "POST"
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || "Skap opprettet!");
+                fetchLockersInRoom(selectedRoomId);
+            })
+            .catch(error => {
+                console.error("Feil ved oppretting av skap:", error);
+            });
         }
+
+
 
         // Låser opp et skap
         function unlockLocker(lockerId) {

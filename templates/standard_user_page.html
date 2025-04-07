@@ -20,34 +20,39 @@
 
             function fetchRoomsWithLockers() {
                 fetch("http://localhost:8080/locker_rooms/")
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error("Kunne ikke hente romdata.");
-                        }
-                        return response.json();
-                    })
-                    .then(rooms => {
+                    .then(response => response.json())
+                    .then(async rooms => {
                         const roomList = document.getElementById("room-list");
                         roomList.innerHTML = '';
 
-                        rooms.forEach(room => {
-                            fetch(`http://localhost:8080/locker_rooms/${room.room_id}/available_lockers`)
-                                .then(response => {
-                                    if (!response.ok) {
-                                        throw new Error(`Kunne ikke hente skapdata for ${room.name}`);
-                                    }
-                                    return response.json();
-                                })
-                                .then(data => {
-                                    let listItem = document.createElement('li');
-                                    listItem.innerText = `${room.name}: ${data.available_lockers} ledige skap`;
-                                    roomList.appendChild(listItem);
-                                })
-                                .catch(error => console.error("Feil ved henting av data:", error));
-                        });
+                        // Lag en liste med alle rom og deres tilgjengelige skap
+                        const roomData = await Promise.all(rooms.map(async room => {
+                            try {
+                                const res = await fetch(`http://localhost:8080/locker_rooms/${room.room_id}/available_lockers`);
+                                const data = await res.json();
+                                return {
+                                    name: room.name,
+                                    available: data.available_lockers
+                                };
+                            } catch (err) {
+                                console.error("Feil ved henting:", err);
+                                return null;
+                            }
+                        }));
+
+                        // Fjern null (feil), sorter alfabetisk og vis
+                        roomData
+                            .filter(room => room !== null)
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .forEach(room => {
+                                const listItem = document.createElement('li');
+                                listItem.innerText = `${room.name}: ${room.available} ledige skap`;
+                                roomList.appendChild(listItem);
+                            });
                     })
                     .catch(error => console.error("Feil ved henting av rom:", error));
             }
+
         });
     </script>
 </body>
