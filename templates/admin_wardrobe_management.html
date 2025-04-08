@@ -34,6 +34,7 @@
               <div class="multiple-lockers">
                 <input type="number" id="lockerQuantity" min="1" placeholder="Skriv inn antall skap">
                 <button id="create-multiple-lockers-btn" onclick="createMultipleLockers()" disabled>Opprett flere garderobeskap</button>
+                  <button id="delete-all-lockers-btn" onclick="deleteAllLockers()" disabled>Slett alle skap i rommet</button>
               </div>
 
             <table>
@@ -99,6 +100,7 @@
             document.getElementById("selected-room-name").textContent = `Valgt garderoberom: ${roomName}`;
             document.getElementById("create-locker-btn").disabled = false;
             document.getElementById("create-multiple-lockers-btn").disabled = false;  // Aktiver knappen
+            document.getElementById("delete-all-lockers-btn").disabled = false;
             fetchLockersInRoom(roomId);
         }
 
@@ -170,6 +172,7 @@
                         document.getElementById("selected-room-name").textContent = "Ingen rom valgt!";
                         document.getElementById("create-locker-btn").disabled = true;
                         document.getElementById("locker-table").innerHTML = "";
+                        document.getElementById("delete-all-lockers-btn").disabled = true;
                     }
                 })
                 .catch(error => console.error("Error deleting room:", error));
@@ -189,7 +192,15 @@
                         let row = `<tr>
                             <td>${locker.combi_id}</td>
                             <td>${locker.status}</td>
-                            <td>${locker.note || "N/A"}</td>
+                            <td>
+                                  <input
+                                    type="text"
+                                    id="note-input-${locker.locker_id}"
+                                    value="${locker.note !== "N/A" ? locker.note : ""}"
+                                    placeholder="Skriv notat..."
+                                  />
+                                  <button onclick="updateNote(${locker.locker_id})">Lagre</button>
+                            </td>
                             <td>
                                 <button onclick="unlockLocker(${locker.locker_id})">Lås opp</button>
                                 <button onclick="removeLocker(${locker.locker_id})">Slett</button>
@@ -221,8 +232,6 @@
             });
         }
 
-
-
         // Låser opp et skap
         function unlockLocker(lockerId) {
             fetch(`/lockers/${lockerId}/unlock`, { method: "PUT" })
@@ -244,6 +253,48 @@
                 })
                 .catch(error => console.error("Error deleting locker:", error));
         }
+
+        function updateNote(lockerId) {
+            const note = document.getElementById(`note-input-${lockerId}`).value;
+            fetch(`/lockers/${lockerId}/note?note=${encodeURIComponent(note)}`, {
+                method: "PUT"
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Noe gikk galt med oppdatering");
+                return response.json();
+            })
+            .then(data => {
+                alert("Notat lagret!");
+                fetchLockersInRoom(selectedRoomId);
+            })
+            .catch(error => {
+                console.error("Feil ved oppdatering av notat:", error);
+                alert("Kunne ikke oppdatere notat.");
+            });
+        }
+        function deleteAllLockers() {
+            if (!selectedRoomId) {
+                alert("Vennligst velg et rom først.");
+                return;
+            }
+
+            const confirmation = confirm("Er du sikker på at du vil slette alle skap i dette rommet?");
+            if (!confirmation) return;
+
+            fetch(`http://localhost:8080/locker_rooms/${selectedRoomId}/lockers`, {
+                method: "DELETE"
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || "Alle skap slettet.");
+                fetchLockersInRoom(selectedRoomId);
+            })
+            .catch(error => {
+                console.error("Feil ved sletting av alle skap:", error);
+                alert("Noe gikk galt under slettingen.");
+            });
+        }
+
     </script>
 
 </body>

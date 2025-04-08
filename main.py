@@ -190,7 +190,7 @@ def create_admin_user(username: str, password: str, is_superadmin: bool, db: Ses
 
 ''' PUT CALLS '''
 
-@api.put("/lockers/locker_id/note")
+@api.put("/lockers/{locker_id}/note")
 def update_locker_note_endpoint(locker_id: int, note: str, db: Session = Depends(get_db)):
     """
     Endepunkt for å legge til eller oppdatere et notat på et garderobeskap.
