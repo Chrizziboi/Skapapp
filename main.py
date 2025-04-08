@@ -249,6 +249,19 @@ def remove_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
         return fastapi_error_handler(f"Feil ved sletting av garderobeskap med id: {Locker.combi_id}, {str(e)}", status_code=500)
 
 
+@api.delete("/locker_rooms/{room_id}/lockers")
+def remove_all_lockers_in_room_endpoint(room_id: int, db: Session = Depends(get_db)):
+    """
+    Sletter alle garderobeskap i et spesifikt garderoberom.
+    """
+    try:
+        from backend.model.Locker import remove_all_lockers_in_room
+        result = remove_all_lockers_in_room(room_id, db)
+        return result
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved sletting av skap i garderoberom {room_id}: {str(e)}", status_code=500)
+
+
 @api.delete("/locker_rooms/{room_id}")
 def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
     """

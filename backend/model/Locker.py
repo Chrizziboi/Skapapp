@@ -149,3 +149,23 @@ def remove_locker(locker_id: int, db: Session):
         db.commit()
         return {"message": f"garderobeskap med id: {locker_id} har blitt slettet."}
     return {"error": "garderobeskap ikke funnet."}
+
+
+def remove_all_lockers_in_room(locker_room_id: int, db: Session):
+    """
+    Sletter alle garderobeskap knyttet til et spesifikt garderoberom.
+    """
+    from backend.model.LockerRoom import LockerRoom
+
+    try:
+        room = db.query(LockerRoom).filter_by(id=locker_room_id).first()
+        if not room:
+            raise fastapi_error_handler("Garderoberom ikke funnet.", status_code=404)
+
+        deleted_count = db.query(Locker).filter_by(locker_room_id=locker_room_id).delete()
+        db.commit()
+        return {"message": f"{deleted_count} garderobeskap slettet fra rom '{room.name}'."}
+
+    except Exception as e:
+        db.rollback()
+        raise fastapi_error_handler(f"Feil ved sletting av skap i rom: {str(e)}", status_code=500)
