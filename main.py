@@ -16,7 +16,12 @@ from backend.model.Locker import Locker, add_locker, add_note_to_locker, add_mul
 from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
 
+from fastapi import UploadFile, File
+from fastapi.responses import FileResponse
+from database import backup_database_to_json, restore_database_from_json
+
 # Initialiser SQLite3
+
 setup_database()
 
 # Initialiser FastAPI
@@ -86,6 +91,19 @@ def serve_admin_wardrobe_management_endpoint(request: Request):
         return templates.TemplateResponse("admin_wardrobe_management.html", {"request": request})
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av siden. {str(e)}", status_code=500)
+
+
+@api.get("/admin_backup")
+def serve_backup_page(request: Request):
+    """
+    Serverer admin_backup.html for backup og restore.
+    """
+    try:
+        return templates.TemplateResponse("admin_backup.html", {"request": request})
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved lasting av admin_backup.html: {str(e)}", status_code=500)
+
+"/admin/restore"
 
 ''' GET CALLS '''
 
@@ -277,7 +295,6 @@ def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved sletting av garderoberom: {str(e)}", status_code=500)
 
-
 ''' STATISTIC CALLS '''
 
 @api.get("/statistic/total_lockers")
@@ -345,6 +362,33 @@ def serve_statistics_page(request: Request):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av statistikk-siden. {str(e)}", status_code=500)
 
+''' BACKUP CALLS '''
+
+@api.get("/admin/backup", response_class=FileResponse)
+def get_backup():
+    """
+    Eksporterer databasen til en JSON-fil og returnerer den.
+    """
+    try:
+        backup_database_to_json("database.db", "backup_database.txt")
+        return FileResponse("backup_database.txt", filename="skap_backup.json", media_type="application/json")
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved eksport av backup: {str(e)}", status_code=500)
+
+
+@api.post("/admin/restore")
+async def restore_from_backup(file: UploadFile = File(...)):
+    """
+    Gjenoppretter databasen fra en opplastet JSON-backup-fil.
+    """
+    try:
+        contents = await file.read()
+        with open("backup_database.txt", "wb") as f:
+            f.write(contents)
+        restore_database_from_json("database.db", "backup_database.txt")
+        return {"message": "Databasen er gjenopprettet fra backup."}
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved gjenoppretting av backup: {str(e)}", status_code=500)
 
 if __name__ == "__main__":
     uvicorn.run(
