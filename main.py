@@ -3,8 +3,9 @@ import uvicorn
 import logging
 
 from database import SessionLocal, setup_database
+from pydantic import BaseModel
 
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
@@ -15,6 +16,7 @@ from backend.model.StandardUser import reserve_locker
 from backend.model.Locker import Locker, add_locker, add_note_to_locker, add_multiple_lockers
 from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
+from backend.model.AdminUser import authenticate_user
 
 # Initialiser SQLite3
 setup_database()
@@ -44,7 +46,10 @@ def get_db():
         db.close()
 
 ''' FRONTPAGE '''
-
+# Pydantic-modell for login
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 @api.get("/")
 def serve_main_page_endpoint(request: Request):
     """
@@ -178,15 +183,15 @@ def create_multiple_lockers_endpoint(locker_room_id: int, quantity: int, db: Ses
 
 
 @api.post("/admin_users/")
-def create_admin_user(username: str, password: str, is_superadmin: bool, db: Session = Depends(get_db)):
+def create_admin_user(username: str, password: str, role: str, db: Session = Depends(get_db)):
     """
-    Oppretter en ny administratorbruker.
+    Oppretter en ny bruker (med rolle: admin eller user).
     """
     try:
-        admin = create_admin(username=username, password=password, is_superadmin=is_superadmin, db=db)
+        admin = create_admin(username=username, password=password, role=role, db=db)
         return admin
     except Exception as e:
-        return fastapi_error_handler(f"Feil ved oppretting av administrator: {str(e)}", status_code=500)
+        return fastapi_error_handler(f"Feil ved oppretting av bruker: {str(e)}", status_code=500)
 
 ''' PUT CALLS '''
 
@@ -345,7 +350,20 @@ def serve_statistics_page(request: Request):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av statistikk-siden. {str(e)}", status_code=500)
 
+@api.post("/login")
+def login(request: LoginRequest, db: Session = Depends(get_db)):
+    """
+    Logger inn en bruker ved å verifisere brukernavn og passord.
+    """
+    user = authenticate_user(request.username, request.password, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Ugyldig brukernavn eller passord")
 
+    return {
+        "message": "Innlogging vellykket",
+        "username": user.username,
+        "role": user.role
+    }
 if __name__ == "__main__":
     uvicorn.run(
         "main:api",
