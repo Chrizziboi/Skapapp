@@ -37,6 +37,12 @@
         <h2>Mest aktive brukere</h2>
         <ul id="most-active-users"></ul>
 
+        <h2>Skap åpnet flest ganger</h2>
+        <ul id="most-opened-lockers"></ul>
+
+        <h2>Siste skapåpninger</h2>
+        <ul id="recent-locks"></ul>
+
         <div class="navigation-buttons">
             <button onclick="location.href='/admin_page'">← Tilbake</button>
             <button onclick="location.href='/'">🏠 Hjem</button>
@@ -45,69 +51,71 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            const safeFetch = (url, callback, fallbackId) => {
+            const fetchText = (url, targetId, key) => {
                 fetch(url)
                     .then(res => res.json())
-                    .then(data => {
-                        if (Array.isArray(data)) {
-                            callback(data);
-                        } else {
-                            document.getElementById(fallbackId).innerHTML = "<li>Kunne ikke hente data.</li>";
-                            console.error("Ugyldig respons:", data);
-                        }
-                    })
+                    .then(data => document.getElementById(targetId).innerText = data[key])
                     .catch(err => {
-                        document.getElementById(fallbackId).innerHTML = "<li>Feil under lasting av data.</li>";
-                        console.error("Fetch-feil:", err);
+                        document.getElementById(targetId).innerText = "Feil";
+                        console.error(err);
                     });
             };
 
-            fetch("/statistic/total_lockers")
-                .then(res => res.json())
-                .then(data => document.getElementById("total-lockers").innerText = data.total_lockers);
+            const fetchList = (url, targetId, formatFn) => {
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        const list = document.getElementById(targetId);
+                        list.innerHTML = "";
+                        data.forEach(item => {
+                            const li = document.createElement("li");
+                            li.innerText = formatFn(item);
+                            list.appendChild(li);
+                        });
+                    })
+                    .catch(err => {
+                        document.getElementById(targetId).innerHTML = "<li>Feil ved henting.</li>";
+                        console.error(err);
+                    });
+            };
 
-            fetch("/statistic/available_lockers")
-                .then(res => res.json())
-                .then(data => document.getElementById("available-lockers").innerText = data.available_lockers);
+            fetchText("/statistic/total_lockers", "total-lockers", "total_lockers");
+            fetchText("/statistic/available_lockers", "available-lockers", "available_lockers");
+            fetchText("/statistic/occupied_lockers", "occupied-lockers", "occupied_lockers");
+            fetchText("/statistic/total_users", "total-users", "total_users");
 
-            fetch("/statistic/occupied_lockers")
+            fetch("/statistic/lockers_by_room")
                 .then(res => res.json())
-                .then(data => document.getElementById("occupied-lockers").innerText = data.occupied_lockers);
-
-            fetch("/statistic/total_users")
-                .then(res => res.json())
-                .then(data => document.getElementById("total-users").innerText = data.total_users);
-
-            safeFetch("/statistic/lockers_by_room", data => {
-                const tbody = document.getElementById("lockers-by-room");
-                tbody.innerHTML = "";
-                data.forEach(row => {
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `
-                        <td>${row.room_name}</td>
-                        <td>${row.locker_count}</td>
-                        <td>${row.available}</td>
-                        <td>${row.occupied}</td>
-                    `;
-                    tbody.appendChild(tr);
+                .then(data => {
+                    const tbody = document.getElementById("lockers-by-room");
+                    tbody.innerHTML = "";
+                    data.forEach(row => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${row.room_name}</td>
+                            <td>${row.locker_count}</td>
+                            <td>${row.available !== undefined ? row.available : "-"}</td>
+                            <td>${row.occupied !== undefined ? row.occupied : "-"}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
                 });
-            }, "lockers-by-room");
 
-            safeFetch("/statistic/most_used_rooms", data => {
-                const list = document.getElementById("most-used-rooms");
-                list.innerHTML = "";
-                data.forEach(room => {
-                    list.innerHTML += `<li>${room.room_name} – ${room.occupied_count} opptatte skap</li>`;
-                });
-            }, "most-used-rooms");
+            fetchList("/statistic/most_used_rooms", "most-used-rooms", room =>
+                `${room.room_name} – ${room.occupied_count} opptatte skap`
+            );
 
-            safeFetch("/statistic/most_active_users", data => {
-                const list = document.getElementById("most-active-users");
-                list.innerHTML = "";
-                data.forEach(user => {
-                    list.innerHTML += `<li>${user.username} – ${user.reservations} reserveringer</li>`;
-                });
-            }, "most-active-users");
+            fetchList("/statistic/most_active_users", "most-active-users", user =>
+                `${user.username} – ${user.locker_count} reserveringer`
+            );
+
+            fetchList("/statistic/most_opened_lockers", "most-opened-lockers", entry =>
+                `Skap ${entry.combi_id} – åpnet ${entry.times_opened} ganger`
+            );
+
+            fetchList("/statistic/recent_log_entries", "recent-locks", log =>
+                `${log.timestamp} – Skap ${log.combi_id}` + (log.username ? ` av ${log.username}` : "")
+            );
         });
     </script>
 </body>

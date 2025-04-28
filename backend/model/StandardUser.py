@@ -5,6 +5,8 @@ from backend.Service.ErrorHandler import fastapi_error_handler
 from database import Base
 from backend.model.Locker import Locker
 from backend.model.LockerRoom import LockerRoom
+from backend.model.LockerLog import log_unlock_action
+
 
 class StandardUser(Base):
     __tablename__ = "standard_users"
@@ -48,18 +50,43 @@ def reserve_locker(user_id: int, locker_room_id: int, db: Session):
 
     # Finn det ledige skapet med lavest nummer i det spesifikke garderoberommet
     locker = db.query(Locker).filter(
-        Locker.status == "ledig",
+        Locker.status.ilike("Ledig"),
         Locker.locker_room_id == locker_room_id
-    ).order_by(Locker.locker_number.asc()).first()
+    ).order_by(Locker.combi_id.asc()).first()
 
     # Hvis ingen ledige skap finnes i dette rommet
     if not locker:
         raise fastapi_error_handler(f"Ingen ledige garderobeskap i rom '{room.name}'.",status_code=400)
 
     # Oppdater skapstatus og knytt skapet til brukeren
-    locker.status = "opptatt"
+    locker.status = "Opptatt"
     locker.user_id = user.id
     db.commit()
     db.refresh(locker)
 
-    return {"message": f"Garderobeskap {locker.locker_number} i rom '{room.name}' er nå reservert for bruker {user.username}."}
+    return {"message": f"Garderobeskap {locker.combi_id} i rom '{room.name}' er nå reservert for bruker {user.id}."}
+
+def unlock_locker(user_id: int, db: Session):
+    locker = db.query(Locker).filter(Locker.user_id == user_id, Locker.status == "Opptatt").first()
+    if not locker:
+        raise fastapi_error_handler("Ingen opptatt garderobeskap funnet for denne brukeren.", status_code=404)
+
+    locker.status = "Ledig"
+    locker.user_id = None
+    db.commit()
+    db.refresh(locker)
+
+    log_unlock_action(locker_id=locker.combi_id, user_id=user_id, db=db)
+
+    return {"message": f"Garderobeskap {locker.combi_id} er nå frigjort og tilgjengelig for andre brukere."}
+
+def scan_rfid_action(rfid_tag: str, locker_room_id: int, db: Session):
+    """
+    Hovedfunksjon: Brukes når RFID-skanning skjer.
+    Hvis bruker har opptatt skap, åpne det (frigjøre).
+    Hvis ikke, reserver nytt skap.
+    """
+    user = get_user_by_rfid_tag(rfid_tag, db)
+    if not user:
+        # Registrer bruker automatisk hvis ukjent kort
+        user = create_standard_user(rfid_tag, db)
