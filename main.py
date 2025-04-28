@@ -2,19 +2,21 @@ import os
 import uvicorn
 import logging
 
+from backend.model.LockerLog import log_unlock_action
 from database import SessionLocal, setup_database
 
 from fastapi import FastAPI, Depends, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
-from backend.model import Locker
+from backend.model import Locker, LockerLog
 from backend.model.Statistic import *
 from backend.model.AdminUser import create_admin
 from backend.model.StandardUser import reserve_locker
 from backend.model.Locker import Locker, add_locker, add_note_to_locker, add_multiple_lockers
 from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
+from backend.model.StandardUser import get_user_by_rfid_tag, create_standard_user
 
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
@@ -103,8 +105,6 @@ def serve_backup_page(request: Request):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved lasting av admin_backup.html: {str(e)}", status_code=500)
 
-"/admin/restore"
-
 ''' GET CALLS '''
 
 @api.get("/locker_rooms/")
@@ -117,6 +117,7 @@ def get_all_rooms_endpoint(db: Session = Depends(get_db)):
         return rooms
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
+
 
 @api.get("/lockers/locker_id")
 def read_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
@@ -156,6 +157,11 @@ def get_all_lockers_endpoint(db: Session = Depends(get_db)):
         return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
 
 
+@api.get("/locker_logs")
+def get_all_logs(db: Session = Depends(get_db)):
+    logs = db.query(LockerLog).all()
+    return [{"locker_id": log.locker_id, "user_id": log.user_id, "action": log.action, "timestamp": log.timestamp} for log in logs]
+
 ''' POST CALLS '''
 
 @api.post("/locker_rooms/{name}")
@@ -182,7 +188,6 @@ def create_locker_endpoint(locker_room_id: int, db: Session = Depends(get_db)):
         return fastapi_error_handler(f"Feil ved oppretting av garderobeskap: {str(e)}", status_code=500)
 
 
-
 @api.post("/lockers/multiple_lockers")
 def create_multiple_lockers_endpoint(locker_room_id: int, quantity: int, db: Session = Depends(get_db)):
     """
@@ -205,6 +210,30 @@ def create_admin_user(username: str, password: str, is_superadmin: bool, db: Ses
         return admin
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av administrator: {str(e)}", status_code=500)
+
+
+@api.post("/scan_rfid/")
+def scan_rfid(rfid_tag: str, db: Session = Depends(get_db)):
+    """
+    Skann et RFID-kort. Registrer bruker hvis ny. Returner alle ledige skap.
+    """
+    try:
+
+        user = get_user_by_rfid_tag(rfid_tag, db)
+        if not user:
+            user = create_standard_user(rfid_tag, db)
+
+        available_lockers = db.query(Locker).filter(Locker.status == "Ledig").all()
+
+        return {
+            "user_id": user.id,
+            "available_lockers": [
+                {"locker_id": locker.id, "combi_id": locker.combi_id, "locker_room_id": locker.locker_room_id}
+                for locker in available_lockers
+            ]
+        }
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved skanning av RFID-kort: {str(e)}", status_code=400)
 
 ''' PUT CALLS '''
 
@@ -234,6 +263,9 @@ def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
         locker.status = "Ledig"
         db.commit()
         db.refresh(locker)  # Sikrer at endringer reflekteres i objektet
+
+        log_unlock_action(locker_id=locker.id, user_id=locker.user_id, db=db)
+
         return locker
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av garderoberom med id: {LockerRoom.id}, {str(e)}", status_code=500)
@@ -249,6 +281,7 @@ def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Dep
         return reserved_locker
     except Exception as e:
         return fastapi_error_handler(f"Feil ved reservering av Garderobeskap med id: {Locker.combi_id}, {str(e)}", status_code=500)
+
 
 ''' DELETE CALLS '''
 
