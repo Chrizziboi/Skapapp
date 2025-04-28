@@ -13,7 +13,7 @@ class AdminUser(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)  # Hashed password
-    role = Column(String, nullable=False)  # "admin" eller "user"
+    role = Column(String, nullable=True)  # "admin" eller "user"
 
 def create_admin(username: str, password: str, role: str, db: Session):
     """

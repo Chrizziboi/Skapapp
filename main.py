@@ -172,13 +172,14 @@ def get_all_logs(db: Session = Depends(get_db)):
 
 @api.post("/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
-    """
-    Logger inn en bruker ved å verifisere brukernavn og passord.
-    """
     user = authenticate_user(request.username, request.password, db)
     if not user:
         raise HTTPException(status_code=401, detail="Ugyldig brukernavn eller passord")
-
+    return {
+        "message": "Innlogging vellykket",
+        "username": user.username,
+        "role": user.role
+    }
         
 @api.post("/locker_rooms/{name}")
 def create_room_endpoint(name: str, db: Session = Depends(get_db)):
