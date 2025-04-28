@@ -2,14 +2,10 @@ import os
 import uvicorn
 import logging
 
-from database import SessionLocal, setup_database
 from pydantic import BaseModel
 
-from fastapi import FastAPI, Depends, Request, HTTPException
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-
-from backend.model import Locker
+from backend.model.LockerLog import log_unlock_action
+from backend.model import Locker, LockerLog
 from backend.model.Statistic import *
 from backend.model.AdminUser import create_admin
 from backend.model.StandardUser import reserve_locker
@@ -17,8 +13,20 @@ from backend.model.Locker import Locker, add_locker, add_note_to_locker, add_mul
 from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
 from backend.model.AdminUser import authenticate_user
+from backend.model.StandardUser import get_user_by_rfid_tag, create_standard_user
+
+from fastapi import FastAPI, Depends, Request, HTTPException
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from fastapi import UploadFile, File
+from fastapi.responses import FileResponse
+
+from database import SessionLocal, setup_database
+from database import backup_database_to_json, restore_database_from_json
+
 
 # Initialiser SQLite3
+
 setup_database()
 
 # Initialiser FastAPI
@@ -92,6 +100,17 @@ def serve_admin_wardrobe_management_endpoint(request: Request):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av siden. {str(e)}", status_code=500)
 
+
+@api.get("/admin_backup")
+def serve_backup_page(request: Request):
+    """
+    Serverer admin_backup.html for backup og restore.
+    """
+    try:
+        return templates.TemplateResponse("admin_backup.html", {"request": request})
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved lasting av admin_backup.html: {str(e)}", status_code=500)
+
 ''' GET CALLS '''
 
 @api.get("/locker_rooms/")
@@ -104,6 +123,7 @@ def get_all_rooms_endpoint(db: Session = Depends(get_db)):
         return rooms
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
+
 
 @api.get("/lockers/locker_id")
 def read_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
@@ -143,8 +163,23 @@ def get_all_lockers_endpoint(db: Session = Depends(get_db)):
         return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
 
 
+@api.get("/locker_logs")
+def get_all_logs(db: Session = Depends(get_db)):
+    logs = db.query(LockerLog).all()
+    return [{"locker_id": log.locker_id, "user_id": log.user_id, "action": log.action, "timestamp": log.timestamp} for log in logs]
+
 ''' POST CALLS '''
 
+@api.post("/login")
+def login(request: LoginRequest, db: Session = Depends(get_db)):
+    """
+    Logger inn en bruker ved å verifisere brukernavn og passord.
+    """
+    user = authenticate_user(request.username, request.password, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Ugyldig brukernavn eller passord")
+
+        
 @api.post("/locker_rooms/{name}")
 def create_room_endpoint(name: str, db: Session = Depends(get_db)):
     """
@@ -169,7 +204,6 @@ def create_locker_endpoint(locker_room_id: int, db: Session = Depends(get_db)):
         return fastapi_error_handler(f"Feil ved oppretting av garderobeskap: {str(e)}", status_code=500)
 
 
-
 @api.post("/lockers/multiple_lockers")
 def create_multiple_lockers_endpoint(locker_room_id: int, quantity: int, db: Session = Depends(get_db)):
     """
@@ -192,6 +226,30 @@ def create_admin_user(username: str, password: str, role: str, db: Session = Dep
         return admin
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av bruker: {str(e)}", status_code=500)
+
+
+@api.post("/scan_rfid/")
+def scan_rfid(rfid_tag: str, db: Session = Depends(get_db)):
+    """
+    Skann et RFID-kort. Registrer bruker hvis ny. Returner alle ledige skap.
+    """
+    try:
+
+        user = get_user_by_rfid_tag(rfid_tag, db)
+        if not user:
+            user = create_standard_user(rfid_tag, db)
+
+        available_lockers = db.query(Locker).filter(Locker.status == "Ledig").all()
+
+        return {
+            "user_id": user.id,
+            "available_lockers": [
+                {"locker_id": locker.id, "combi_id": locker.combi_id, "locker_room_id": locker.locker_room_id}
+                for locker in available_lockers
+            ]
+        }
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved skanning av RFID-kort: {str(e)}", status_code=400)
 
 ''' PUT CALLS '''
 
@@ -221,6 +279,9 @@ def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
         locker.status = "Ledig"
         db.commit()
         db.refresh(locker)  # Sikrer at endringer reflekteres i objektet
+
+        log_unlock_action(locker_id=locker.id, user_id=locker.user_id, db=db)
+
         return locker
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av garderoberom med id: {LockerRoom.id}, {str(e)}", status_code=500)
@@ -236,6 +297,7 @@ def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Dep
         return reserved_locker
     except Exception as e:
         return fastapi_error_handler(f"Feil ved reservering av Garderobeskap med id: {Locker.combi_id}, {str(e)}", status_code=500)
+
 
 ''' DELETE CALLS '''
 
@@ -281,7 +343,6 @@ def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
         }
     except Exception as e:
         return fastapi_error_handler(f"Feil ved sletting av garderoberom: {str(e)}", status_code=500)
-
 
 ''' STATISTIC CALLS '''
 
@@ -350,14 +411,34 @@ def serve_statistics_page(request: Request):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av statistikk-siden. {str(e)}", status_code=500)
 
-@api.post("/login")
-def login(request: LoginRequest, db: Session = Depends(get_db)):
+''' BACKUP CALLS '''
+
+@api.get("/admin/backup", response_class=FileResponse)
+def get_backup():
     """
-    Logger inn en bruker ved å verifisere brukernavn og passord.
+    Eksporterer databasen til en JSON-fil og returnerer den.
     """
-    user = authenticate_user(request.username, request.password, db)
-    if not user:
-        raise HTTPException(status_code=401, detail="Ugyldig brukernavn eller passord")
+    try:
+        backup_database_to_json("database.db", "backup_database.txt")
+        return FileResponse("backup_database.txt", filename="skap_backup.json", media_type="application/json")
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved eksport av backup: {str(e)}", status_code=500)
+
+
+@api.post("/admin/restore")
+async def restore_from_backup(file: UploadFile = File(...)):
+    """
+    Gjenoppretter databasen fra en opplastet JSON-backup-fil.
+    """
+    try:
+        contents = await file.read()
+        with open("backup_database.txt", "wb") as f:
+            f.write(contents)
+        restore_database_from_json("database.db", "backup_database.txt")
+        return {"message": "Databasen er gjenopprettet fra backup."}
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved gjenoppretting av backup: {str(e)}", status_code=500)
+
 
     return {
         "message": "Innlogging vellykket",

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Database Backup & Restore</title>
+</head>
+<body>
+    <h1>Backup & Restore</h1>
+
+    <h2>Last ned eksisterende backup</h2>
+    <form action="/admin/backup" method="get">
+        <button type="submit">Last ned backup_database.txt</button>
+    </form>
+
+    <h2>Gjenopprett database fra backup</h2>
+    <form action="/admin/restore" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".txt,.json" required>
+        <button type="submit">Last opp og gjenopprett</button>
+    </form>
+</body>
+</html>

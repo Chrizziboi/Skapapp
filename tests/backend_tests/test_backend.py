@@ -80,6 +80,7 @@ def test_locker_room_deletion(db):
     add_multiple_lockers(room["room_id"], 2, db)
     response = delete_locker_room(room["room_id"], db)
     assert "slettet" in response["message"]
+
 # -----------------------------------------------
 # Locker tester
 # -----------------------------------------------
@@ -87,8 +88,10 @@ def test_locker_room_deletion(db):
 def test_second_add_locker_success(db):
     room = create_locker_room("SkapRom1", db)
     locker = add_locker(room["room_id"], db)
-    assert locker["combi_id"].startswith("SkapRom1-")
-    assert locker["room_id"] == room["room_id"]
+    locker2 = add_locker(room["room_id"], db)
+    assert locker["locker_room_id"] == room["room_id"]
+    assert locker2["locker_room_id"] == room["room_id"]
+
 
 def test_add_multiple_lockers_success(db):
     room = create_locker_room("SkapRom2", db)

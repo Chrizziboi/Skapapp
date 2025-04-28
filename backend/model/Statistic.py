@@ -123,7 +123,6 @@ class Statistic:
             func.count(Locker.id).desc()
         ).all()
 
-
         return [{"room_name": name, "occupied_count": count} for _, name, count in results]
 
 
