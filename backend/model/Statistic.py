@@ -41,11 +41,12 @@ class Statistic:
         """
         Endepunkt for å hente antall ledige skap i et spesifikt garderoberom.
         """
-        available_lockers = db.query(Locker).filter(
-            Locker.locker_room_id == locker_room_id,
-            Locker.status.ilike("Ledig")
-        ).count()
         try:
+            available_lockers = db.query(Locker).filter(
+                Locker.locker_room_id == locker_room_id,
+                Locker.status.ilike("Ledig")
+            ).count()
+
             return {"locker_room_id": locker_room_id, "available_lockers": available_lockers}
         except Exception as e:
             return fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)

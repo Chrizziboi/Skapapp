@@ -1,15 +1,17 @@
+import asyncio
 import os
+from contextlib import asynccontextmanager
+
 import uvicorn
 import logging
 
-from pydantic import BaseModel
-
-from backend.model.LockerLog import log_unlock_action
-from backend.model import Locker, LockerLog
+from backend.model.LockerLog import LockerLog
+from backend.model.LockerLog import log_unlock_action, release_expired_lockers_logic
+from backend.model import Locker
 from backend.model.Statistic import *
 from backend.model.AdminUser import create_admin
 from backend.model.StandardUser import reserve_locker
-from backend.model.Locker import Locker, add_locker, add_note_to_locker, add_multiple_lockers
+from backend.model.Locker import add_locker, add_note_to_locker, add_multiple_lockers
 from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
 from backend.model.AdminUser import authenticate_user
@@ -20,22 +22,30 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
 from database import SessionLocal, setup_database
 from database import backup_database_to_json, restore_database_from_json
-
 
 # Initialiser SQLite3
 
 setup_database()
 
+@asynccontextmanager
+async def lifespan(_):
+    # Kjør ved oppstart
+    asyncio.create_task(release_expired_loop())
+    yield
+
 # Initialiser FastAPI
-api = FastAPI()
+api = FastAPI(lifespan=lifespan)
+
 
 # Dynamisk sti til static-mappen, slik at det fungerer uansett hvor testen kjører fra
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 if not os.path.exists(static_dir):
     os.makedirs(static_dir)
+
 
 api.mount("/static", StaticFiles(directory=static_dir), name="static")
 
@@ -53,11 +63,14 @@ def get_db():
     finally:
         db.close()
 
+
+
 ''' FRONTPAGE '''
 # Pydantic-modell for login
 class LoginRequest(BaseModel):
     username: str
     password: str
+
 @api.get("/")
 def serve_main_page_endpoint(request: Request):
     """
@@ -166,8 +179,15 @@ def get_all_lockers_endpoint(db: Session = Depends(get_db)):
 @api.get("/locker_logs")
 def get_all_logs(db: Session = Depends(get_db)):
     logs = db.query(LockerLog).all()
-    return [{"locker_id": log.locker_id, "user_id": log.user_id, "action": log.action, "timestamp": log.timestamp} for log in logs]
-
+    return [
+        {
+            "locker_id": log.locker_id,
+            "user_id": log.user_id,
+            "action": log.action,
+            "timestamp": log.timestamp
+        }
+        for log in logs
+    ]
 ''' POST CALLS '''
 
 @api.post("/login")
@@ -441,11 +461,28 @@ async def restore_from_backup(file: UploadFile = File(...)):
         return fastapi_error_handler(f"Feil ved gjenoppretting av backup: {str(e)}", status_code=500)
 
 
-    return {
-        "message": "Innlogging vellykket",
-        "username": user.username,
-        "role": user.role
-    }
+''' Async Functions --- background processes '''
+
+async def release_expired_loop():
+    """
+    Kjøres i bakgrunnen hvert 10. minutt for å frigjøre skap automatisk.
+    """
+    while True:
+        db = None
+        try:
+            db = SessionLocal()
+            released = release_expired_lockers_logic(db)
+            if released:
+                print(f"[Bakgrunnsjobb] Frigjorde {len(released)} skap:", released)
+        except Exception as e:
+            print(f"[Bakgrunnsjobb] Feil under frigjøring: {e}")
+        finally:
+            if db:
+                db.close()
+
+        await asyncio.sleep(10)  # 10 minutter
+
+
 if __name__ == "__main__":
     uvicorn.run(
         "main:api",
