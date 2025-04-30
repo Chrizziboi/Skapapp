@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import Session, relationship
 
@@ -16,6 +18,7 @@ class Locker(Base):
     status = Column(String, default="Ledig")
     note = Column(String, nullable=True)  #Legger til notatfelt
     user_id = Column(Integer, ForeignKey("standard_users.id", ondelete="SET NULL"), nullable=True)  #Knytter skap til en bruker
+
 
     locker_room_id = Column(Integer, ForeignKey("locker_rooms.id"))
     locker_rooms = relationship("LockerRoom", back_populates="lockers")
@@ -168,3 +171,5 @@ def remove_all_lockers_in_room(locker_room_id: int, db: Session):
     except Exception as e:
         db.rollback()
         raise fastapi_error_handler(f"Feil ved sletting av skap i rom: {str(e)}", status_code=500)
+
+

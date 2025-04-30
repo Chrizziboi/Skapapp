@@ -1,15 +1,17 @@
+import asyncio
 import os
+from contextlib import asynccontextmanager
+
 import uvicorn
 import logging
 
-from pydantic import BaseModel
-
-from backend.model.LockerLog import log_unlock_action
-from backend.model import Locker, LockerLog
+from backend.model.LockerLog import LockerLog
+from backend.model.LockerLog import log_unlock_action, release_expired_lockers_logic
+from backend.model import Locker
 from backend.model.Statistic import *
 from backend.model.AdminUser import create_admin
 from backend.model.StandardUser import reserve_locker
-from backend.model.Locker import Locker, add_locker, add_note_to_locker, add_multiple_lockers
+from backend.model.Locker import add_locker, add_note_to_locker, add_multiple_lockers
 from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
 from backend.model.AdminUser import authenticate_user
@@ -20,17 +22,24 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
 from database import SessionLocal, setup_database
 from database import backup_database_to_json, restore_database_from_json
-
 
 # Initialiser SQLite3
 
 setup_database()
 
+# Initialiser async funksjonalitet
+@asynccontextmanager
+async def lifespan(_):
+    asyncio.create_task(release_expired_loop())
+    print("[DEBUG] release_expired_loop STARTET")
+    yield
+
 # Initialiser FastAPI
-api = FastAPI()
+api = FastAPI(lifespan=lifespan)
 
 # Dynamisk sti til static-mappen, slik at det fungerer uansett hvor testen kjører fra
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
@@ -48,16 +57,20 @@ logging.basicConfig(level=logging.ERROR, format="%(asctime)s - %(levelname)s - %
 # Dependency for databaseøkter
 def get_db():
     db = SessionLocal()
+    print("[DEBUG] Kjører release_expired_lockers_logic...")
+    released = release_expired_lockers_logic(db)
     try:
         yield db
     finally:
         db.close()
+
 
 ''' FRONTPAGE '''
 # Pydantic-modell for login
 class LoginRequest(BaseModel):
     username: str
     password: str
+
 @api.get("/")
 def serve_main_page_endpoint(request: Request):
     """
@@ -166,7 +179,15 @@ def get_all_lockers_endpoint(db: Session = Depends(get_db)):
 @api.get("/locker_logs")
 def get_all_logs(db: Session = Depends(get_db)):
     logs = db.query(LockerLog).all()
-    return [{"locker_id": log.locker_id, "user_id": log.user_id, "action": log.action, "timestamp": log.timestamp} for log in logs]
+    return [
+        {
+            "locker_id": log.locker_id,
+            "user_id": log.user_id,
+            "action": log.action,
+            "timestamp": log.timestamp
+        }
+        for log in logs
+    ]
 
 ''' POST CALLS '''
 
@@ -180,6 +201,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         "username": user.username,
         "role": user.role
     }
+
         
 @api.post("/locker_rooms/{name}")
 def create_room_endpoint(name: str, db: Session = Depends(get_db)):
@@ -299,7 +321,6 @@ def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Dep
     except Exception as e:
         return fastapi_error_handler(f"Feil ved reservering av Garderobeskap med id: {Locker.combi_id}, {str(e)}", status_code=500)
 
-
 ''' DELETE CALLS '''
 
 @api.delete("/lockers/{locker_id}")
@@ -355,6 +376,7 @@ def get_total_lockers(db: Session = Depends(get_db)):
         logging.error(f"Feil ved henting av total antall skap: {str(e)}")
         raise fastapi_error_handler("Kunne ikke hente total antall skap.", status_code=500)
 
+
 @api.get("/statistic/available_lockers")
 def get_available_lockers(db: Session = Depends(get_db)):
     try:
@@ -362,6 +384,7 @@ def get_available_lockers(db: Session = Depends(get_db)):
     except Exception as e:
         logging.error(f"Feil ved henting av ledige skap: {str(e)}")
         raise fastapi_error_handler("Kunne ikke hente ledige skap.", status_code=500)
+
 
 @api.get("/statistic/occupied_lockers")
 def get_occupied_lockers(db: Session = Depends(get_db)):
@@ -371,13 +394,18 @@ def get_occupied_lockers(db: Session = Depends(get_db)):
         logging.error(f"Feil ved henting av opptatte skap: {str(e)}")
         raise fastapi_error_handler("Kunne ikke hente opptatte skap.", status_code=500)
 
+
 @api.get("/statistic/total_users")
 def get_total_users(db: Session = Depends(get_db)):
     try:
-        return {"total_users": Statistic.total_users(db)}
+        total_users = Statistic.total_users(db)
+
+        return {"total_users": total_users}
+
     except Exception as e:
         logging.error(f"Feil ved henting av totalt antall brukere: {str(e)}")
         raise fastapi_error_handler("Kunne ikke hente totalt antall brukere.", status_code=500)
+
 
 @api.get("/statistic/lockers_by_room")
 def get_lockers_by_room(db: Session = Depends(get_db)):
@@ -388,14 +416,16 @@ def get_lockers_by_room(db: Session = Depends(get_db)):
         logging.error(f"Feil ved henting av skap per garderoberom: {str(e)}")
         raise fastapi_error_handler("Kunne ikke hente skap per garderoberom.", status_code=500)
 
+
 @api.get("/statistic/most_used_rooms")
 def get_most_used_rooms(db: Session = Depends(get_db)):
     try:
         most_used_rooms = Statistic.most_used_rooms(db)
-        return most_used_rooms(db)
+        return most_used_rooms
     except Exception as e:
         logging.error(f"Feil ved henting av mest brukte garderoberom: {str(e)}")
         raise fastapi_error_handler("Kunne ikke hente mest brukte garderoberom.", status_code=500)
+
 
 @api.get("/statistic/most_active_users")
 def get_most_active_users(db: Session = Depends(get_db)):
@@ -405,6 +435,8 @@ def get_most_active_users(db: Session = Depends(get_db)):
     except Exception as e:
         logging.error(f"Feil ved henting av mest aktive brukere: {str(e)}")
         raise fastapi_error_handler("Kunne ikke hente mest aktive brukere.", status_code=500)
+
+
 @api.get("/admin_statistics")
 def serve_statistics_page(request: Request):
     try:
@@ -440,12 +472,28 @@ async def restore_from_backup(file: UploadFile = File(...)):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved gjenoppretting av backup: {str(e)}", status_code=500)
 
+''' Async Functions --- background processes '''
 
-    return {
-        "message": "Innlogging vellykket",
-        "username": user.username,
-        "role": user.role
-    }
+async def release_expired_loop():
+    """
+    Kjøres i bakgrunnen hvert 10. minutt for å frigjøre skap automatisk.
+    """
+    while True:
+        db = None
+        try:
+            db = SessionLocal()
+            released = release_expired_lockers_logic(db)
+            if released:
+                print(f"[Bakgrunnsjobb] Frigjorde {len(released)} skap:", released)
+        except Exception as e:
+            print(f"[Bakgrunnsjobb] Feil under frigjøring: {e}")
+        finally:
+            if db:
+                db.close()
+
+        await asyncio.sleep(600)  # 10 minutter
+
+
 if __name__ == "__main__":
     uvicorn.run(
         "main:api",
