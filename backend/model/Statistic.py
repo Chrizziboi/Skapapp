@@ -102,7 +102,7 @@ class Statistic:
         ).join(
             LockerRoom, Locker.locker_room_id == LockerRoom.id
         ).filter(
-            Locker.status == "ledig"
+            Locker.status == "Ledig"
         ).group_by(
             Locker.locker_room_id, LockerRoom.name
         ).all()
@@ -117,7 +117,7 @@ class Statistic:
         ).join(
             LockerRoom, Locker.locker_room_id == LockerRoom.id
         ).filter(
-            Locker.status == "opptatt"
+            Locker.status == "Opptatt"
         ).group_by(
             Locker.locker_room_id, LockerRoom.name
         ).order_by(

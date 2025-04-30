@@ -73,6 +73,9 @@ def reserve_locker(user_id: int, locker_room_id: int, db: Session):
     locker.status = "Opptatt"
     locker.user_id = user.id
     db.commit()
+    from backend.model.LockerLog import log_reserved_action
+    log_reserved_action(locker_id=locker.id, user_id=user.id, db=db)
+
     db.refresh(locker)
 
     return {
