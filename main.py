@@ -68,8 +68,13 @@ def get_db():
 ''' FRONTPAGE '''
 # Pydantic-modell for login
 class LoginRequest(BaseModel):
-    username: str
     password: str
+
+
+# Pydantic-modell for opprettelse av bruker
+class CreateUserRequest(BaseModel):
+    password: str
+    role: str
 
 @api.get("/")
 def serve_main_page_endpoint(request: Request):
@@ -193,12 +198,15 @@ def get_all_logs(db: Session = Depends(get_db)):
 
 @api.post("/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
-    user = authenticate_user(request.username, request.password, db)
+    """
+    Logger inn en bruker basert på pin/passord.
+    """
+    user = authenticate_user(request.password, db)
     if not user:
-        raise HTTPException(status_code=401, detail="Ugyldig brukernavn eller passord")
+        raise HTTPException(status_code=401, detail="Ugyldig kode")
+
     return {
         "message": "Innlogging vellykket",
-        "username": user.username,
         "role": user.role
     }
 
@@ -240,15 +248,18 @@ def create_multiple_lockers_endpoint(locker_room_id: int, quantity: int, db: Ses
 
 
 @api.post("/admin_users/")
-def create_admin_user(username: str, password: str, role: str, db: Session = Depends(get_db)):
+def create_admin_user(request: CreateUserRequest, db: Session = Depends(get_db)):
     """
-    Oppretter en ny bruker (med rolle: admin eller user).
+    Oppretter en ny bruker med pin/passord og rolle.
     """
     try:
-        admin = create_admin(username=username, password=password, role=role, db=db)
-        return admin
+        admin = create_admin(password=request.password, role=request.role, db=db)
+        return {
+            "message": "Bruker opprettet",
+            "role": admin.role
+        }
     except Exception as e:
-        return fastapi_error_handler(f"Feil ved oppretting av bruker: {str(e)}", status_code=500)
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @api.post("/scan_rfid/")

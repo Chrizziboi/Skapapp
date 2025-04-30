@@ -11,30 +11,27 @@ class AdminUser(Base):
     __tablename__ = "admin_users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, nullable=False)
-    password = Column(String, nullable=False)  # Hashed password
+    password = Column(String, nullable=False)  # Hashed pin/passord
     role = Column(String, nullable=True)  # "admin" eller "user"
 
-def create_admin(username: str, password: str, role: str, db: Session):
+def create_admin(password: str, role: str, db: Session):
     """
-    Oppretter en ny bruker med rolle (admin eller user).
+    Oppretter en ny bruker basert på pin/passord og rolle.
+    Forhindrer opprettelse dersom samme kode allerede finnes.
     """
-    existing_admin = db.query(AdminUser).filter(AdminUser.username == username).first()
-    if existing_admin:
-        raise fastapi_error_handler("Brukernavn finnes allerede.", status_code=400)
+    # Sjekk om passordet allerede er i bruk (ved å verifisere mot alle eksisterende brukere)
+    users = db.query(AdminUser).all()
+    for user in users:
+        if pwd_context.verify(password, user.password):
+            raise fastapi_error_handler("Denne koden er allerede i bruk.", status_code=400)
 
+    # Hvis ikke, opprett ny bruker
     hashed_password = pwd_context.hash(password)
-    new_admin = AdminUser(username=username, password=hashed_password, role=role)
+    new_admin = AdminUser(password=hashed_password, role=role)
     db.add(new_admin)
     db.commit()
     db.refresh(new_admin)
     return new_admin
-
-def get_admin_by_username(username: str, db: Session):
-    """
-    Henter en bruker basert på brukernavn.
-    """
-    return db.query(AdminUser).filter(AdminUser.username == username).first()
 
 def delete_admin(admin_id: int, db: Session):
     """
@@ -48,11 +45,12 @@ def delete_admin(admin_id: int, db: Session):
     db.commit()
     return {"message": f"Bruker med ID {admin_id} er slettet."}
 
-def authenticate_user(username: str, password: str, db: Session):
+def authenticate_user(input_password: str, db: Session):
     """
-    Autentiserer bruker med brukernavn og passord.
+    Autentiserer bruker kun basert på pin/passord.
     """
-    user = get_admin_by_username(username, db)
-    if not user or not pwd_context.verify(password, user.password):
-        return None
-    return user
+    users = db.query(AdminUser).all()
+    for user in users:
+        if pwd_context.verify(input_password, user.password):
+            return user
+    return None
