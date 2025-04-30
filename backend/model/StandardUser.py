@@ -36,35 +36,51 @@ def get_user_by_rfid_tag(rfid_tag: str, db: Session):
 
 def reserve_locker(user_id: int, locker_room_id: int, db: Session):
     """
-    Reserverer det ledige skapet med lavest nummer i et spesifikt garderoberom for en bruker.
+    Reserverer et ledig skap i et spesifikt garderoberom for en bruker.
+    Brukeren kan kun ha ett skap om gangen.
     """
-    # Sjekk om brukeren finnes
+    # 1. Sjekk om brukeren finnes
     user = db.query(StandardUser).filter(StandardUser.id == user_id).first()
     if not user:
-        raise fastapi_error_handler("Brukeren finnes ikke. Registrer deg før du reserverer et skap.", status_code=404)
+        raise fastapi_error_handler("Brukeren finnes ikke.", status_code=404)
 
-    # Sjekk om garderoberommet finnes
+    # 2. Sjekk om brukeren allerede har et skap
+    existing_locker = db.query(Locker).filter(
+        Locker.user_id == user_id,
+        Locker.status.ilike("Opptatt")
+    ).first()
+
+    if existing_locker:
+        raise fastapi_error_handler(
+            f"Brukeren har allerede et skap: {existing_locker.combi_id}", status_code=400
+        )
+
+    # 3. Sjekk om garderoberommet finnes
     room = db.query(LockerRoom).filter(LockerRoom.id == locker_room_id).first()
     if not room:
         raise fastapi_error_handler("Garderoberommet finnes ikke.", status_code=404)
 
-    # Finn det ledige skapet med lavest nummer i det spesifikke garderoberommet
+    # 4. Finn ledig skap
     locker = db.query(Locker).filter(
         Locker.status.ilike("Ledig"),
         Locker.locker_room_id == locker_room_id
     ).order_by(Locker.combi_id.asc()).first()
 
-    # Hvis ingen ledige skap finnes i dette rommet
     if not locker:
-        raise fastapi_error_handler(f"Ingen ledige garderobeskap i rom '{room.name}'.",status_code=400)
+        raise fastapi_error_handler(f"Ingen ledige garderobeskap i rom '{room.name}'.", status_code=400)
 
-    # Oppdater skapstatus og knytt skapet til brukeren
+    # 5. Reserver skap
     locker.status = "Opptatt"
     locker.user_id = user.id
     db.commit()
+    from backend.model.LockerLog import log_reserved_action
+    log_reserved_action(locker_id=locker.id, user_id=user.id, db=db)
+
     db.refresh(locker)
 
-    return {"message": f"Garderobeskap {locker.combi_id} i rom '{room.name}' er nå reservert for bruker {user.id}."}
+    return {
+        "message": f"Garderobeskap {locker.combi_id} i rom '{room.name}' er nå reservert for bruker med RFID {user.id}."
+    }
 
 def unlock_locker(user_id: int, db: Session):
     locker = db.query(Locker).filter(Locker.user_id == user_id, Locker.status == "Opptatt").first()
