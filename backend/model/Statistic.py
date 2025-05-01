@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
+from backend.model import LockerLog
 from backend.model.Locker import Locker
 from backend.model.StandardUser import StandardUser
 from backend.model.LockerRoom import LockerRoom
@@ -108,43 +109,39 @@ class Statistic:
         ).all()
         return [{"room_name": name, "available_lockers": count} for _, name, count in results]
 
-
     def most_used_rooms(db: Session):
         results = db.query(
-            Locker.locker_room_id,
             LockerRoom.name,
-            func.count(Locker.id)
+            func.count(LockerLog.id)
         ).join(
-            LockerRoom, Locker.locker_room_id == LockerRoom.id
+            Locker, LockerRoom.id == Locker.locker_room_id
+        ).join(
+            LockerLog, Locker.id == LockerLog.locker_id
         ).filter(
-            Locker.status == "Opptatt"
+            LockerLog.action.in_(["Reservert", "Låst opp"])
         ).group_by(
-            Locker.locker_room_id, LockerRoom.name
+            LockerRoom.name
         ).order_by(
-            func.count(Locker.id).desc()
+            func.count(LockerLog.id).desc()
         ).all()
 
-        return [{"room_name": name, "occupied_count": count} for _, name, count in results]
-
+        return [{"room_name": name, "usage_count": count} for name, count in results]
 
     def most_active_users(db: Session):
-
         results = db.query(
             StandardUser.id,
-            StandardUser.username,
-            func.count(Locker.id)
+            StandardUser.rfid_tag,
+            func.count(LockerLog.id)
         ).join(
-            Locker, StandardUser.id == Locker.user_id
+            LockerLog, StandardUser.id == LockerLog.user_id
         ).group_by(
-            StandardUser.id, StandardUser.username
+            StandardUser.id, StandardUser.rfid_tag
         ).order_by(
-            func.count(Locker.id).desc()
+            func.count(LockerLog.id).desc()
         ).all()
 
-        results = db.query(StandardUser.id, StandardUser.username, func.count(Locker.id)) \
-            .join(Locker, StandardUser.id == Locker.user_id, isouter=True) \
-            .group_by(StandardUser.id, StandardUser.username) \
-            .order_by(func.count(Locker.id).desc()) \
-            .all()
+        return [{"user_id": uid, "rfid_tag": tag, "usage_count": count} for uid, tag, count in results]
+
+
 
 

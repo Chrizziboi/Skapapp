@@ -109,9 +109,15 @@
                 `${user.username} – ${user.locker_count} reserveringer`
             );
 
+            fetchList("/statistic/recent_log_entries", "recent-locks", log =>
+                `${log.timestamp} – Skap ${log.combi_id}` + (log.username ? ` av ${log.username}` : "")
+            );
+
+
             fetchList("/statistic/most_opened_lockers", "most-opened-lockers", entry =>
                 `Skap ${entry.combi_id} – åpnet ${entry.times_opened} ganger`
             );
+
 
             fetchList("/statistic/recent_log_entries", "recent-locks", log =>
                 `${log.timestamp} – Skap ${log.combi_id}` + (log.username ? ` av ${log.username}` : "")
