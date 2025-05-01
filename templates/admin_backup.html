@@ -1,21 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
     <meta charset="UTF-8">
     <title>Database Backup & Restore</title>
+    <link rel="stylesheet" href="/static/styles/admin_backup.css">
 </head>
 <body>
-    <h1>Backup & Restore</h1>
+    <div class="container">
+        <div class="navigation">
+            <button onclick="goBack()">← Tilbake</button>
+            <button onclick="goHome()">🏠 Hjem</button>
+        </div>
 
-    <h2>Last ned eksisterende backup</h2>
-    <form action="/admin/backup" method="get">
-        <button type="submit">Last ned backup_database.txt</button>
-    </form>
+        <h1>Backup & Restore</h1>
 
-    <h2>Gjenopprett database fra backup</h2>
-    <form action="/admin/restore" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".txt,.json" required>
-        <button type="submit">Last opp og gjenopprett</button>
-    </form>
+        <h2>Last ned eksisterende backup</h2>
+        <form action="/admin/backup" method="get">
+            <button type="submit">Last ned backup_database.txt</button>
+        </form>
+
+        <h2>Gjenopprett database fra backup</h2>
+        <form action="/admin/restore" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".txt,.json" required>
+            <button type="submit">Last opp og gjenopprett</button>
+        </form>
+    </div>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+        function goHome() {
+            window.location.href = "/";
+        }
+    </script>
 </body>
 </html>
