@@ -4,16 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="fixed all broken and outdated tests so they now test on the current implementation, changed all test_.py files so they have more correct names and made a share-file for all backend tests, but kept some to not make test_backend.py to messy after more tests have been added.">
-      <change afterPath="$PROJECT_DIR$/static/Sunnaas_building.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/Sunnaas_logo_upscaled.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Skapapp.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Skapapp.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/Service/ErrorHandler.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/Service/ErrorHandler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/styles/admin_page.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/admin_page.css" afterDir="false" />
+    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Made a design for the login page for the website">
       <change beforePath="$PROJECT_DIR$/static/styles/main_page.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/main_page.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_page.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/main_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/main_page.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -250,7 +242,7 @@
       <workItem from="1745920499312" duration="42000" />
       <workItem from="1745920542279" duration="6832000" />
       <workItem from="1746010153875" duration="610000" />
-      <workItem from="1746189312171" duration="6879000" />
+      <workItem from="1746189312171" duration="7242000" />
     </task>
     <task id="LOCAL−00001" summary="configured the functions add_locker and add_multiple_lockers so they now adds and checks for combi_id(frontend id) so the id never overlaps and checks that the numbers interates normally.&#10;&#10;this id takes the locker_room.name and combines it with numbers from 1 to n.&#10;&#10;also fixed this for the html page, so it changes Locker ID to be the combi_id for each locker_room.">
       <option name="closed" value="true" />
@@ -301,7 +293,15 @@
       <option name="presentableId" value="LOCAL−00007" />
       <updated>1743086764390</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Made a design for the login page for the website">
+      <option name="closed" value="true" />
+      <created>1746197743529</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1746197743529</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -326,7 +326,8 @@
     <MESSAGE value="Changed the frontend text to norwegian#2" />
     <MESSAGE value="test_AdminUser.py fixed" />
     <MESSAGE value="fixed all broken and outdated tests so they now test on the current implementation, changed all test_.py files so they have more correct names and made a share-file for all backend tests, but kept some to not make test_backend.py to messy after more tests have been added." />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed all broken and outdated tests so they now test on the current implementation, changed all test_.py files so they have more correct names and made a share-file for all backend tests, but kept some to not make test_backend.py to messy after more tests have been added." />
+    <MESSAGE value="Made a design for the login page for the website" />
+    <option name="LAST_COMMIT_MESSAGE" value="Made a design for the login page for the website" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1746197341960" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
