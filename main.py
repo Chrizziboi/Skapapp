@@ -273,27 +273,17 @@ def create_admin_user(request: CreateUserRequest, db: Session = Depends(get_db))
 
 
 @api.post("/scan_rfid/")
-def scan_rfid(rfid_tag: str, db: Session = Depends(get_db)):
+def scan_rfid(rfid_tag: str, locker_room_id: int = 1, db: Session = Depends(get_db)):
     """
-    Skann et RFID-kort. Registrer bruker hvis ny. Returner alle ledige skap.
+    Skann et RFID-kort. Reserver skap hvis mulig. Returner tilgangsbeskjed.
     """
     try:
-
-        user = get_user_by_rfid_tag(rfid_tag, db)
-        if not user:
-            user = create_standard_user(rfid_tag, db)
-
-        available_lockers = db.query(Locker).filter(Locker.status == "Ledig").all()
-
-        return {
-            "user_id": user.id,
-            "available_lockers": [
-                {"locker_id": locker.id, "combi_id": locker.combi_id, "locker_room_id": locker.locker_room_id}
-                for locker in available_lockers
-            ]
-        }
+        from backend.model.StandardUser import scan_rfid_action
+        result = scan_rfid_action(rfid_tag, locker_room_id, db)
+        return result
     except Exception as e:
-        return fastapi_error_handler(f"Feil ved skanning av RFID-kort: {str(e)}", status_code=400)
+        return fastapi_error_handler(f"Feil ved RFID-skanning: {str(e)}", status_code=400)
+
 
 ''' PUT CALLS '''
 

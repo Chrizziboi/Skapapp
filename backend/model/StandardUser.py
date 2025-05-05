@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import Session
 
+import RaspberryPi
 from backend.Service.ErrorHandler import fastapi_error_handler
 from database import Base
 from backend.model.Locker import Locker
@@ -145,3 +146,41 @@ def scan_rfid_action(rfid_tag: str, locker_room_id: int, db: Session):
     if not user:
         # Registrer bruker automatisk hvis ukjent kort
         user = create_standard_user(rfid_tag, db)
+
+    locker = db.query(Locker).filter(
+        Locker.user_id == user.id,
+        Locker.status == "Opptatt"
+    ).first()
+
+    if locker:
+        # Brukeren har allerede et skap → åpne (midlertidig)
+        from backend.model.LockerLog import log_action
+        log_action(locker_id=locker.id, user_id=user.id, action="Låst opp", db=db)
+        return {
+            "message": f"Skap {locker.combi_id} er midlertidig åpnet for bruker.",
+            "access_granted": True
+        }
+
+    # Ellers reserver nytt skap
+    locker = db.query(Locker).filter(
+        Locker.status == "Ledig",
+        Locker.locker_room_id == locker_room_id
+    ).order_by(Locker.combi_id.asc()).first()
+
+    if not locker:
+        return {
+            "message": "Ingen ledige skap tilgjengelig.",
+            "access_granted": False
+        }
+    locker.status = "Opptatt"
+    locker.user_id = user.id
+    db.commit()
+
+
+    from backend.model.LockerLog import log_reserved_action
+    log_reserved_action(locker_id=locker.id, user_id=user.id, db=db)
+    RaspberryPi.reader_helper()
+    return {
+        "message": f"Garderobeskap {locker.combi_id} reservert for bruker.",
+        "access_granted": True
+    }
