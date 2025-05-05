@@ -150,7 +150,7 @@ def get_all_rooms_endpoint(db: Session = Depends(get_db)):
         rooms = Statistic.get_all_rooms(db)
         return rooms
     except Exception as e:
-        return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
+        return fastapi_error_handler(f"Feil ved henting av garderoberom {str(e)}", status_code=500)
 
 
 @api.get("/lockers/locker_id")
@@ -164,7 +164,7 @@ def read_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
           raise fastapi_error_handler(f"Garderobeskap med id: {Locker.combi_id} ikke funnet.", status_code=404)
       return locker
     except Exception as e:
-        return fastapi_error_handler(f"Feil ved henting av garderobeskap med id: {Locker.combi_id}, {str(e)}", status_code=500)
+        return fastapi_error_handler(f"Feil ved henting av garderobeskap, {str(e)}", status_code=500)
 
 
 @api.get("/locker_rooms/{locker_room_id}/available_lockers")
@@ -428,7 +428,8 @@ def get_total_lockers(db: Session = Depends(get_db)):
 @api.get("/statistic/available_lockers")
 def get_available_lockers(db: Session = Depends(get_db)):
     try:
-        return {"available_lockers": Statistic.available_lockers(db)}
+        available_lockers = Statistic.available_lockers(db)
+        return available_lockers
     except Exception as e:
         logging.error(f"Feil ved henting av ledige skap: {str(e)}")
         raise fastapi_error_handler("Kunne ikke hente ledige skap.", status_code=500)

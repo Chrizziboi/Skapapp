@@ -11,6 +11,7 @@ class Statistic:
     """
     Klasse for å hente statistikk om garderobeskap og bruksmønstre.
     """
+    @staticmethod
     def get_all_rooms(db: Session):
         """
         Henter alle garderoberommene.
@@ -19,9 +20,9 @@ class Statistic:
             rooms = db.query(LockerRoom).all()
             return [{"room_id": room.id, "name": room.name} for room in rooms]
         except Exception as e:
-            return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
+            raise fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
 
-
+    @staticmethod
     def read_locker(locker_id: int, db: Session):
         """
         Endepunkt for å finne valgt garderobeskap.
@@ -32,12 +33,13 @@ class Statistic:
                 raise fastapi_error_handler("Garderobeskap ikke funnet.", status_code=404)
             return {"locker_id": locker.id, "status": locker.status, "note": locker.note}
         except Exception as e:
-            return fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
+            raise fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
 
+    @staticmethod
     def total_lockers(db: Session):
         return db.query(Locker).count()
 
-
+    @staticmethod
     def available_lockers(locker_room_id: int, db: Session):
         """
         Endepunkt for å hente antall ledige skap i et spesifikt garderoberom.
@@ -50,8 +52,9 @@ class Statistic:
 
             return {"locker_room_id": locker_room_id, "available_lockers": available_lockers}
         except Exception as e:
-            return fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
+            raise fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
 
+    @staticmethod
     def all_lockers(db: Session):
         """
         Endepunkt for å hente ALLE skap.
@@ -69,17 +72,17 @@ class Statistic:
                 for locker in lockers
             ]
         except Exception as e:
-            return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
+            raise fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
 
+    @staticmethod
     def occupied_lockers(db: Session):
         return db.query(Locker).filter(Locker.status == "Opptatt").count()
 
-
-
+    @staticmethod
     def total_users(db: Session):
         return db.query(StandardUser).count()
 
-
+    @staticmethod
     def lockers_by_room(db: Session):
 
         results = db.query(
@@ -91,7 +94,7 @@ class Statistic:
          .all()
         return [{"room_name": name, "locker_count": count} for _, name, count in results]
 
-
+    @staticmethod
     def available_lockers_by_room(db: Session):
         """
         Returnerer antall ledige skap per garderoberom.
@@ -109,6 +112,7 @@ class Statistic:
         ).all()
         return [{"room_name": name, "available_lockers": count} for _, name, count in results]
 
+    @staticmethod
     def most_used_rooms(db: Session):
         results = db.query(
             LockerRoom.name,
@@ -127,6 +131,7 @@ class Statistic:
 
         return [{"room_name": name, "usage_count": count} for name, count in results]
 
+    @staticmethod
     def most_active_users(db: Session):
         results = db.query(
             StandardUser.id,
