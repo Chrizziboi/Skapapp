@@ -6,13 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Just went back to original admin_page.css and admin_page.html">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/styles/admin_page.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/admin_page.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/styles/admin_rooms.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/admin_rooms.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/styles/admin_statistics.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/admin_statistics.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/styles/main_page.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/main_page.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/admin_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_page.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin_statistics.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_statistics.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin_wardrobe_management.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_wardrobe_management.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/main_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/main_page.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -123,9 +118,8 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="SDK_NAME" value="Python 3.10" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="false" />
+      <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
@@ -215,8 +209,8 @@
         <item itemvalue="Python.main" />
         <item itemvalue="Python tests.pytest in test_backend.py" />
         <item itemvalue="Python tests.pytest in test_AdminUser.py" />
-        <item itemvalue="Python tests.pytest for test_backend.test_locker_room_deletion" />
         <item itemvalue="Python tests.pytest for test_backend.test_note_after_room_deletion" />
+        <item itemvalue="Python tests.pytest for test_backend.test_locker_room_deletion" />
       </list>
     </recent_temporary>
   </component>
@@ -346,6 +340,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="Just went back to original admin_page.css and admin_page.html" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1746208095861" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1746539438762" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
