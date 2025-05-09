@@ -1,51 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administrator Panel</title>
+    <title>SkapApp - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles/admin_page.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Administrator Panel</h1>
-        <p>Håndter garderoberom og garderobeskap</p>
 
-        <div class="actions">
-
-            <button onclick="goToAvailableLockers()">Tilgengelige Skap</button>
-            <button onclick="goToWardrobe()">Garderobe Administrasjon</button>
-            <button onclick="goToStatistics()">Statistikk</button>
-            <button onclick="goToBackup()">Backup & Restore</button>
-
+    <div class="admin-navbar-wrapper">
+        <div class="admin-navbar">
+            <ul class="nav-menu">
+                <li><button onclick="navigateTo('overview')">Oversikt</button></li>
+                <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
+                <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
+                <li><button onclick="logout()">Logg ut</button></li>
+            </ul>
 
         </div>
+    </div>
 
-        <div class="nav-buttons">
-            <button onclick="goBack()">← Tilbake</button>
-            <button onclick="goHome()">🏠 Hjem</button>
+    <div class="split-layout">
+        <div class="info-section">
+            <h1>Velkommen til SkapApp Admin</h1>
+            <p>Her kan du administrere garderober, opprette og slette skap, og se statistikk over bruken.</p>
         </div>
     </div>
 
     <script>
-        function goToAvailableLockers() {
-            window.location.href = "/available_lockers";
-        }
-        function goToWardrobe() {
-            window.location.href = "/admin_wardrobe";
-        }
-        function goToStatistics() {
-            window.location.href = "/admin_statistics";
-        }
-        function goToBackup() {
-            window.location.href = "/admin_backup";
+        function navigateTo(page) {
+            if (page === 'overview') {
+                window.location.href = "/admin_page";
+            } else if (page === 'wardrobe_admin') {
+                window.location.href = "/admin_wardrobe";
+            } else if (page === 'statistics') {
+                window.location.href = "/admin_statistics";
+            }
         }
 
-        function goHome() {
+
+        function logout() {
+
             window.location.href = "/";
-        }
-        function goBack() {
-            window.history.back();
         }
     </script>
 </body>

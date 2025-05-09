@@ -6,7 +6,8 @@ from fastapi import HTTPException
 if os.name == "nt":  # Windows
     log_dir = os.path.join(os.getenv("USERPROFILE"), "fastapi_logs")
 else:  # Linux/macOS
-    log_dir = "/var/log"
+    log_dir = os.path.join(os.path.dirname(__file__), "..", "..", "logs")
+
 
 # Opprett loggmappen hvis den ikke eksisterer
 os.makedirs(log_dir, exist_ok=True)

@@ -8,56 +8,45 @@
 </head>
 <body>
 
-    <div class="container">
-        <h1>Garderobe Administrasjon</h1>
+    <!-- Admin Navbar -->
+    <nav class="admin-navbar">
+        <ul class="nav-menu">
+            <li><button onclick="location.href='/admin_page'">Oversikt</button></li>
+            <li><button onclick="location.href='/admin_wardrobe_management'">Garderobe admin</button></li>
+            <li><button onclick="location.href='/admin_statistics'">Statistikk</button></li>
+            <li><button onclick="location.href='/logout'">Logg ut</button></li>
+        </ul>
+    </nav>
 
-        <div class="top-nav">
-            <button onclick="goBack()">← Tilbake</button>
-            <button onclick="goHome()">🏠 Hjem</button>
+    <main>
+        <div class="wardrobe-admin-layout">
+            <section class="card card-left glassmorphic">
+                <h2>Opprett garderoberom</h2>
+                <div class="input-row">
+                    <input type="text" id="roomName" placeholder="Skriv inn romnavn">
+                    <button class="create-room-btn" onclick="createRoom()">Opprett</button>
+                </div>
+            </section>
+
+            <section class="card card-bottom glassmorphic">
+                <h2>Legg til garderobeskap</h2>
+                <div class="dropdown-row">
+                    <label for="room-dropdown">Velg rom:</label>
+                    <select id="room-dropdown"></select>
+                </div>
+                <div class="dropdown-row">
+                    <label for="locker-quantity">Antall skap:</label>
+                    <input type="number" id="locker-quantity" min="1" placeholder="Antall">
+                    <button class="add-lockers-btn" id="add-lockers-btn">Legg til</button>
+                </div>
+            </section>
+
+            <section class="card card-right glassmorphic">
+                <h2>Garderoberom</h2>
+                <ul id="room-list" class="room-list"></ul>
+            </section>
         </div>
-        <!-- Room Management (Fixed) -->
-        <div class="section" id="room-management">
-            <h2>Garderoberom håndtering</h2>
-            <input type="text" id="roomName" placeholder="Skriv inn romnavn">
-            <button onclick="createRoom()">Opprett garderoberom</button>
-
-            <h3>Eksisterende garderoberom</h3>
-            <ul id="room-list"></ul>
-        </div>
-
-        <!-- Locker Management (Expands) -->
-        <div class="section" id="locker-section">
-            <h2>Antall garderobeskap i garderoberom</h2>
-            <h3 id="selected-room-name">Ingen garderoberom valgt</h3>
-            <button id="create-locker-btn" onclick="createLocker()" disabled>Opprett garderobeskap</button>
-
-              <div class="multiple-lockers">
-                <input type="number" id="lockerQuantity" min="1" placeholder="Skriv inn antall skap">
-                <button id="create-multiple-lockers-btn" onclick="createMultipleLockers()" disabled>Opprett flere garderobeskap</button>
-                  <button id="delete-all-lockers-btn" onclick="deleteAllLockers()" disabled>Slett alle skap i rommet</button>
-              </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Skap ID</th>
-                        <th>Status</th>
-                        <th>Notat</th>
-                        <th>Handlinger</th>
-                    </tr>
-                </thead>
-                <tbody id="locker-table"></tbody>
-            </table>
-        </div>
-    </div>
-    <script>
-        function goHome() {
-            window.location.href = "/";
-        }
-        function goBack() {
-            window.history.back();
-        }
-    </script>
+    </main>
 
     <script>
         let selectedRoomId = null;

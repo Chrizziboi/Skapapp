@@ -6,48 +6,64 @@
     <link rel="stylesheet" href="/static/styles/admin_statistics.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Statistikkoversikt</h1>
+    <nav class="admin-navbar">
+        <ul class="nav-menu">
+            <li><button onclick="location.href='/admin_page'">Oversikt</button></li>
+            <li><button onclick="location.href='/admin_wardrobe_management'">Garderobe admin</button></li>
+            <li><button onclick="location.href='/admin_statistics'">Statistikk</button></li>
+            <li><button onclick="location.href='/logout'">Logg ut</button></li>
+        </ul>
+    </nav>
+    <main>
+        <div class="container">
+            <h1>Statistikkoversikt</h1>
 
-        <div class="summary">
-            <p><strong>Totalt antall skap:</strong> <span id="total-lockers">...</span></p>
-            <p><strong>Ledige skap:</strong> <span id="available-lockers">...</span></p>
-            <p><strong>Opptatte skap:</strong> <span id="occupied-lockers">...</span></p>
-            <p><strong>Totalt antall brukere:</strong> <span id="total-users">...</span></p>
+            <div class="summary">
+                <p><strong>Totalt antall skap:</strong> <span id="total-lockers">...</span></p>
+                <p><strong>Ledige skap:</strong> <span id="available-lockers">...</span></p>
+                <p><strong>Opptatte skap:</strong> <span id="occupied-lockers">...</span></p>
+                <p><strong>Totalt antall brukere:</strong> <span id="total-users">...</span></p>
+            </div>
+
+            <div class="stat-card">
+                <h2>📊 Skap per garderoberom</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Romnavn</th>
+                            <th>Totalt</th>
+                            <th>Ledige</th>
+                            <th>Opptatte</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lockers-by-room">
+                        <!-- Fylles av JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="stat-card">
+                <h2>🏆 Rom med flest opptatte skap</h2>
+                <ul id="most-used-rooms"></ul>
+            </div>
+
+            <div class="stat-card">
+                <h2>🔥 Mest aktive brukere</h2>
+                <ul id="most-active-users"></ul>
+            </div>
+
+            <div class="stat-card">
+                <h2>🔑 Skap åpnet flest ganger</h2>
+                <ul id="most-opened-lockers"></ul>
+            </div>
+
+            <div class="stat-card">
+                <h2>⏰ Siste skapåpninger</h2>
+                <ul id="recent-locks"></ul>
+            </div>
+
         </div>
-
-        <h2>Skap per garderoberom</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Romnavn</th>
-                    <th>Totalt</th>
-                    <th>Ledige</th>
-                    <th>Opptatte</th>
-                </tr>
-            </thead>
-            <tbody id="lockers-by-room">
-                <!-- Fylles av JS -->
-            </tbody>
-        </table>
-
-        <h2>Rom med flest opptatte skap</h2>
-        <ul id="most-used-rooms"></ul>
-
-        <h2>Mest aktive brukere</h2>
-        <ul id="most-active-users"></ul>
-
-        <h2>Skap åpnet flest ganger</h2>
-        <ul id="most-opened-lockers"></ul>
-
-        <h2>Siste skapåpninger</h2>
-        <ul id="recent-locks"></ul>
-
-        <div class="navigation-buttons">
-            <button onclick="location.href='/admin_page'">← Tilbake</button>
-            <button onclick="location.href='/'">🏠 Hjem</button>
-        </div>
-    </div>
+    </main>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {

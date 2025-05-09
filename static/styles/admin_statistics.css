@@ -1,12 +1,32 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
-    padding: 40px;
-    scroll-behavior: smooth;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(to bottom right, #c6d4f0, #4b5fa4);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+    z-index: -1;
+}
+
+main {
+    padding: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 .container {
-    max-width: 900px;
+    max-width: 1100px;
+    width: 90vw;
     background-color: #fff;
     margin: auto;
     padding: 30px;
@@ -22,11 +42,16 @@ h1, h2 {
 .summary p {
     font-size: 18px;
     margin: 8px 0;
+    font-weight: 500;
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #f9f9f9;
     margin: 20px 0;
 }
 
@@ -35,7 +60,7 @@ table, th, td {
 }
 
 th {
-    background-color: #007bff;
+    background-color: #4b5fa4;
     color: white;
     padding: 10px;
 }
@@ -43,6 +68,7 @@ th {
 td {
     padding: 10px;
     text-align: center;
+    background-color: #ffffff;
 }
 
 ul {
@@ -70,4 +96,80 @@ ul {
 
 .navigation-buttons button:hover {
     background-color: #0056b3;
+}
+
+.admin-navbar {
+    width: fit-content;
+    max-width: 95%;
+    padding: 16px 32px;
+    margin: 32px auto 0;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 24px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    z-index: 10;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 20px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-menu li button {
+    padding: 10px 20px;
+    background: linear-gradient(to right, #0077cc, #005fa3);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 12px rgba(0, 119, 204, 0.4);
+    transition: all 0.3s ease;
+}
+
+.nav-menu li button:hover {
+    background: linear-gradient(to right, #005fa3, #0077cc);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 119, 204, 0.5);
+}
+
+button {
+    all: unset;
+}
+
+.nav-menu li button {
+    padding: 10px 20px;
+    background: linear-gradient(to right, #0077cc, #005fa3);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 12px rgba(0, 119, 204, 0.4);
+    transition: all 0.3s ease;
+}
+
+.nav-menu li button:hover {
+    background: linear-gradient(to right, #005fa3, #0077cc);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 119, 204, 0.5);
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.65);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
 }
