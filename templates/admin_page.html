@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/static/styles/admin_page.css">
 </head>
 <body>
+
     <div class="admin-navbar-wrapper">
         <div class="admin-navbar">
             <ul class="nav-menu">
@@ -16,6 +17,7 @@
                 <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
                 <li><button onclick="logout()">Logg ut</button></li>
             </ul>
+
         </div>
     </div>
 
@@ -37,7 +39,9 @@
             }
         }
 
+
         function logout() {
+
             window.location.href = "/";
         }
     </script>

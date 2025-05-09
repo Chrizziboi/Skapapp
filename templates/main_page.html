@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/static/styles/main_page.css">
 </head>
 <body>
+
     <div class="split-layout">
         <div class="info-section">
             <img src="/static/Sunnaas_logo_upscaled.png" alt="Sunnaas logo" class="logo">
@@ -27,6 +28,7 @@
         </div>
     </div> <!-- End of split-layout -->
 
+
     <script>
         const form = document.getElementById("login-form");
         const errorMessage = document.getElementById("error-message");
@@ -42,11 +44,12 @@
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ password })
                 });
 
                 if (!response.ok) {
-                    throw new Error("Ugyldig passord");
+
+                    throw new Error("Ugyldig kode");
                 }
 
                 const data = await response.json();

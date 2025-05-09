@@ -75,9 +75,9 @@ class LoginRequest(BaseModel):
 
 
 # Pydantic-modell for opprettelse av bruker
- #class CreateUserRequest(BaseModel):
-  #  password: str
-   # role: str
+class CreateUserRequest(BaseModel):
+    password: str
+    role: str
 
 
 @api.get("/")
@@ -90,9 +90,7 @@ def serve_main_page_endpoint(request: Request):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av hovedsiden. {str(e)}", status_code=500)
 
-
 ''' SUBPAGES '''
-
 
 @api.get("/available_lockers")
 def serve_standard_user_page_endpoint(request: Request):
@@ -209,7 +207,7 @@ def get_all_logs(db: Session = Depends(get_db)):
         }
         for log in logs
     ]
-
+  
 
 ''' POST CALLS '''
 
@@ -227,7 +225,6 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         "message": "Innlogging vellykket",
         "role": user.role
     }
-
 
 @api.post("/locker_rooms/{name}")
 def create_room_endpoint(name: str, db: Session = Depends(get_db)):
@@ -268,12 +265,12 @@ def create_multiple_lockers_endpoint(locker_room_id: int, quantity: int, db: Ses
 
 
 @api.post("/admin_users/")
-def create_admin_user(password: str, role: str, db: Session = Depends(get_db)):
+def create_admin_user(request: CreateUserRequest, db: Session = Depends(get_db)):
     """
     Oppretter en ny bruker med pin/passord og rolle.
     """
     try:
-        admin = create_admin(password=password, role=role, db=db)
+        admin = create_admin(password=request.password, role=request.role, db=db)
         return {
             "message": "Bruker opprettet",
             "role": admin.role
@@ -322,8 +319,6 @@ def update_locker_note_endpoint(locker_id: int, note: str, db: Session = Depends
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppdatering av notat: {str(e)}", status_code=500)
 
-
-# Denne skal nok byttes ut med temporary_unlock.
 @api.put("/lockers/{locker_id}/unlock")
 def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
     """
@@ -362,6 +357,24 @@ def lock_locker_after_use_endpoint(user_id: int, db: Session = Depends(get_db)):
         return fastapi_error_handler(f"Feil ved låsing av skap etter bruk: {str(e)}", status_code=500)
 
 
+@api.put("/lockers/temporary_unlock")
+def temporary_unlock_endpoint(user_id: int, db: Session = Depends(get_db)):
+    try:
+        from backend.model.StandardUser import temporary_unlock
+        return temporary_unlock(user_id, db)
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved midlertidig opplåsning: {str(e)}", status_code=500)
+
+
+@api.put("/lockers/lock_temporary_unlock")
+def lock_locker_after_use_endpoint(user_id: int, db: Session = Depends(get_db)):
+    try:
+        from backend.model.StandardUser import lock_locker_after_use
+        return lock_locker_after_use(user_id, db)
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved låsing av skap etter bruk: {str(e)}", status_code=500)
+
+
 @api.put("/lockers/reserve")
 def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Depends(get_db)):
     """
@@ -373,6 +386,15 @@ def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Dep
     except Exception as e:
         return fastapi_error_handler(f"Feil ved reservering av Garderobeskap med id: {Locker.combi_id}, {str(e)}",
                                      status_code=500)
+
+
+@api.put("/lockers/manual_release")
+def manual_release_locker_endpoint(user_id: int, db: Session = Depends(get_db)):
+    try:
+        from backend.model.StandardUser import manual_release_locker
+        return manual_release_locker(user_id, db)
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved manuell frigjøring av skap: {str(e)}", status_code=500)
 
 
 @api.put("/lockers/manual_release")
@@ -490,12 +512,12 @@ def get_most_opened_lockers(db: Session = Depends(get_db)):
     results = db.query(
         Locker.combi_id,
         func.count(LockerLog.id).label("times_opened")
-    ).join(LockerLog, Locker.id == LockerLog.locker_id) \
-        .filter(LockerLog.action == "Låst opp") \
-        .group_by(Locker.combi_id) \
-        .order_by(func.count(LockerLog.id).desc()) \
-        .limit(10) \
-        .all()
+    ).join(LockerLog, Locker.id == LockerLog.locker_id)\
+     .filter(LockerLog.action == "Låst opp")\
+     .group_by(Locker.combi_id)\
+     .order_by(func.count(LockerLog.id).desc())\
+     .limit(10)\
+     .all()
 
     return [{"combi_id": combi_id, "times_opened": count} for combi_id, count in results]
 
@@ -506,11 +528,11 @@ def get_recent_log_entries(db: Session = Depends(get_db)):
         LockerLog.timestamp,
         Locker.combi_id,
         StandardUser.rfid_tag
-    ).join(Locker, Locker.id == LockerLog.locker_id) \
-        .outerjoin(StandardUser, LockerLog.user_id == StandardUser.id) \
-        .order_by(LockerLog.timestamp.desc()) \
-        .limit(10) \
-        .all()
+    ).join(Locker, Locker.id == LockerLog.locker_id)\
+     .outerjoin(StandardUser, LockerLog.user_id == StandardUser.id)\
+     .order_by(LockerLog.timestamp.desc())\
+     .limit(10)\
+     .all()
 
     return [
         {
@@ -541,7 +563,7 @@ def get_most_active_users(db: Session = Depends(get_db)):
         logging.error(f"Feil ved henting av mest aktive brukere: {str(e)}")
         raise fastapi_error_handler("Kunne ikke hente mest aktive brukere.", status_code=500)
 
-
+        
 ''' BACKUP CALLS '''
 
 
@@ -571,9 +593,7 @@ async def restore_from_backup(file: UploadFile = File(...)):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved gjenoppretting av backup: {str(e)}", status_code=500)
 
-
 ''' Async Functions --- background processes '''
-
 
 async def release_expired_loop():
     """
@@ -593,7 +613,6 @@ async def release_expired_loop():
                 db.close()
 
         await asyncio.sleep(600)  # 10 minutter
-
 
 if __name__ == "__main__":
     uvicorn.run(
