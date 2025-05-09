@@ -19,7 +19,6 @@
             <h1>Logg inn</h1>
             <form id="login-form">
                 <div class="form-group">
-                    <input type="text" id="username" name="username" placeholder="Brukernavn" required>
                     <input type="password" id="password" name="password" placeholder="Passord" required>
                     <button type="submit">Logg inn</button>
                     <p id="error-message" class="error-message"></p>
@@ -35,7 +34,6 @@
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            const username = document.getElementById("username").value;
             const password = document.getElementById("password").value;
 
             try {
@@ -48,7 +46,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error("Ugyldig brukernavn eller passord");
+                    throw new Error("Ugyldig passord");
                 }
 
                 const data = await response.json();

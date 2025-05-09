@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
+from backend.model import LockerLog
 from backend.model.Locker import Locker
 from backend.model.StandardUser import StandardUser
 from backend.model.LockerRoom import LockerRoom
@@ -10,6 +11,7 @@ class Statistic:
     """
     Klasse for å hente statistikk om garderobeskap og bruksmønstre.
     """
+    @staticmethod
     def get_all_rooms(db: Session):
         """
         Henter alle garderoberommene.
@@ -18,9 +20,9 @@ class Statistic:
             rooms = db.query(LockerRoom).all()
             return [{"room_id": room.id, "name": room.name} for room in rooms]
         except Exception as e:
-            return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
+            raise fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
 
-
+    @staticmethod
     def read_locker(locker_id: int, db: Session):
         """
         Endepunkt for å finne valgt garderobeskap.
@@ -31,25 +33,28 @@ class Statistic:
                 raise fastapi_error_handler("Garderobeskap ikke funnet.", status_code=404)
             return {"locker_id": locker.id, "status": locker.status, "note": locker.note}
         except Exception as e:
-            return fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
+            raise fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
 
+    @staticmethod
     def total_lockers(db: Session):
         return db.query(Locker).count()
 
-
+    @staticmethod
     def available_lockers(locker_room_id: int, db: Session):
         """
         Endepunkt for å hente antall ledige skap i et spesifikt garderoberom.
         """
-        available_lockers = db.query(Locker).filter(
-            Locker.locker_room_id == locker_room_id,
-            Locker.status.ilike("Ledig")
-        ).count()
         try:
+            available_lockers = db.query(Locker).filter(
+                Locker.locker_room_id == locker_room_id,
+                Locker.status.ilike("Ledig")
+            ).count()
+
             return {"locker_room_id": locker_room_id, "available_lockers": available_lockers}
         except Exception as e:
-            return fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
+            raise fastapi_error_handler(f"Feil ved henting av garderobeskap: {str(e)}", status_code=500)
 
+    @staticmethod
     def all_lockers(db: Session):
         """
         Endepunkt for å hente ALLE skap.
@@ -67,17 +72,17 @@ class Statistic:
                 for locker in lockers
             ]
         except Exception as e:
-            return fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
+            raise fastapi_error_handler(f"Feil ved henting av garderoberom: {str(e)}", status_code=500)
 
+    @staticmethod
     def occupied_lockers(db: Session):
         return db.query(Locker).filter(Locker.status == "Opptatt").count()
 
-
-
+    @staticmethod
     def total_users(db: Session):
         return db.query(StandardUser).count()
 
-
+    @staticmethod
     def lockers_by_room(db: Session):
 
         results = db.query(
@@ -89,7 +94,7 @@ class Statistic:
          .all()
         return [{"room_name": name, "locker_count": count} for _, name, count in results]
 
-
+    @staticmethod
     def available_lockers_by_room(db: Session):
         """
         Returnerer antall ledige skap per garderoberom.
@@ -101,49 +106,47 @@ class Statistic:
         ).join(
             LockerRoom, Locker.locker_room_id == LockerRoom.id
         ).filter(
-            Locker.status == "ledig"
+            Locker.status == "Ledig"
         ).group_by(
             Locker.locker_room_id, LockerRoom.name
         ).all()
         return [{"room_name": name, "available_lockers": count} for _, name, count in results]
 
-
+    @staticmethod
     def most_used_rooms(db: Session):
         results = db.query(
-            Locker.locker_room_id,
             LockerRoom.name,
-            func.count(Locker.id)
+            func.count(LockerLog.id)
         ).join(
-            LockerRoom, Locker.locker_room_id == LockerRoom.id
+            Locker, LockerRoom.id == Locker.locker_room_id
+        ).join(
+            LockerLog, Locker.id == LockerLog.locker_id
         ).filter(
-            Locker.status == "opptatt"
+            LockerLog.action.in_(["Reservert", "Låst opp"])
         ).group_by(
-            Locker.locker_room_id, LockerRoom.name
+            LockerRoom.name
         ).order_by(
-            func.count(Locker.id).desc()
+            func.count(LockerLog.id).desc()
         ).all()
 
-        return [{"room_name": name, "occupied_count": count} for _, name, count in results]
+        return [{"room_name": name, "usage_count": count} for name, count in results]
 
-
+    @staticmethod
     def most_active_users(db: Session):
-
         results = db.query(
             StandardUser.id,
-            StandardUser.username,
-            func.count(Locker.id)
+            StandardUser.rfid_tag,
+            func.count(LockerLog.id)
         ).join(
-            Locker, StandardUser.id == Locker.user_id
+            LockerLog, StandardUser.id == LockerLog.user_id
         ).group_by(
-            StandardUser.id, StandardUser.username
+            StandardUser.id, StandardUser.rfid_tag
         ).order_by(
-            func.count(Locker.id).desc()
+            func.count(LockerLog.id).desc()
         ).all()
 
-        results = db.query(StandardUser.id, StandardUser.username, func.count(Locker.id)) \
-            .join(Locker, StandardUser.id == Locker.user_id, isouter=True) \
-            .group_by(StandardUser.id, StandardUser.username) \
-            .order_by(func.count(Locker.id).desc()) \
-            .all()
+        return [{"user_id": uid, "rfid_tag": tag, "usage_count": count} for uid, tag, count in results]
+
+
 
 

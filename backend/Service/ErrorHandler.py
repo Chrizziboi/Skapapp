@@ -8,6 +8,7 @@ if os.name == "nt":  # Windows
 else:  # Linux/macOS
     log_dir = os.path.join(os.path.dirname(__file__), "..", "..", "logs")
 
+
 # Opprett loggmappen hvis den ikke eksisterer
 os.makedirs(log_dir, exist_ok=True)
 

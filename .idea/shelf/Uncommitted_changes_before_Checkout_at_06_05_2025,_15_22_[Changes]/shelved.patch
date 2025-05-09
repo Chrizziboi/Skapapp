@@ -1,0 +1,455 @@
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"AutoImportSettings\">\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\n  </component>\n  <component name=\"ChangeListManager\">\n    <list default=\"true\" id=\"a628f536-e2b6-40a5-9bba-7f0240a3f736\" name=\"Changes\" comment=\"Just went back to original admin_page.css and admin_page.html\">\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/static/styles/admin_page.css\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/static/styles/admin_page.css\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/static/styles/admin_rooms.css\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/static/styles/admin_rooms.css\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/static/styles/admin_statistics.css\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/static/styles/admin_statistics.css\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/static/styles/main_page.css\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/static/styles/main_page.css\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/templates/admin_page.html\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/templates/admin_page.html\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/templates/admin_statistics.html\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/templates/admin_statistics.html\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/templates/admin_wardrobe_management.html\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/templates/admin_wardrobe_management.html\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/templates/main_page.html\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/templates/main_page.html\" afterDir=\"false\" />\n    </list>\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\n  </component>\n  <component name=\"FileTemplateManagerImpl\">\n    <option name=\"RECENT_TEMPLATES\">\n      <list>\n        <option value=\"Python Script\" />\n      </list>\n    </option>\n  </component>\n  <component name=\"Git.Settings\">\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\n      <map>\n        <entry key=\"$PROJECT_DIR$\" value=\"main\" />\n      </map>\n    </option>\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\n  </component>\n  <component name=\"GitHubPullRequestSearchHistory\">{\n  &quot;lastFilter&quot;: {\n    &quot;state&quot;: &quot;OPEN&quot;,\n    &quot;assignee&quot;: &quot;hannan0912&quot;\n  }\n}</component>\n  <component name=\"GithubPullRequestsUISettings\">{\n  &quot;selectedUrlAndAccountId&quot;: {\n    &quot;url&quot;: &quot;https://github.com/Chrizziboi/Skapapp.git&quot;,\n    &quot;accountId&quot;: &quot;a5361ee2-9628-4955-aee7-808d9c2d7312&quot;\n  }\n}</component>\n  <component name=\"ProjectColorInfo\">{\n  &quot;customColor&quot;: &quot;&quot;,\n  &quot;associatedIndex&quot;: 7\n}</component>\n  <component name=\"ProjectId\" id=\"2t1si2c9VLKMgI333NDKYdRGkPK\" />\n  <component name=\"ProjectViewState\">\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\n    <option name=\"showLibraryContents\" value=\"true\" />\n  </component>\n  <component name=\"PropertiesComponent\">{\n  &quot;keyToString&quot;: {\n    &quot;ASKED_MARK_IGNORED_FILES_AS_EXCLUDED&quot;: &quot;true&quot;,\n    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,\n    &quot;Python tests.pytest for test_Locker.test_add_locker.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_Wardrobe.test_admin_user.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_Wardrobe.test_admin_user_crud.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_Wardrobe.test_create_and_delete_locker_room.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_Wardrobe.test_create_locker_room.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_Wardrobe.test_db.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_Wardrobe.test_locker.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_Wardrobe.test_locker_crud.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_Wardrobe.test_locker_room_deletion.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_Wardrobe.test_standard_user_and_reservation.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_Wardrobe.test_statistics.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_backend.test_add_locker_success.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_backend.test_add_locker_to_nonexistent_room.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_backend.test_add_multiple_lockers_zero_quantity.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_backend.test_add_note_to_locker_success.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_backend.test_add_note_to_nonexistent_locker.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_backend.test_create_duplicate_locker_room.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_backend.test_delete_nonexistent_locker_room.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_backend.test_locker_room_deletion.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_backend.test_note_after_room_deletion.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_backend.test_remove_nonexistent_locker.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_main_API.test_admin_wardrobe_management_page_loads.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_main_API.test_db.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest for test_main_API.test_main_page_loads.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest in test_AdminUser.py.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest in test_Locker.py.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest in test_Wardrobe.py.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest in test_backend.py.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest in test_locker.py.executor&quot;: &quot;Run&quot;,\n    &quot;Python tests.pytest in test_main_API.py.executor&quot;: &quot;Run&quot;,\n    &quot;Python.main.executor&quot;: &quot;Run&quot;,\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\n    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,\n    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,\n    &quot;git-widget-placeholder&quot;: &quot;UIUX&quot;,\n    &quot;last_opened_file_path&quot;: &quot;/Users/EmirNukic/PycharmProjects/Skapapp&quot;,\n    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,\n    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,\n    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,\n    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,\n    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,\n    &quot;settings.editor.selected.configurable&quot;: &quot;settings.sync&quot;,\n    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;\n  }\n}</component>\n  <component name=\"RecentsManager\">\n    <key name=\"MoveFile.RECENT_KEYS\">\n      <recent name=\"$PROJECT_DIR$/static\" />\n      <recent name=\"$PROJECT_DIR$/pictures\" />\n      <recent name=\"C:\\Users\\hanna\\OneDrive\\Dokumenter\\GitHub\\Skapapp\\static\\styles\" />\n      <recent name=\"C:\\Users\\hanna\\OneDrive\\Dokumenter\\GitHub\\Skapapp\\templates\" />\n    </key>\n  </component>\n  <component name=\"RunManager\" selected=\"Python.main\">\n    <configuration name=\"main\" type=\"PythonConfigurationType\" factoryName=\"Python\" temporary=\"true\" nameIsGenerated=\"true\">\n      <module name=\"Skapapp\" />\n      <option name=\"ENV_FILES\" value=\"\" />\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <envs>\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\n      </envs>\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"SDK_NAME\" value=\"Python 3.10\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"$PROJECT_DIR$\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" runner=\"coverage.py\" />\n      <option name=\"SCRIPT_NAME\" value=\"$PROJECT_DIR$/main.py\" />\n      <option name=\"PARAMETERS\" value=\"\" />\n      <option name=\"SHOW_COMMAND_LINE\" value=\"false\" />\n      <option name=\"EMULATE_TERMINAL\" value=\"false\" />\n      <option name=\"MODULE_MODE\" value=\"false\" />\n      <option name=\"REDIRECT_INPUT\" value=\"false\" />\n      <option name=\"INPUT_FILE\" value=\"\" />\n      <method v=\"2\" />\n    </configuration>\n    <configuration name=\"pytest for test_backend.test_locker_room_deletion\" type=\"tests\" factoryName=\"py.test\" temporary=\"true\" nameIsGenerated=\"true\">\n      <module name=\"Skapapp\" />\n      <option name=\"ENV_FILES\" value=\"\" />\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"$PROJECT_DIR$/tests/backend_tests\" />\n      <option name=\"IS_MODULE_SDK\" value=\"true\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" runner=\"coverage.py\" />\n      <option name=\"_new_keywords\" value=\"&quot;&quot;\" />\n      <option name=\"_new_parameters\" value=\"&quot;&quot;\" />\n      <option name=\"_new_additionalArguments\" value=\"&quot;&quot;\" />\n      <option name=\"_new_target\" value=\"&quot;test_backend.test_locker_room_deletion&quot;\" />\n      <option name=\"_new_targetType\" value=\"&quot;PYTHON&quot;\" />\n      <method v=\"2\" />\n    </configuration>\n    <configuration name=\"pytest for test_backend.test_note_after_room_deletion\" type=\"tests\" factoryName=\"py.test\" temporary=\"true\" nameIsGenerated=\"true\">\n      <module name=\"Skapapp\" />\n      <option name=\"ENV_FILES\" value=\"\" />\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"$PROJECT_DIR$/tests/backend_tests\" />\n      <option name=\"IS_MODULE_SDK\" value=\"true\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" runner=\"coverage.py\" />\n      <option name=\"_new_keywords\" value=\"&quot;&quot;\" />\n      <option name=\"_new_parameters\" value=\"&quot;&quot;\" />\n      <option name=\"_new_additionalArguments\" value=\"&quot;&quot;\" />\n      <option name=\"_new_target\" value=\"&quot;test_backend.test_note_after_room_deletion&quot;\" />\n      <option name=\"_new_targetType\" value=\"&quot;PYTHON&quot;\" />\n      <method v=\"2\" />\n    </configuration>\n    <configuration name=\"pytest in test_AdminUser.py\" type=\"tests\" factoryName=\"py.test\" temporary=\"true\" nameIsGenerated=\"true\">\n      <module name=\"Skapapp\" />\n      <option name=\"ENV_FILES\" value=\"\" />\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"$PROJECT_DIR$/tests/backend_tests\" />\n      <option name=\"IS_MODULE_SDK\" value=\"true\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" runner=\"coverage.py\" />\n      <option name=\"_new_keywords\" value=\"&quot;&quot;\" />\n      <option name=\"_new_parameters\" value=\"&quot;&quot;\" />\n      <option name=\"_new_additionalArguments\" value=\"&quot;&quot;\" />\n      <option name=\"_new_target\" value=\"&quot;$PROJECT_DIR$/tests/backend_tests/test_AdminUser.py&quot;\" />\n      <option name=\"_new_targetType\" value=\"&quot;PATH&quot;\" />\n      <method v=\"2\" />\n    </configuration>\n    <configuration name=\"pytest in test_backend.py\" type=\"tests\" factoryName=\"py.test\" temporary=\"true\" nameIsGenerated=\"true\">\n      <module name=\"Skapapp\" />\n      <option name=\"ENV_FILES\" value=\"\" />\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"$PROJECT_DIR$/tests/backend_tests\" />\n      <option name=\"IS_MODULE_SDK\" value=\"true\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" runner=\"coverage.py\" />\n      <option name=\"_new_keywords\" value=\"&quot;&quot;\" />\n      <option name=\"_new_parameters\" value=\"&quot;&quot;\" />\n      <option name=\"_new_additionalArguments\" value=\"&quot;&quot;\" />\n      <option name=\"_new_target\" value=\"&quot;$PROJECT_DIR$/tests/backend_tests/test_backend.py&quot;\" />\n      <option name=\"_new_targetType\" value=\"&quot;PATH&quot;\" />\n      <method v=\"2\" />\n    </configuration>\n    <recent_temporary>\n      <list>\n        <item itemvalue=\"Python.main\" />\n        <item itemvalue=\"Python tests.pytest in test_backend.py\" />\n        <item itemvalue=\"Python tests.pytest in test_AdminUser.py\" />\n        <item itemvalue=\"Python tests.pytest for test_backend.test_locker_room_deletion\" />\n        <item itemvalue=\"Python tests.pytest for test_backend.test_note_after_room_deletion\" />\n      </list>\n    </recent_temporary>\n  </component>\n  <component name=\"SharedIndexes\">\n    <attachedChunks>\n      <set>\n        <option value=\"bundled-js-predefined-d6986cc7102b-f27c65a3e318-JavaScript-PY-251.23774.444\" />\n        <option value=\"bundled-python-sdk-890ed5b35930-d9c5bdb153f4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-251.23774.444\" />\n      </set>\n    </attachedChunks>\n  </component>\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\n  <component name=\"TaskManager\">\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\n      <changelist id=\"a628f536-e2b6-40a5-9bba-7f0240a3f736\" name=\"Changes\" comment=\"\" />\n      <created>1739531038442</created>\n      <option name=\"number\" value=\"Default\" />\n      <option name=\"presentableId\" value=\"Default\" />\n      <updated>1739531038442</updated>\n      <workItem from=\"1739872136387\" duration=\"921000\" />\n      <workItem from=\"1740045481576\" duration=\"4077000\" />\n      <workItem from=\"1744027286264\" duration=\"5200000\" />\n      <workItem from=\"1745847528026\" duration=\"634000\" />\n      <workItem from=\"1745848202644\" duration=\"741000\" />\n      <workItem from=\"1745848949923\" duration=\"158000\" />\n      <workItem from=\"1745849110599\" duration=\"48000\" />\n      <workItem from=\"1745849167629\" duration=\"299000\" />\n      <workItem from=\"1745849475356\" duration=\"1171000\" />\n      <workItem from=\"1745919325103\" duration=\"1163000\" />\n      <workItem from=\"1745920499312\" duration=\"42000\" />\n      <workItem from=\"1745920542279\" duration=\"6832000\" />\n      <workItem from=\"1746010153875\" duration=\"610000\" />\n      <workItem from=\"1746189312171\" duration=\"16680000\" />\n    </task>\n    <task id=\"LOCAL−00001\" summary=\"configured the functions add_locker and add_multiple_lockers so they now adds and checks for combi_id(frontend id) so the id never overlaps and checks that the numbers interates normally.&#10;&#10;this id takes the locker_room.name and combines it with numbers from 1 to n.&#10;&#10;also fixed this for the html page, so it changes Locker ID to be the combi_id for each locker_room.\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1742840685703</created>\n      <option name=\"number\" value=\"LOCAL−00001\" />\n      <option name=\"presentableId\" value=\"LOCAL−00001\" />\n      <updated>1742840685703</updated>\n    </task>\n    <task id=\"LOCAL−00002\" summary=\"refactored and sorted the code so that all get-functions are in statistic.py, gave all api-calls with a backend return, and made all backend returns into json format to correctly display what has been done so the user can see the messages.&#10;&#10;fixed some error_handler stuff.\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1742910074045</created>\n      <option name=\"number\" value=\"LOCAL−00002\" />\n      <option name=\"presentableId\" value=\"LOCAL−00002\" />\n      <updated>1742910074046</updated>\n    </task>\n    <task id=\"LOCAL−00003\" summary=\"changed all exceptions to go through ErrorHandler.py first.&#10;&#10;corrected some error texts to fit norwegian.\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1743074562250</created>\n      <option name=\"number\" value=\"LOCAL−00003\" />\n      <option name=\"presentableId\" value=\"LOCAL−00003\" />\n      <updated>1743074562250</updated>\n    </task>\n    <task id=\"LOCAL−00004\" summary=\"Changed the frontend text to norwegian\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1743075534840</created>\n      <option name=\"number\" value=\"LOCAL−00004\" />\n      <option name=\"presentableId\" value=\"LOCAL−00004\" />\n      <updated>1743075534840</updated>\n    </task>\n    <task id=\"LOCAL−00005\" summary=\"Changed the frontend text to norwegian#2\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1743075825468</created>\n      <option name=\"number\" value=\"LOCAL−00005\" />\n      <option name=\"presentableId\" value=\"LOCAL−00005\" />\n      <updated>1743075825468</updated>\n    </task>\n    <task id=\"LOCAL−00006\" summary=\"test_AdminUser.py fixed\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1743077477493</created>\n      <option name=\"number\" value=\"LOCAL−00006\" />\n      <option name=\"presentableId\" value=\"LOCAL−00006\" />\n      <updated>1743077477493</updated>\n    </task>\n    <task id=\"LOCAL−00007\" summary=\"fixed all broken and outdated tests so they now test on the current implementation, changed all test_.py files so they have more correct names and made a share-file for all backend tests, but kept some to not make test_backend.py to messy after more tests have been added.\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1743086764390</created>\n      <option name=\"number\" value=\"LOCAL−00007\" />\n      <option name=\"presentableId\" value=\"LOCAL−00007\" />\n      <updated>1743086764390</updated>\n    </task>\n    <task id=\"LOCAL-00008\" summary=\"Made a design for the login page for the website\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1746197743529</created>\n      <option name=\"number\" value=\"00008\" />\n      <option name=\"presentableId\" value=\"LOCAL-00008\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1746197743529</updated>\n    </task>\n    <task id=\"LOCAL-00009\" summary=\"Just went back to original admin_page.css and admin_page.html\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1746197984652</created>\n      <option name=\"number\" value=\"00009\" />\n      <option name=\"presentableId\" value=\"LOCAL-00009\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1746197984652</updated>\n    </task>\n    <option name=\"localTasksCounter\" value=\"10\" />\n    <servers />\n  </component>\n  <component name=\"TypeScriptGeneratedFilesManager\">\n    <option name=\"version\" value=\"3\" />\n  </component>\n  <component name=\"Vcs.Log.Tabs.Properties\">\n    <option name=\"TAB_STATES\">\n      <map>\n        <entry key=\"MAIN\">\n          <value>\n            <State />\n          </value>\n        </entry>\n      </map>\n    </option>\n  </component>\n  <component name=\"VcsManagerConfiguration\">\n    <MESSAGE value=\"configured the functions add_locker and add_multiple_lockers so they now adds and checks for combi_id(frontend id) so the id never overlaps and checks that the numbers interates normally.&#10;&#10;this id takes the locker_room.name and combines it with numbers from 1 to n.&#10;&#10;also fixed this for the html page, so it changes Locker ID to be the combi_id for each locker_room.\" />\n    <MESSAGE value=\"refactored and sorted the code so that all get-functions are in statistic.py, gave all api-calls with a backend return, and made all backend returns into json format to correctly display what has been done so the user can see the messages.&#10;&#10;fixed some error_handler stuff.\" />\n    <MESSAGE value=\"changed all exceptions to go through ErrorHandler.py first.&#10;&#10;corrected some error texts to fit norwegian.\" />\n    <MESSAGE value=\"Changed the frontend text to norwegian\" />\n    <MESSAGE value=\"Changed the frontend text to norwegian#2\" />\n    <MESSAGE value=\"test_AdminUser.py fixed\" />\n    <MESSAGE value=\"fixed all broken and outdated tests so they now test on the current implementation, changed all test_.py files so they have more correct names and made a share-file for all backend tests, but kept some to not make test_backend.py to messy after more tests have been added.\" />\n    <MESSAGE value=\"Made a design for the login page for the website\" />\n    <MESSAGE value=\"Just went back to original admin_page.css and admin_page.html\" />\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"Just went back to original admin_page.css and admin_page.html\" />\n  </component>\n  <component name=\"com.intellij.coverage.CoverageDataManagerImpl\">\n    <SUITE FILE_PATH=\"coverage/Skapapp$main.coverage\" NAME=\"main Coverage Results\" MODIFIED=\"1746208095861\" SOURCE_PROVIDER=\"com.intellij.coverage.DefaultCoverageFileProvider\" RUNNER=\"coverage.py\" COVERAGE_BY_TEST_ENABLED=\"false\" COVERAGE_TRACING_ENABLED=\"false\" WORKING_DIRECTORY=\"$PROJECT_DIR$\" />\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision 6c06741c6e48ff905d66346a89302d3ec33371f5)
++++ b/.idea/workspace.xml	(date 1746537725384)
+@@ -4,15 +4,10 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Just went back to original admin_page.css and admin_page.html">
++    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Changed the design for all the pages. Functionality still limited because of functions, and some button that i will take next time">
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/static/styles/admin_page.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/admin_page.css" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/static/styles/admin_rooms.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/admin_rooms.css" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/static/styles/admin_statistics.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/admin_statistics.css" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/static/styles/main_page.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/main_page.css" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/templates/admin_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_page.html" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/templates/admin_statistics.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_statistics.html" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/templates/admin_wardrobe_management.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_wardrobe_management.html" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/templates/main_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/main_page.html" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+@@ -34,13 +29,11 @@
+       </map>
+     </option>
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
++    <option name="UPDATE_TYPE" value="REBASE" />
+   </component>
+-  <component name="GitHubPullRequestSearchHistory">{
+-  &quot;lastFilter&quot;: {
+-    &quot;state&quot;: &quot;OPEN&quot;,
+-    &quot;assignee&quot;: &quot;hannan0912&quot;
+-  }
+-}</component>
++  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
++  "lastFilter": {}
++}]]></component>
+   <component name="GithubPullRequestsUISettings">{
+   &quot;selectedUrlAndAccountId&quot;: {
+     &quot;url&quot;: &quot;https://github.com/Chrizziboi/Skapapp.git&quot;,
+@@ -249,7 +242,8 @@
+       <workItem from="1745920499312" duration="42000" />
+       <workItem from="1745920542279" duration="6832000" />
+       <workItem from="1746010153875" duration="610000" />
+-      <workItem from="1746189312171" duration="16680000" />
++      <workItem from="1746189312171" duration="16732000" />
++      <workItem from="1746448049769" duration="6457000" />
+     </task>
+     <task id="LOCAL−00001" summary="configured the functions add_locker and add_multiple_lockers so they now adds and checks for combi_id(frontend id) so the id never overlaps and checks that the numbers interates normally.&#10;&#10;this id takes the locker_room.name and combines it with numbers from 1 to n.&#10;&#10;also fixed this for the html page, so it changes Locker ID to be the combi_id for each locker_room.">
+       <option name="closed" value="true" />
+@@ -316,7 +310,15 @@
+       <option name="project" value="LOCAL" />
+       <updated>1746197984652</updated>
+     </task>
+-    <option name="localTasksCounter" value="10" />
++    <task id="LOCAL-00010" summary="Changed the design for all the pages. Functionality still limited because of functions, and some button that i will take next time">
++      <option name="closed" value="true" />
++      <created>1746208246225</created>
++      <option name="number" value="00010" />
++      <option name="presentableId" value="LOCAL-00010" />
++      <option name="project" value="LOCAL" />
++      <updated>1746208246225</updated>
++    </task>
++    <option name="localTasksCounter" value="11" />
+     <servers />
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+@@ -327,7 +329,19 @@
+       <map>
+         <entry key="MAIN">
+           <value>
+-            <State />
++            <State>
++              <option name="FILTERS">
++                <map>
++                  <entry key="branch">
++                    <value>
++                      <list>
++                        <option value="main" />
++                      </list>
++                    </value>
++                  </entry>
++                </map>
++              </option>
++            </State>
+           </value>
+         </entry>
+       </map>
+@@ -343,9 +357,10 @@
+     <MESSAGE value="fixed all broken and outdated tests so they now test on the current implementation, changed all test_.py files so they have more correct names and made a share-file for all backend tests, but kept some to not make test_backend.py to messy after more tests have been added." />
+     <MESSAGE value="Made a design for the login page for the website" />
+     <MESSAGE value="Just went back to original admin_page.css and admin_page.html" />
+-    <option name="LAST_COMMIT_MESSAGE" value="Just went back to original admin_page.css and admin_page.html" />
++    <MESSAGE value="Changed the design for all the pages. Functionality still limited because of functions, and some button that i will take next time" />
++    <option name="LAST_COMMIT_MESSAGE" value="Changed the design for all the pages. Functionality still limited because of functions, and some button that i will take next time" />
+   </component>
+   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+-    <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1746208095861" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
++    <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1746537586662" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+   </component>
+ </project>
+\ No newline at end of file
+Index: static/styles/main_page.css
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>body {\n    font-family: Arial, sans-serif;\n    background-color: #f2f2f2;\n    display: flex;\n    justify-content: center;\n    align-items: center;\n    height: 100vh;\n    margin: 0;\n}\n\n.login-container {\n    background-color: white;\n    padding: 40px;\n    border-radius: 12px;\n    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);\n    width: 300px;\n    text-align: center;\n}\n\n.login-container h1 {\n    margin-bottom: 24px;\n    font-size: 24px;\n    color: #333;\n}\n\n.login-container input {\n    width: 100%;\n    padding: 12px;\n    margin: 8px 0;\n    border: 1px solid #ccc;\n    border-radius: 6px;\n    font-size: 16px;\n}\n\n.login-container button {\n    width: 100%;\n    padding: 12px;\n    background-color: #0077cc;\n    color: white;\n    border: none;\n    border-radius: 6px;\n    font-size: 16px;\n    cursor: pointer;\n    margin-top: 12px;\n    transition: background-color 0.3s ease;\n}\n\n.login-container button:hover {\n    background-color: #005fa3;\n}\n\n.error-message {\n    color: red;\n    margin-top: 10px;\n    font-size: 14px;\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/static/styles/main_page.css b/static/styles/main_page.css
+--- a/static/styles/main_page.css	(revision 6c06741c6e48ff905d66346a89302d3ec33371f5)
++++ b/static/styles/main_page.css	(date 1746193662837)
+@@ -1,25 +1,70 @@
+ body {
+-    font-family: Arial, sans-serif;
+-    background-color: #f2f2f2;
++    font-family: 'Inter', sans-serif;
++    background: url('/static/Sunnaas_building.webp') no-repeat center center fixed;
++    background-size: cover;
++    min-height: 100vh;
++    margin: 0;
++    padding: 0;
+     display: flex;
+     justify-content: center;
+     align-items: center;
+-    height: 100vh;
+-    margin: 0;
++}
++
++body::before {
++    content: "";
++    position: fixed;
++    inset: 0;
++    background: rgba(0, 0, 0, 0.35);
++    z-index: -1;
++}
++
++.split-layout {
++    display: flex;
++    gap: 40px;
++    align-items: center;
++    justify-content: center;
++}
++
++.info-section,
++.login-container {
++    background: rgba(255, 255, 255, 0.85);
++    border: 1px solid rgba(255, 255, 255, 0.4);
++    backdrop-filter: blur(8px);
++    -webkit-backdrop-filter: blur(8px);
++    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
++    padding: 48px;
++    border-radius: 24px;
++    max-width: 90vw;
++    height: 360px;
++    display: flex;
++    flex-direction: column;
++    justify-content: center;
++}
++
++.info-section {
++    width: 460px;
++}
++
++.info-section h1 {
++    font-size: 36px;
++    margin-bottom: 16px;
++    color: #222;
++}
++
++.info-section p {
++    color: #333;
++    font-size: 18px;
++    line-height: 1.6;
+ }
+ 
+ .login-container {
+-    background-color: white;
+-    padding: 40px;
+-    border-radius: 12px;
+-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+-    width: 300px;
++    width: 340px;
+     text-align: center;
+ }
+ 
+ .login-container h1 {
+     margin-bottom: 24px;
+-    font-size: 24px;
++    font-size: 28px;
+     color: #333;
+ }
+ 
+@@ -28,25 +73,31 @@
+     padding: 12px;
+     margin: 8px 0;
+     border: 1px solid #ccc;
+-    border-radius: 6px;
++    border-radius: 8px;
+     font-size: 16px;
+ }
+ 
+ .login-container button {
+     width: 100%;
+-    padding: 12px;
+-    background-color: #0077cc;
++    padding: 14px 0;
++    margin: 12px 0;
++    background: linear-gradient(to right, #0077cc, #005fa3);
+     color: white;
+     border: none;
+-    border-radius: 6px;
++    border-radius: 50px;
+     font-size: 16px;
++    font-weight: 600;
++    letter-spacing: 0.5px;
+     cursor: pointer;
+-    margin-top: 12px;
+-    transition: background-color 0.3s ease;
++    text-align: center;
++    box-shadow: 0 6px 12px rgba(0, 119, 204, 0.4);
++    transition: all 0.3s ease;
+ }
+ 
+ .login-container button:hover {
+-    background-color: #005fa3;
++    background: linear-gradient(to right, #005fa3, #0077cc);
++    transform: translateY(-2px);
++    box-shadow: 0 8px 16px rgba(0, 119, 204, 0.5);
+ }
+ 
+ .error-message {
+@@ -54,3 +105,21 @@
+     margin-top: 10px;
+     font-size: 14px;
+ }
++
++.logo {
++    max-width: 300px;
++    max-height: 150px;
++    margin-bottom: 32px;
++    object-fit: contain;
++}
++
++.form-group {
++    width: 100%;
++}
++
++.login-container input,
++.login-container button {
++    width: 100%;
++    display: block;
++    box-sizing: border-box;
++}
+Index: templates/admin_page.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><!DOCTYPE html>\n<html lang=\"no\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>SkapApp - Admin</title>\n    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap\" rel=\"stylesheet\">\n    <link rel=\"stylesheet\" href=\"/static/styles/admin_page.css\">\n</head>\n<body>\n    <div class=\"admin-navbar-wrapper\">\n        <div class=\"admin-navbar\">\n            <ul class=\"nav-menu\">\n                <li><button onclick=\"navigateTo('overview')\">Oversikt</button></li>\n                <li><button onclick=\"navigateTo('wardrobe_admin')\">Garderobe admin</button></li>\n                <li><button onclick=\"navigateTo('statistics')\">Statistikk</button></li>\n                <li><button onclick=\"logout()\">Logg ut</button></li>\n            </ul>\n        </div>\n    </div>\n\n    <div class=\"split-layout\">\n        <div class=\"info-section\">\n            <h1>Velkommen til SkapApp Admin</h1>\n            <p>Her kan du administrere garderober, opprette og slette skap, og se statistikk over bruken.</p>\n        </div>\n    </div>\n\n    <script>\n        function navigateTo(page) {\n            if (page === 'overview') {\n                window.location.href = \"/admin_page\";\n            } else if (page === 'wardrobe_admin') {\n                window.location.href = \"/admin_wardrobe\";\n            } else if (page === 'statistics') {\n                window.location.href = \"/admin_statistics\";\n            }\n        }\n\n        function logout() {\n            window.location.href = \"/logout\";\n        }\n    </script>\n</body>\n</html>\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/templates/admin_page.html b/templates/admin_page.html
+--- a/templates/admin_page.html	(revision 6c06741c6e48ff905d66346a89302d3ec33371f5)
++++ b/templates/admin_page.html	(date 1746527163487)
+@@ -14,7 +14,7 @@
+                 <li><button onclick="navigateTo('overview')">Oversikt</button></li>
+                 <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
+                 <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
+-                <li><button onclick="logout()">Logg ut</button></li>
++                <li><button onclick="navigateTo('logout')">Logg ut</button></li>
+             </ul>
+         </div>
+     </div>
+@@ -34,12 +34,10 @@
+                 window.location.href = "/admin_wardrobe";
+             } else if (page === 'statistics') {
+                 window.location.href = "/admin_statistics";
++            } else if (page === 'logout') {
++                window.location.href = "/";
+             }
+         }
+-
+-        function logout() {
+-            window.location.href = "/logout";
+-        }
+     </script>
+ </body>
+ </html>
+Index: templates/main_page.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><!DOCTYPE html>\n<html lang=\"no\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>SkapApp - Innlogging</title>\n    <link rel=\"stylesheet\" href=\"/static/styles/main_page.css\">\n</head>\n<body>\n    <div class=\"login-container\">\n        <h1>Logg inn</h1>\n        <form id=\"login-form\">\n            <input type=\"text\" id=\"username\" name=\"username\" placeholder=\"Brukernavn\" required>\n            <input type=\"password\" id=\"password\" name=\"password\" placeholder=\"Passord\" required>\n            <button type=\"submit\">Logg inn</button>\n            <p id=\"error-message\" class=\"error-message\"></p>\n        </form>\n    </div>\n\n    <script>\n        const form = document.getElementById(\"login-form\");\n        const errorMessage = document.getElementById(\"error-message\");\n\n        form.addEventListener(\"submit\", async (e) => {\n            e.preventDefault();\n\n            const username = document.getElementById(\"username\").value;\n            const password = document.getElementById(\"password\").value;\n\n            try {\n                const response = await fetch(\"/login\", {\n                    method: \"POST\",\n                    headers: {\n                        \"Content-Type\": \"application/json\"\n                    },\n                    body: JSON.stringify({ username, password })\n                });\n\n                if (!response.ok) {\n                    throw new Error(\"Ugyldig brukernavn eller passord\");\n                }\n\n                const data = await response.json();\n                if (data.role === \"admin\") {\n                    window.location.href = \"/admin_page\";\n                } else {\n                    window.location.href = \"/available_lockers\";\n                }\n            } catch (err) {\n                errorMessage.textContent = err.message;\n            }\n        });\n    </script>\n</body>\n</html>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/templates/main_page.html b/templates/main_page.html
+--- a/templates/main_page.html	(revision 6c06741c6e48ff905d66346a89302d3ec33371f5)
++++ b/templates/main_page.html	(date 1746523349321)
+@@ -4,18 +4,142 @@
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>SkapApp - Innlogging</title>
++    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+     <link rel="stylesheet" href="/static/styles/main_page.css">
++    <style>
++        body {
++            font-family: 'Inter', sans-serif;
++            background: url('/static/Sunnaas_building.webp') no-repeat center center fixed;
++            background-size: cover;
++            min-height: 100vh;
++            margin: 0;
++            padding: 0;
++            display: flex;
++            justify-content: center;
++            align-items: center;
++        }
++
++        body::before {
++            content: "";
++            position: fixed;
++            inset: 0;
++            background: rgba(0, 0, 0, 0.35);
++            z-index: -1;
++        }
++
++
++        .split-layout {
++            display: flex;
++            gap: 40px;
++            align-items: center;
++            justify-content: center;
++        }
++
++        .info-section,
++        .login-container {
++            background: rgba(255, 255, 255, 0.85);
++            border: 1px solid rgba(255, 255, 255, 0.4);
++            backdrop-filter: blur(8px);
++            -webkit-backdrop-filter: blur(8px);
++            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
++            height: 360px;
++            display: flex;
++            flex-direction: column;
++            justify-content: center;
++            padding: 48px;
++            border-radius: 24px;
++        }
++
++        .info-section {
++            width: 460px;
++        }
++
++        .login-container {
++            width: 340px;
++            text-align: center;
++        }
++
++        .info-section h1 {
++            font-size: 36px;
++            margin-bottom: 16px;
++            color: #222;
++        }
++
++        .info-section p {
++            color: #333;
++            font-size: 18px;
++            line-height: 1.6;
++        }
++
++        .login-container h1 {
++            margin-bottom: 24px;
++            font-size: 28px;
++            color: #333;
++        }
++
++        .login-container input {
++            width: 100%;
++            padding: 12px;
++            margin: 8px 0;
++            border: 1px solid #ccc;
++            border-radius: 8px;
++            font-size: 16px;
++        }
++
++        .login-container button {
++            width: 100%;
++            padding: 14px 0;
++            margin: 12px 0;
++            background: linear-gradient(to right, #0077cc, #005fa3);
++            color: white;
++            border: none;
++            border-radius: 50px;
++            font-size: 16px;
++            font-weight: 600;
++            letter-spacing: 0.5px;
++            cursor: pointer;
++            text-align: center;
++            box-shadow: 0 6px 12px rgba(0, 119, 204, 0.4);
++            transition: all 0.3s ease;
++        }
++
++        .login-container button:hover {
++            background: linear-gradient(to right, #005fa3, #0077cc);
++            transform: translateY(-2px);
++            box-shadow: 0 8px 16px rgba(0, 119, 204, 0.5);
++        }
++
++        .form-group {
++            width: 100%;
++        }
++
++        .login-container input,
++        .login-container button {
++            width: 100%;
++            display: block;
++            box-sizing: border-box;
++        }
++    </style>
+ </head>
+ <body>
+-    <div class="login-container">
+-        <h1>Logg inn</h1>
+-        <form id="login-form">
+-            <input type="text" id="username" name="username" placeholder="Brukernavn" required>
+-            <input type="password" id="password" name="password" placeholder="Passord" required>
+-            <button type="submit">Logg inn</button>
+-            <p id="error-message" class="error-message"></p>
+-        </form>
+-    </div>
++    <div class="split-layout">
++        <div class="info-section">
++            <img src="/static/Sunnaas_logo_upscaled.png" alt="Sunnaas logo" class="logo">
++            <h1>Velkommen til SkapApp</h1>
++            <p>SkapApp lar ansatte ved Sunnaas Sykehus administrere garderobeskap effektivt. Logg inn for å opprette rom, tildele skap og se statistikk over bruken.</p>
++        </div>
++        <div class="login-container">
++            <h1>Logg inn</h1>
++            <form id="login-form">
++                <div class="form-group">
++                    <input type="text" id="username" name="username" placeholder="Brukernavn" required>
++                    <input type="password" id="password" name="password" placeholder="Passord" required>
++                    <button type="submit">Logg inn</button>
++                    <p id="error-message" class="error-message"></p>
++                </div>
++            </form>
++        </div>
++    </div> <!-- End of split-layout -->
+ 
+     <script>
+         const form = document.getElementById("login-form");
