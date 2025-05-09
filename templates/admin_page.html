@@ -16,6 +16,7 @@
             <button onclick="goToAvailableLockers()">Tilgengelige Skap</button>
             <button onclick="goToWardrobe()">Garderobe Administrasjon</button>
             <button onclick="goToStatistics()">Statistikk</button>
+            <button onclick="goToBackup()">Backup & Restore</button>
 
 
         </div>
@@ -36,6 +37,10 @@
         function goToStatistics() {
             window.location.href = "/admin_statistics";
         }
+        function goToBackup() {
+            window.location.href = "/admin_backup";
+        }
+
         function goHome() {
             window.location.href = "/";
         }
