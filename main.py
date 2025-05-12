@@ -522,27 +522,6 @@ def get_most_opened_lockers(db: Session = Depends(get_db)):
     return [{"combi_id": combi_id, "times_opened": count} for combi_id, count in results]
 
 
-@api.get("/statistic/recent_log_entries")
-def get_recent_log_entries(db: Session = Depends(get_db)):
-    results = db.query(
-        LockerLog.timestamp,
-        Locker.combi_id,
-        StandardUser.rfid_tag
-    ).join(Locker, Locker.id == LockerLog.locker_id)\
-     .outerjoin(StandardUser, LockerLog.user_id == StandardUser.id)\
-     .order_by(LockerLog.timestamp.desc())\
-     .limit(10)\
-     .all()
-
-    return [
-        {
-            "timestamp": ts.strftime("%Y-%m-%d %H:%M:%S"),
-            "combi_id": combi,
-            "username": rfid
-        }
-        for ts, combi, rfid in results
-    ]
-
 
 @api.get("/statistic/most_used_rooms")
 def get_most_used_rooms(db: Session = Depends(get_db)):
@@ -590,6 +569,13 @@ def get_users_with_usage(db: Session = Depends(get_db)):
         return result
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av brukere med aktivitetsdata: {str(e)}", 500)
+
+@api.get("/statistic/recent_log_entries")
+def get_recent_log_entries(db: Session = Depends(get_db)):
+    try:
+        return Statistic.latest_log_entries(db)
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av logg: {str(e)}", 500)
 
         
 ''' BACKUP CALLS '''

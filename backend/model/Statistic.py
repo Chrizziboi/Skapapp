@@ -118,4 +118,25 @@ class Statistic:
          .order_by(func.count(LockerLogModel.id).desc()).all()
         return [{"username": tag, "locker_count": count} for _, tag, count in results]
 
+    @staticmethod
+    def latest_log_entries(db: Session, limit: int = 10):
+        try:
+            logs = db.query(LockerLogModel) \
+                .order_by(LockerLogModel.timestamp.desc()) \
+                .limit(limit) \
+                .all()
+
+            return [
+                {
+                    "user_id": log.user_id if log.user_id is not None else "Ukjent",
+                    "locker_id": log.locker_id,
+                    "action": log.action,
+                    "timestamp": log.timestamp.isoformat() if log.timestamp else "Ukjent"
+                }
+                for log in logs if log is not None
+            ]
+        except Exception as e:
+            raise fastapi_error_handler(f"Feil ved henting av logg: {str(e)}", status_code=500)
+
+
 

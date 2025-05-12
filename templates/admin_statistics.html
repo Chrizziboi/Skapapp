@@ -21,6 +21,7 @@
             <div class="summary">
                 <p><strong>Totalt antall skap:</strong> <span id="total-lockers">...</span></p>
                 <p><strong>Ledige skap:</strong> <span id="available-lockers">...</span></p>
+                <p><strong>Opptatte skap:</strong> <span id="occupied-lockers">...</span></p>
                 <p><strong>Totalt antall brukere:</strong> <span id="total-users">...</span></p>
             </div>
 
@@ -49,6 +50,22 @@
             <div class="stat-card">
                 <h2>🔥 Mest aktive brukere</h2>
                 <ul id="most-active-users"></ul>
+            </div>
+            <div class="stat-card">
+                <h2>📄 Siste skapbruk</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bruker-ID</th>
+                            <th>Skap-ID</th>
+                            <th>Handling</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-logs">
+                        <!-- JS fyller inn -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </main>
@@ -86,6 +103,7 @@
             // 🔢 Tallverdier
             fetchText("/statistic/total_lockers", "total-lockers", "total_lockers");
             fetchText("/statistic/available_lockers", "available-lockers", "available_lockers");
+            fetchText("/statistic/occupied_lockers", "occupied-lockers", "occupied_lockers");
             fetchText("/statistic/total_users", "total-users", "total_users");
 
             // 📊 Skap per rom
@@ -115,6 +133,25 @@
             fetchList("/statistic/most_active_users", "most-active-users", user =>
                 `${user.username} – ${user.locker_count} handlinger`
             );
+            fetch("/statistic/recent_log_entries")
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById("recent-logs");
+                    tbody.innerHTML = "";
+                    data.forEach(log => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML =
+                            "<td>" + (log.user_id ?? "Ukjent") + "</td>" +
+                            "<td>" + log.locker_id + "</td>" +
+                            "<td>" + log.action + "</td>" +
+                            "<td>" + new Date(log.timestamp).toLocaleString() + "</td>";
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => {
+                    document.getElementById("recent-logs").innerHTML = "<tr><td colspan='4'>Feil ved henting av logg.</td></tr>";
+                    console.error(err);
+                });
         });
     </script>
 </body>
