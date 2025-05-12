@@ -54,7 +54,7 @@
 
             <div id="room-info-modal" class="modal hidden">
                 <section id="room-info-box" class="card glassmorphic">
-                    <button id="close-info-box" style="position: absolute; top: 16px; right: 24px; font-size: 24px; background: none; border: none; cursor: pointer;">×</button>
+                    <button id="close-info-box">×</button>
                     <h2 id="info-room-name"></h2>
                     <p id="info-room-id"></p>
                     <p id="info-locker-details"></p>
@@ -62,7 +62,7 @@
                     <div class="input-row">
                         <input type="text" id="edit-room-name" placeholder="Nytt romnavn">
                         <button onclick="updateRoomName()">Oppdater navn</button>
-                        <button onclick="deleteRoom(selectedRoomId)">Slett rom</button>
+                        <button class="button-danger" onclick="deleteRoom(selectedRoomId)">Slett rom</button>
                     </div>
 
                     <h3>Skap i rommet</h3>
@@ -134,23 +134,15 @@
                         listItem.classList.add("room-item");
                         listItem.onclick = () => selectRoom(room.room_id, room.name);
 
-                        // Info button
+                        // Info button only (refactored)
                         let infoButton = document.createElement("button");
-                        infoButton.textContent = "Info";
+                        infoButton.textContent = "Innstillinger";
+                        infoButton.classList.add("info-button");
                         infoButton.onclick = (event) => {
                             event.stopPropagation();
                             showRoomInfo(room);
                         };
                         listItem.appendChild(infoButton);
-
-                        let deleteButton = document.createElement("button");
-                        deleteButton.textContent = "Slett";
-                        deleteButton.onclick = (event) => {
-                            event.stopPropagation();
-                            deleteRoom(room.room_id);
-                        };
-
-                        listItem.appendChild(deleteButton);
                         roomList.appendChild(listItem);
 
                         // Add: Also add to dropdown
@@ -192,7 +184,7 @@
                     return response.json();
                 })
                 .then(data => {
-                    alert(data.message);
+                    document.getElementById("room-created-modal").classList.remove("hidden");
                     fetchRooms();
                 })
                 .catch(error => {
@@ -221,7 +213,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                alert(data.message || "Skap opprettet.");
+                document.getElementById("lockers-created-modal").classList.remove("hidden");
                 fetchLockersInRoom(selectedRoomId);
             })
             .catch(error => {
@@ -264,7 +256,7 @@
                             row.innerHTML = `
                                 <td>${locker.combi_id}</td>
                                 <td>${locker.status}</td>
-                                <td><button onclick="removeLocker(${locker.locker_id})">Slett</button></td>
+                                <td><button class="button-danger" onclick="removeLocker(${locker.locker_id})">Slett</button></td>
                             `;
                             lockerList.appendChild(row);
                         });
@@ -287,26 +279,45 @@
             };
         });
 
-        // Sletter et garderoberom
+        // Sletter et garderoberom med modal-bekreftelse
         function deleteRoom(roomId) {
-            const confirmed = confirm("Er du sikker på at du vil slette dette rommet?");
-            if (!confirmed) return;
+            const modal = document.getElementById("confirm-delete-modal");
+            const confirmBtn = document.getElementById("confirm-delete");
+            const cancelBtn = document.getElementById("cancel-delete");
 
-            fetch(`/locker_rooms/${roomId}`, { method: "DELETE" })
-                .then(response => response.json())
-                .then(() => {
-                    alert("Rom slettet!");
-                    fetchRooms();
-                    if (roomId === selectedRoomId) {
-                        selectedRoomId = null;
-                        document.getElementById("selected-room-name").textContent = "Ingen rom valgt!";
-                        document.getElementById("create-locker-btn").disabled = true;
-                        document.getElementById("locker-table").innerHTML = "";
-                        document.getElementById("delete-all-lockers-btn").disabled = true;
+            modal.classList.remove("hidden");
+
+            const onConfirm = () => {
+                fetch(`/locker_rooms/${roomId}`, { method: "DELETE" })
+                    .then(response => response.json())
+                    .then(() => {
+                        showSuccessModal("Rommet har blitt slettet.");
+                        fetchRooms();
                         document.getElementById("room-info-modal").classList.add("hidden");
-                    }
-                })
-                .catch(error => console.error("Error deleting room:", error));
+                        if (roomId === selectedRoomId) {
+                            selectedRoomId = null;
+                            document.getElementById("selected-room-name").textContent = "Ingen rom valgt!";
+                            document.getElementById("create-locker-btn").disabled = true;
+                            document.getElementById("locker-table").innerHTML = "";
+                            document.getElementById("delete-all-lockers-btn").disabled = true;
+                        }
+                    })
+                    .catch(error => console.error("Error deleting room:", error))
+                    .finally(() => {
+                        modal.classList.add("hidden");
+                        confirmBtn.removeEventListener("click", onConfirm);
+                        cancelBtn.removeEventListener("click", onCancel);
+                    });
+            };
+
+            const onCancel = () => {
+                modal.classList.add("hidden");
+                confirmBtn.removeEventListener("click", onConfirm);
+                cancelBtn.removeEventListener("click", onCancel);
+            };
+
+            confirmBtn.addEventListener("click", onConfirm);
+            cancelBtn.addEventListener("click", onCancel);
         }
 
         // Henter skap i et spesifikt rom
@@ -479,9 +490,60 @@
 
             window.location.href = "/";
         }
+    // Success modal functions
+    function showSuccessModal(message) {
+        const modal = document.getElementById("success-modal");
+        const msg = document.getElementById("success-message");
+        msg.textContent = message;
+        modal.classList.remove("hidden");
+    }
+
+    function closeSuccessModal() {
+        document.getElementById("success-modal").classList.add("hidden");
+    }
     </script>
 
 
 
+    <!-- Bekreft sletting modal -->
+    <div id="confirm-delete-modal" class="modal hidden">
+      <div class="modal-content">
+        <p>Er du sikker på at du vil slette dette rommet?</p>
+        <div class="modal-buttons">
+          <button id="cancel-delete" class="cancel-button">Avbryt</button>
+          <button id="confirm-delete" class="delete-button">Slett</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success modal -->
+    <div id="success-modal" class="modal hidden">
+      <div class="modal-content">
+        <p id="success-message">Handling utført!</p>
+        <div class="modal-buttons">
+          <button onclick="closeSuccessModal()">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Room created modal -->
+    <div id="room-created-modal" class="modal hidden">
+      <div class="modal-content">
+        <p>Rommet har blitt opprettet!</p>
+        <div class="modal-buttons">
+          <button onclick="document.getElementById('room-created-modal').classList.add('hidden')">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lockers created modal -->
+    <div id="lockers-created-modal" class="modal hidden">
+      <div class="modal-content">
+        <p>Skap er lagt til rommet!</p>
+        <div class="modal-buttons">
+          <button onclick="document.getElementById('lockers-created-modal').classList.add('hidden')">OK</button>
+        </div>
+      </div>
+    </div>
 </body>
 </html>
