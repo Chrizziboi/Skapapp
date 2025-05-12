@@ -63,6 +63,7 @@ body::before {
     max-width: 1200px;
     margin: 0 auto 60px;
     padding: 0 16px;
+    align-items: start;
 }
 
 .card {
@@ -84,6 +85,8 @@ body::before {
 
 .card-right {
     grid-area: list;
+    max-height: 600px;
+    overflow-y: auto;
 }
 
 .glassmorphic {
@@ -151,4 +154,115 @@ button:hover {
 .right-list {
     flex: 1;
     min-width: 300px;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(12px);
+    padding: 32px;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    position: relative;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+}
+
+.close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 24px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    color: #333;
+    cursor: pointer;
+}
+#room-info-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+}
+
+#room-info-modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#room-info-box {
+    z-index: 1001;
+    max-width: 600px;
+}
+.scrollable-list {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+/* Stilren scrollbar for .scrollable-list */
+.scrollable-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollable-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.scrollable-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+.scrollable-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+.hidden {
+    display: none;
+}
+
+#room-info-box {
+    position: relative; /* Viktig for at x-knappen skal plassere seg riktig */
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 500;
+}
+
+#room-info-box {
+    z-index: 600;
 }

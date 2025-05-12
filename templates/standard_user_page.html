@@ -9,9 +9,11 @@
 <body>
     <div class="container">
         <h1>Ledige Skap i Alle Rom</h1>
-        <ul id="room-list">
-            <!-- Rom og ledige skap vil bli fylt inn dynamisk -->
-        </ul>
+        <section class="room-list-section">
+            <div id="room-list">
+                <!-- Rom og ledige skap vil bli fylt inn dynamisk -->
+            </div>
+        </section>
     </div>
 
     <script>
@@ -45,14 +47,31 @@
                             .filter(room => room !== null)
                             .sort((a, b) => a.name.localeCompare(b.name))
                             .forEach(room => {
-                                const listItem = document.createElement('li');
-                                listItem.innerText = `${room.name}: ${room.available} ledige skap`;
-                                roomList.appendChild(listItem);
+                                const li = document.createElement('li');
+                                li.classList.add('room-box');
+                                li.innerText = `${room.name}: ${room.available} ledige skap`;
+                                roomList.appendChild(li);
                             });
+
+                        adjustGridDynamically(roomData.length);
                     })
                     .catch(error => console.error("Feil ved henting av rom:", error));
             }
 
+            function adjustGridDynamically(roomCount) {
+                const container = document.getElementById("room-list");
+                const cols = Math.ceil(Math.sqrt(roomCount));
+                const rows = Math.ceil(roomCount / cols);
+
+                // Set CSS variables for grid size
+                container.style.setProperty("--cols", cols);
+                container.style.setProperty("--rows", rows);
+
+                // Update grid style directly (optional fallback)
+                container.style.display = "grid";
+                container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+            }
         });
     </script>
 </body>

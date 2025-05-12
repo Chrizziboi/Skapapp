@@ -15,6 +15,7 @@
                 <li><button onclick="navigateTo('overview')">Oversikt</button></li>
                 <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
                 <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
+                <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
                 <li><button onclick="logout()">Logg ut</button></li>
             </ul>
 
@@ -26,6 +27,12 @@
             <h1>Velkommen til SkapApp Admin</h1>
             <p>Her kan du administrere garderober, opprette og slette skap, og se statistikk over bruken.</p>
         </div>
+        <div class="overview-box">
+            <h2>Ledige Skap i Alle Rom</h2>
+            <ul id="room-list">
+                <!-- Innhold fylles inn dynamisk -->
+            </ul>
+        </div>
     </div>
 
     <script>
@@ -36,6 +43,8 @@
                 window.location.href = "/admin_wardrobe";
             } else if (page === 'statistics') {
                 window.location.href = "/admin_statistics";
+            } else if (page === 'backup') {
+                window.location.href = "/admin_backup";
             }
         }
 

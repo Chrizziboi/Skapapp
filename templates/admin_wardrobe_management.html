@@ -9,14 +9,18 @@
 <body>
 
     <!-- Admin Navbar -->
-    <nav class="admin-navbar">
-        <ul class="nav-menu">
-            <li><button onclick="location.href='/admin_page'">Oversikt</button></li>
-            <li><button onclick="location.href='/admin_wardrobe_management'">Garderobe admin</button></li>
-            <li><button onclick="location.href='/admin_statistics'">Statistikk</button></li>
-            <li><button onclick="location.href='/logout'">Logg ut</button></li>
-        </ul>
-    </nav>
+    <div class="admin-navbar-wrapper">
+        <div class="admin-navbar">
+            <ul class="nav-menu">
+                <li><button onclick="navigateTo('overview')">Oversikt</button></li>
+                <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
+                <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
+                <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
+                <li><button onclick="logout()">Logg ut</button></li>
+            </ul>
+
+        </div>
+    </div>
 
     <main>
         <div class="wardrobe-admin-layout">
@@ -43,16 +47,71 @@
 
             <section class="card card-right glassmorphic">
                 <h2>Garderoberom</h2>
-                <ul id="room-list" class="room-list"></ul>
+                <div class="scrollable-list">
+                    <ul id="room-list" class="room-list"></ul>
+                </div>
             </section>
+
+            <div id="room-info-modal" class="modal hidden">
+                <section id="room-info-box" class="card glassmorphic">
+                    <button id="close-info-box" style="position: absolute; top: 16px; right: 24px; font-size: 24px; background: none; border: none; cursor: pointer;">×</button>
+                    <h2 id="info-room-name"></h2>
+                    <p id="info-room-id"></p>
+                    <p id="info-locker-details"></p>
+
+                    <div class="input-row">
+                        <input type="text" id="edit-room-name" placeholder="Nytt romnavn">
+                        <button onclick="updateRoomName()">Oppdater navn</button>
+                        <button onclick="deleteRoom(selectedRoomId)">Slett rom</button>
+                    </div>
+
+                    <h3>Skap i rommet</h3>
+                    <table id="locker-list" style="width: 100%; margin-top: 16px; border-spacing: 0 8px;">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Status</th>
+                                <th>Handling</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </section>
+            </div>
         </div>
     </main>
 
+    <!-- Overlay for info box -->
+    <div id="info-overlay" class="overlay hidden"></div>
+
     <script>
         let selectedRoomId = null;
+
         document.addEventListener("DOMContentLoaded", function () {
             fetchRooms();
             fetchLockersInRoom();
+
+            document.getElementById("add-lockers-btn").addEventListener("click", createMultipleLockers);
+
+            // Oppdater selectedRoomId når brukeren velger et rom fra dropdown
+            document.getElementById("room-dropdown").addEventListener("change", function () {
+                selectedRoomId = this.value;
+            });
+
+            // Skjul info-boksen som standard
+            document.getElementById("room-info-modal").classList.add("hidden");
+
+            // Lukk info-boksen når man klikker på ×
+            document.getElementById("close-info-box").addEventListener("click", () => {
+                document.getElementById("room-info-modal").classList.add("hidden");
+            });
+
+            // ESC for å lukke info-boks
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") {
+                    document.getElementById("room-info-modal").classList.add("hidden");
+                }
+            });
         });
 
         // Henter alle garderoberom
@@ -63,11 +122,26 @@
                     const roomList = document.getElementById("room-list");
                     roomList.innerHTML = "";
 
+                    // Add: Prepare and clear the room dropdown
+                    const roomDropdown = document.getElementById("room-dropdown");
+                    if (roomDropdown) {
+                        roomDropdown.innerHTML = '<option value="">Velg rom</option>';
+                    }
+
                     data.forEach(room => {
                         let listItem = document.createElement("li");
                         listItem.textContent = `${room.name} (ID: ${room.room_id})`;
                         listItem.classList.add("room-item");
                         listItem.onclick = () => selectRoom(room.room_id, room.name);
+
+                        // Info button
+                        let infoButton = document.createElement("button");
+                        infoButton.textContent = "Info";
+                        infoButton.onclick = (event) => {
+                            event.stopPropagation();
+                            showRoomInfo(room);
+                        };
+                        listItem.appendChild(infoButton);
 
                         let deleteButton = document.createElement("button");
                         deleteButton.textContent = "Slett";
@@ -78,6 +152,14 @@
 
                         listItem.appendChild(deleteButton);
                         roomList.appendChild(listItem);
+
+                        // Add: Also add to dropdown
+                        if (roomDropdown) {
+                            const option = document.createElement("option");
+                            option.value = room.room_id;
+                            option.textContent = `${room.name} (ID: ${room.room_id})`;
+                            roomDropdown.appendChild(option);
+                        }
                     });
                 })
                 .catch(error => console.error("Error fetching rooms:", error));
@@ -127,7 +209,7 @@
                 return;
             }
 
-            const quantity = document.getElementById("lockerQuantity").value;
+            const quantity = document.getElementById("locker-quantity").value;
 
             if (quantity < 1) {
                 alert("Oppgi et gyldig antall skap.");
@@ -149,8 +231,67 @@
 
 
 
+        // Viser informasjon om et garderoberom
+        function showRoomInfo(room) {
+            // Set selectedRoomId when showing info
+            selectedRoomId = room.room_id;
+            const infoModal = document.getElementById("room-info-modal");
+            const infoBox = document.getElementById("room-info-box");
+            document.getElementById("info-room-name").textContent = `Romnavn: ${room.name}`;
+            document.getElementById("info-room-id").textContent = `Rom-ID: ${room.room_id}`;
+
+            fetch("/lockers/")
+                .then(response => response.json())
+                .then(lockers => {
+                    const roomLockers = lockers.filter(l => l.locker_room_id == room.room_id);
+                    const total = roomLockers.length;
+                    const available = roomLockers.filter(l => l.status === 'Ledig').length;
+                    const used = total - available;
+                    document.getElementById("info-locker-details").textContent =
+                        `Totalt skap: ${total} – Ledige: ${available}, Brukt: ${used}`;
+
+                    // Populate input with current name
+                    if (document.getElementById("edit-room-name")) {
+                        document.getElementById("edit-room-name").value = room.name;
+                    }
+
+                    // Populate locker list
+                    const lockerList = document.querySelector("#locker-list tbody");
+                    if (lockerList) {
+                        lockerList.innerHTML = "";
+                        roomLockers.forEach(locker => {
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                                <td>${locker.combi_id}</td>
+                                <td>${locker.status}</td>
+                                <td><button onclick="removeLocker(${locker.locker_id})">Slett</button></td>
+                            `;
+                            lockerList.appendChild(row);
+                        });
+                    }
+                });
+            infoModal.classList.remove("hidden");
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchRooms();
+            fetchLockersInRoom();
+            document.getElementById("add-lockers-btn").addEventListener("click", createMultipleLockers);
+            // Oppdater selectedRoomId når brukeren velger et rom fra dropdown
+            document.getElementById("room-dropdown").addEventListener("change", function () {
+                selectedRoomId = this.value;
+            });
+            // Koble modal-close etter at DOM er ferdig lastet
+            document.getElementById("modal-close").onclick = function () {
+                document.getElementById("room-modal").classList.add("hidden");
+            };
+        });
+
         // Sletter et garderoberom
         function deleteRoom(roomId) {
+            const confirmed = confirm("Er du sikker på at du vil slette dette rommet?");
+            if (!confirmed) return;
+
             fetch(`/locker_rooms/${roomId}`, { method: "DELETE" })
                 .then(response => response.json())
                 .then(() => {
@@ -162,6 +303,7 @@
                         document.getElementById("create-locker-btn").disabled = true;
                         document.getElementById("locker-table").innerHTML = "";
                         document.getElementById("delete-all-lockers-btn").disabled = true;
+                        document.getElementById("room-info-modal").classList.add("hidden");
                     }
                 })
                 .catch(error => console.error("Error deleting room:", error));
@@ -234,13 +376,16 @@
 
         // Sletter et skap
         function removeLocker(lockerId) {
-            fetch(`http://localhost:8080/lockers/${lockerId}`, { method: "DELETE" })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    fetchLockersInRoom(selectedRoomId);
-                })
-                .catch(error => console.error("Error deleting locker:", error));
+            fetch(`http://localhost:8080/lockers/${lockerId}`, {
+                method: "DELETE"
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                // Refresh the info box after deletion
+                if (selectedRoomId) showRoomInfo({ room_id: selectedRoomId, name: document.getElementById("info-room-name").textContent.replace("Romnavn: ", "") });
+            })
+            .catch(error => console.error("Error deleting locker:", error));
         }
 
         function updateNote(lockerId) {
@@ -284,7 +429,59 @@
             });
         }
 
+        // Oppdaterer garderoberomnavn med PUT-request
+        function updateRoomName() {
+            const newName = document.getElementById("edit-room-name").value.trim();
+            if (!selectedRoomId) {
+                alert("Ingen rom valgt.");
+                return;
+            }
+            if (!newName) {
+                alert("Vennligst skriv inn nytt navn.");
+                return;
+            }
+
+            fetch(`/locker_rooms/${selectedRoomId}?new_name=${encodeURIComponent(newName)}`, {
+                method: "PUT"
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.detail); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.message || "Navn oppdatert!");
+                fetchRooms();
+                document.getElementById("edit-room-name").value = "";
+                showRoomInfo({ room_id: selectedRoomId, name: newName });
+            })
+            .catch(error => {
+                console.error("Feil ved oppdatering av romnavn:", error);
+                alert("Kunne ikke oppdatere romnavnet.");
+            });
+        }
+
+        function navigateTo(page) {
+            if (page === 'overview') {
+                window.location.href = "/admin_page";
+            } else if (page === 'wardrobe_admin') {
+                window.location.href = "/admin_wardrobe";
+            } else if (page === 'statistics') {
+                window.location.href = "/admin_statistics";
+            } else if (page === 'backup') {
+                window.location.href = "/admin_backup";
+            }
+        }
+
+
+        function logout() {
+
+            window.location.href = "/";
+        }
     </script>
+
+
 
 </body>
 </html>

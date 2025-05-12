@@ -6,14 +6,19 @@
     <link rel="stylesheet" href="/static/styles/admin_statistics.css">
 </head>
 <body>
-    <nav class="admin-navbar">
-        <ul class="nav-menu">
-            <li><button onclick="location.href='/admin_page'">Oversikt</button></li>
-            <li><button onclick="location.href='/admin_wardrobe_management'">Garderobe admin</button></li>
-            <li><button onclick="location.href='/admin_statistics'">Statistikk</button></li>
-            <li><button onclick="location.href='/logout'">Logg ut</button></li>
-        </ul>
-    </nav>
+    <div class="admin-navbar-wrapper">
+        <div class="admin-navbar">
+            <ul class="nav-menu">
+                <li><button onclick="navigateTo('overview')">Oversikt</button></li>
+                <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
+                <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
+                <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
+                <li><button onclick="logout()">Logg ut</button></li>
+            </ul>
+
+        </div>
+    </div>
+
     <main>
         <div class="container">
             <h1>Statistikkoversikt</h1>
@@ -139,6 +144,24 @@
                 `${log.timestamp} – Skap ${log.combi_id}` + (log.username ? ` av ${log.username}` : "")
             );
         });
+
+        function navigateTo(page) {
+            if (page === 'overview') {
+                window.location.href = "/admin_page";
+            } else if (page === 'wardrobe_admin') {
+                window.location.href = "/admin_wardrobe";
+            } else if (page === 'statistics') {
+                window.location.href = "/admin_statistics";
+            } else if (page === 'backup') {
+                window.location.href = "/admin_backup";
+            }
+        }
+
+
+        function logout() {
+
+            window.location.href = "/";
+        }
     </script>
 </body>
 </html>
