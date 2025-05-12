@@ -21,7 +21,6 @@
             <div class="summary">
                 <p><strong>Totalt antall skap:</strong> <span id="total-lockers">...</span></p>
                 <p><strong>Ledige skap:</strong> <span id="available-lockers">...</span></p>
-                <p><strong>Opptatte skap:</strong> <span id="occupied-lockers">...</span></p>
                 <p><strong>Totalt antall brukere:</strong> <span id="total-users">...</span></p>
             </div>
 
@@ -43,7 +42,7 @@
             </div>
 
             <div class="stat-card">
-                <h2>🏆 Rom med flest opptatte skap</h2>
+                <h2>🏆 Rom med flest bruk</h2>
                 <ul id="most-used-rooms"></ul>
             </div>
 
@@ -51,17 +50,6 @@
                 <h2>🔥 Mest aktive brukere</h2>
                 <ul id="most-active-users"></ul>
             </div>
-
-            <div class="stat-card">
-                <h2>🔑 Skap åpnet flest ganger</h2>
-                <ul id="most-opened-lockers"></ul>
-            </div>
-
-            <div class="stat-card">
-                <h2>⏰ Siste skapåpninger</h2>
-                <ul id="recent-locks"></ul>
-            </div>
-
         </div>
     </main>
 
@@ -95,11 +83,12 @@
                     });
             };
 
+            // 🔢 Tallverdier
             fetchText("/statistic/total_lockers", "total-lockers", "total_lockers");
             fetchText("/statistic/available_lockers", "available-lockers", "available_lockers");
-            fetchText("/statistic/occupied_lockers", "occupied-lockers", "occupied_lockers");
             fetchText("/statistic/total_users", "total-users", "total_users");
 
+            // 📊 Skap per rom
             fetch("/statistic/lockers_by_room")
                 .then(res => res.json())
                 .then(data => {
@@ -107,36 +96,24 @@
                     tbody.innerHTML = "";
                     data.forEach(row => {
                         const tr = document.createElement("tr");
-                        tr.innerHTML = `
-                            <td>${row.room_name}</td>
-                            <td>${row.locker_count}</td>
-                            <td>${row.available !== undefined ? row.available : "-"}</td>
-                            <td>${row.occupied !== undefined ? row.occupied : "-"}</td>
-                        `;
+                        tr.innerHTML =
+                                "<td>" + row.room_name + "</td>" +
+                                "<td>" + row.locker_count + "</td>" +
+                                "<td>" + (row.available !== undefined ? row.available : "-") + "</td>" +
+                                "<td>" + (row.occupied !== undefined ? row.occupied : "-") + "</td>";
+
                         tbody.appendChild(tr);
                     });
                 });
 
+            // 🏆 Mest brukte rom
             fetchList("/statistic/most_used_rooms", "most-used-rooms", room =>
-                `${room.room_name} – ${room.occupied_count} opptatte skap`
+                `${room.room_name} – ${room.occupied_count} bruk`
             );
 
+            // 🔥 Mest aktive brukere
             fetchList("/statistic/most_active_users", "most-active-users", user =>
-                `${user.username} – ${user.locker_count} reserveringer`
-            );
-
-            fetchList("/statistic/recent_log_entries", "recent-locks", log =>
-                `${log.timestamp} – Skap ${log.combi_id}` + (log.username ? ` av ${log.username}` : "")
-            );
-
-
-            fetchList("/statistic/most_opened_lockers", "most-opened-lockers", entry =>
-                `Skap ${entry.combi_id} – åpnet ${entry.times_opened} ganger`
-            );
-
-
-            fetchList("/statistic/recent_log_entries", "recent-locks", log =>
-                `${log.timestamp} – Skap ${log.combi_id}` + (log.username ? ` av ${log.username}` : "")
+                `${user.username} – ${user.locker_count} handlinger`
             );
         });
     </script>
