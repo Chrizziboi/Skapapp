@@ -6,18 +6,112 @@
     <title>SkapApp - Innlogging</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles/main_page.css">
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background: url('/static/Sunnaas_building.webp') no-repeat center center fixed;
+        background-size: cover;
+        margin: 0;
+        padding: 0;
+      }
+
+      .glassmorphic {
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      }
+
+      .login-container button {
+        padding: 10px 20px;
+        background: #ffffff;
+        color: #005AA9;
+        border: 1px solid #005AA9;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .login-container button:hover {
+        background: #005AA9;
+        color: #ffffff;
+        transform: scale(1.03);
+      }
+
+      .form-group input {
+        padding: 12px;
+        font-size: 16px;
+        width: 100%;
+        margin-bottom: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+      }
+
+      .split-layout {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 40px;
+        height: 100vh;
+        padding: 20px;
+        margin-top: 80px;
+      }
+
+      .info-section, .login-container {
+        max-width: 500px;
+        width: 100%;
+      }
+
+      .info-section {
+        flex: 1.6;
+      }
+
+      .login-container {
+        flex: 1.2;
+      }
+
+      .header-logo-fixed {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+        margin-bottom: 20px;
+      }
+
+      .logo-large {
+        width: 260px;
+        height: auto;
+      }
+
+      .top-banner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background-color: white;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        z-index: 1000;
+      }
+    </style>
 </head>
 <body>
+    <div class="top-banner">
+      <img src="/static/Sunnaas_logo_upscaled.png" alt="Sunnaas logo" class="logo-large" />
+    </div>
     <a href="/available_lockers" class="standard-user-link">Info panel</a>
 
     <div class="split-layout">
-        <div class="info-section">
-            <img src="/static/Sunnaas_logo_upscaled.png" alt="Sunnaas logo" class="logo">
-            <h1>Velkommen til SkapApp</h1>
-            <p>SkapApp lar ansatte ved Sunnaas Sykehus administrere garderobeskap effektivt. Logg inn for å opprette
-                rom, tildele skap og se statistikk over bruken.</p>
+        <div class="info-section glassmorphic">
+            <h1>Administrasjonsside for SkapApp</h1>
+            <p>Logg inn som administrator for å opprette garderoberom, tildele skap og se statistikk over bruken ved Sunnaas Sykehus.</p>
         </div>
-        <div class="login-container">
+        <div class="login-container glassmorphic">
             <h1>Logg inn</h1>
             <form id="login-form">
                 <div class="form-group">

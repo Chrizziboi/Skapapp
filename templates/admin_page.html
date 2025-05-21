@@ -10,7 +10,7 @@
 <body>
 
     <div class="admin-navbar-wrapper">
-        <div class="admin-navbar">
+        <nav class="admin-navbar">
             <ul class="nav-menu">
                 <li><button onclick="navigateTo('overview')">Oversikt</button></li>
                 <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
@@ -18,20 +18,19 @@
                 <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
                 <li><button onclick="logout()">Logg ut</button></li>
             </ul>
-
-        </div>
+        </nav>
     </div>
 
     <div class="split-layout">
-        <div class="info-section">
-            <h1>Velkommen til SkapApp Admin</h1>
-            <p>Her kan du administrere garderober, opprette og slette skap, og se statistikk over bruken.</p>
-        </div>
-        <div class="overview-box">
-            <h2>Ledige Skap i Alle Rom</h2>
-            <ul id="room-list">
-                <!-- Innhold fylles inn dynamisk -->
-            </ul>
+        <div class="admin-content-column">
+            <div class="info-section">
+                <h1>Velkommen til SkapApp Admin</h1>
+                <p>Her kan du administrere garderober, opprette og slette skap, og se statistikk over bruken.</p>
+            </div>
+            <div class="overview-box full-width">
+                <h2>Ledige Skap i Alle Rom</h2>
+                <div id="admin-room-list" class="room-grid horizontal-layout"></div>
+            </div>
         </div>
     </div>
 
@@ -53,6 +52,63 @@
 
             window.location.href = "/";
         }
-    </script>
+</script>
+<script>
+    const totalLockers = 41;
+    const occupiedLockers = totalLockers - (12 + 23 + 2 + 4); // from current room data
+    const percent = Math.round((occupiedLockers / totalLockers) * 100);
+    document.getElementById('occupancy-text').textContent = percent + '%';
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      const roomList = document.getElementById("admin-room-list");
+
+      fetch("http://localhost:8080/locker_rooms/")
+          .then(response => response.json())
+          .then(async rooms => {
+              roomList.innerHTML = '';
+
+              const roomData = await Promise.all(rooms.map(async room => {
+                  try {
+                      const res = await fetch(`http://localhost:8080/locker_rooms/${room.room_id}/available_lockers`);
+                      const data = await res.json();
+                      return {
+                          name: room.name,
+                          available: data.available_lockers,
+                          total: room.number_of_lockers
+                      };
+                  } catch (err) {
+                      console.error("Feil ved henting:", err);
+                      return null;
+                  }
+              }));
+
+              roomData
+                  .filter(room => room !== null)
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .forEach((room, i) => {
+                      const wrapper = document.createElement('div');
+                      wrapper.classList.add('room-wrapper');
+
+                      const card = document.createElement('div');
+                      const colors = ['color-a', 'color-b', 'color-c', 'color-d'];
+                      const colorClass = colors[i % colors.length];
+                      card.classList.add('room-card', colorClass);
+                      card.innerHTML = `
+                          ${room.name}<br>
+                          <span>${room.available} ledige skap</span>
+                          <div class="room-progress">
+                              <div class="room-progress-fill" style="width: ${room.total ? Math.min(Math.round((room.available / room.total) * 100), 100) : 0}%"></div>
+                          </div>
+                      `;
+
+                      wrapper.appendChild(card);
+                      roomList.appendChild(wrapper);
+                  });
+
+          })
+          .catch(error => console.error("Feil ved henting av rom:", error));
+  });
+</script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 body {
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(to bottom right, #c6d4f0, #4b5fa4);
+    background-color: #F6F3EB;
+    color: #3D5744;
     min-height: 100vh;
     margin: 0;
     padding: 0;
@@ -13,21 +14,20 @@ body::before {
     content: "";
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(246, 243, 235, 0.5); /* lighter and warmer */
     z-index: -1;
 }
 
 .admin-navbar {
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: fit-content;
+    margin: 20px auto 40px;
     padding: 16px 32px;
+    background: #ffffff;
     border-radius: 24px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: center;
-    margin-top: 32px;
+    gap: 20px;
 }
 
 .nav-menu {
@@ -40,53 +40,163 @@ body::before {
 
 .nav-menu li button {
     padding: 10px 20px;
-    background: linear-gradient(to right, #0077cc, #005fa3);
-    color: white;
-    border: none;
+    background: #ffffff;
+    color: #005AA9;
+    border: 1px solid #005AA9;
     border-radius: 50px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 6px 12px rgba(0, 119, 204, 0.4);
     transition: all 0.3s ease;
 }
 
 .nav-menu li button:hover {
-    background: linear-gradient(to right, #005fa3, #0077cc);
+    background: #005AA9;
+    color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(0, 119, 204, 0.5);
 }
 
 .split-layout {
     display: flex;
-    gap: 40px;
-    align-items: center;
+    gap: 80px;
+    align-items: flex-start;
     justify-content: center;
-    margin-top: 60px;
+    margin-top: 100px;
+    padding-bottom: 80px;
 }
 
 .info-section {
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 48px;
-    border-radius: 24px;
-    color: #222;
-    width: 460px;
+    background: #ffffff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    padding-top: 32px;
+    padding-bottom: 32px;
+    padding-left: 40px;
+    padding-right: 40px;
+    border-radius: 20px;
+    color: #3D5744;
+    width: 700px;
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
 .info-section h1 {
-    font-size: 32px;
-    margin-bottom: 16px;
+    font-size: 38px;
+    margin-bottom: 20px;
+    font-weight: 700;
 }
 
 .info-section p {
+    font-size: 20px;
+    line-height: 1.7;
+    color: #3D5744;
+}
+
+.overview-box {
+    margin-top: 32px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    color: #3D5744;
     font-size: 18px;
-    line-height: 1.5;
-    color: #333;
+    font-weight: 500;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.overview-box h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #3D5744;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.room-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.room-card {
+    background: var(--room-card-color, #F7F9F9);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    font-weight: 600;
+    color: #3D5744;
+    width: 160px;
+    min-height: 80px;
+}
+
+.room-card span {
+    display: block;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #555;
+}
+
+.admin-content-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.room-status-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+}
+
+.room-card.color-a { --room-card-color: #D3E3F1; } /* stronger light blue */
+.room-card.color-b { --room-card-color: #F1D8DC; } /* stronger light pink */
+.room-card.color-c { --room-card-color: #DBE4D3; } /* stronger light green */
+.room-card.color-d { --room-card-color: #EFE5D9; } /* stronger light beige */
+
+.room-progress {
+    background-color: #E0E0E0;
+    border-radius: 6px;
+    height: 8px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.room-progress-fill {
+    background-color: #4CAF50;
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.note-input {
+    width: 100%;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.note-save-button {
+    margin-top: 6px;
+    padding: 6px 12px;
+    border-radius: 50px;
+    background: #005AA9;
+    color: #fff;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.note-save-button:hover {
+    background: #003F7D;
 }

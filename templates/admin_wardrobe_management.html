@@ -51,41 +51,121 @@
                     <ul id="room-list" class="room-list"></ul>
                 </div>
             </section>
-
-            <div id="room-info-modal" class="modal hidden">
-                <section id="room-info-box" class="card glassmorphic">
-                    <button id="close-info-box">×</button>
-                    <h2 id="info-room-name"></h2>
-                    <p id="info-room-id"></p>
-                    <p id="info-locker-details"></p>
-
-                    <div class="input-row">
-                        <input type="text" id="edit-room-name" placeholder="Nytt romnavn">
-                        <button onclick="updateRoomName()">Oppdater navn</button>
-                        <button class="button-danger" onclick="deleteRoom(selectedRoomId)">Slett rom</button>
-                    </div>
-
-                    <h3>Skap i rommet</h3>
-                    <table id="locker-list" style="width: 100%; margin-top: 16px; border-spacing: 0 8px;">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Status</th>
-                                <th>Handling</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </section>
-            </div>
         </div>
     </main>
 
     <!-- Overlay for info box -->
     <div id="info-overlay" class="overlay hidden"></div>
 
+    <!-- Modals Section -->
+    <section id="modals">
+        <!-- Room Info Modal -->
+        <div id="room-info-modal" class="modal hidden">
+            <section id="room-info-box" class="card glassmorphic">
+                <button id="close-info-box">×</button>
+                <h2 id="info-room-name" style="font-size: 26px; font-weight: 700;"></h2>
+                <p id="info-room-id" style="margin-bottom: 12px;"></p>
+                <p id="info-locker-details" style="margin-bottom: 12px;"></p>
+                <button class="delete-button" onclick="deleteRoom(selectedRoomId)">Slett rom</button>
+                <h3>Skapoversikt</h3>
+                <table id="locker-list" style="width: 100%; margin-top: 16px; border-spacing: 0 8px;">
+                    <tbody></tbody>
+                </table>
+            </section>
+        </div>
+
+        <!-- Bekreft sletting modal -->
+        <div id="confirm-delete-modal" class="modal hidden">
+          <div class="modal-content">
+            <p>Er du sikker på at du vil slette dette rommet?</p>
+            <div class="modal-buttons">
+              <button id="cancel-delete" class="cancel-button">Avbryt</button>
+              <button id="confirm-delete" class="delete-button">Slett</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Success modal -->
+        <div id="success-modal" class="modal hidden">
+          <div class="modal-content">
+            <p id="success-message">Handling utført!</p>
+            <div class="modal-buttons">
+              <button onclick="closeSuccessModal()">OK</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Room created modal -->
+        <div id="room-created-modal" class="modal hidden">
+          <div class="modal-content">
+            <p>Rommet har blitt opprettet!</p>
+            <div class="modal-buttons">
+              <button onclick="document.getElementById('room-created-modal').classList.add('hidden')">OK</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lockers created modal -->
+        <div id="lockers-created-modal" class="modal hidden">
+          <div class="modal-content">
+            <p>Skap er lagt til rommet!</p>
+            <div class="modal-buttons">
+              <button onclick="document.getElementById('lockers-created-modal').classList.add('hidden')">OK</button>
+            </div>
+          </div>
+        </div>
+        <!-- Note Modal -->
+        <div id="note-modal" class="modal hidden">
+          <div class="modal-content">
+            <h3>Notat for skap <span id="note-locker-id"></span></h3>
+            <textarea id="note-textarea" rows="4" placeholder="Skriv inn notat her..."></textarea>
+            <div class="modal-buttons">
+              <button class="cancel-button" onclick="closeNoteModal()">Avbryt</button>
+              <button class="note-save-button" onclick="saveNote()">Lagre</button>
+            </div>
+          </div>
+        </div>
+    </section>
+
+    <!-- Scripts -->
     <script>
         let selectedRoomId = null;
+        let currentNoteLockerId = null;
+        function openNoteModal(lockerId, existingNote) {
+            currentNoteLockerId = lockerId;
+            document.getElementById("note-locker-id").textContent = lockerId;
+            document.getElementById("note-textarea").value = existingNote || "";
+            document.getElementById("note-modal").classList.remove("hidden");
+        }
+
+        function closeNoteModal() {
+            document.getElementById("note-modal").classList.add("hidden");
+        }
+
+        function saveNote() {
+            const note = document.getElementById("note-textarea").value;
+            fetch(`/lockers/${currentNoteLockerId}/note?note=${encodeURIComponent(note)}`, {
+                method: "PUT"
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Noe gikk galt med oppdatering");
+                return response.json();
+            })
+            .then(data => {
+                // Refresh the modal content directly
+                if (selectedRoomId) {
+                    const roomNameText = document.getElementById("info-room-name").textContent;
+                    const roomName = roomNameText.replace("Romnavn: ", "").trim();
+                    showRoomInfo({ room_id: selectedRoomId, name: roomName });
+                }
+                showSuccessModal("Notatet er lagret.");
+                closeNoteModal();
+            })
+            .catch(error => {
+                console.error("Feil ved oppdatering av notat:", error);
+                alert("Kunne ikke oppdatere notat.");
+            });
+        }
 
         document.addEventListener("DOMContentLoaded", function () {
             fetchRooms();
@@ -132,6 +212,10 @@
                         let listItem = document.createElement("li");
                         listItem.textContent = `${room.name} (ID: ${room.room_id})`;
                         listItem.classList.add("room-item");
+                        // Assign a rotating color class
+                        const colors = ['color-a', 'color-b', 'color-c', 'color-d'];
+                        const colorClass = colors[room.room_id % colors.length];
+                        listItem.classList.add(colorClass);
                         listItem.onclick = () => selectRoom(room.room_id, room.name);
 
                         // Info button only (refactored)
@@ -229,7 +313,7 @@
             selectedRoomId = room.room_id;
             const infoModal = document.getElementById("room-info-modal");
             const infoBox = document.getElementById("room-info-box");
-            document.getElementById("info-room-name").textContent = `Romnavn: ${room.name}`;
+            document.getElementById("info-room-name").textContent = `${room.name}`;
             document.getElementById("info-room-id").textContent = `Rom-ID: ${room.room_id}`;
 
             fetch("/lockers/")
@@ -240,24 +324,38 @@
                     const available = roomLockers.filter(l => l.status === 'Ledig').length;
                     const used = total - available;
                     document.getElementById("info-locker-details").textContent =
-                        `Totalt skap: ${total} – Ledige: ${available}, Brukt: ${used}`;
+                        `Totalt skap: ${total} – Ledige: ${available}, I bruk: ${used}`;
 
                     // Populate input with current name
                     if (document.getElementById("edit-room-name")) {
                         document.getElementById("edit-room-name").value = room.name;
                     }
 
-                    // Populate locker list
+                    // Populate locker list with card-style display
                     const lockerList = document.querySelector("#locker-list tbody");
                     if (lockerList) {
                         lockerList.innerHTML = "";
                         roomLockers.forEach(locker => {
+                            const safeNote = locker.note && locker.note !== "N/A" ? locker.note : "";
+                            const noteHtml = locker.note && locker.note !== "N/A"
+                                ? `<strong>Notat:</strong> ${locker.note.replaceAll("<", "&lt;").replaceAll(">", "&gt;")}`
+                                : `<strong>Notat:</strong> <i>Ingen notat</i>`;
                             const row = document.createElement("tr");
-                            row.innerHTML = `
-                                <td>${locker.combi_id}</td>
-                                <td>${locker.status}</td>
-                                <td><button class="button-danger" onclick="removeLocker(${locker.locker_id})">Slett</button></td>
+                            const td = document.createElement("td");
+                            td.colSpan = 4;
+                            td.innerHTML = `
+                                <div class="locker-card">
+                                    <p><strong>ID:</strong> ${locker.combi_id}</p>
+                                    <p><strong>Status:</strong> ${locker.status}</p>
+                                    <p class="note-preview">${noteHtml}</p>
+                                    <div class="locker-card-buttons">
+                                        <button onclick="openNoteModal(${locker.locker_id}, \`${safeNote}\`)">Notat</button>
+                                        <button onclick="unlockLocker(${locker.locker_id})">Lås opp</button>
+                                        <button class="delete-button" onclick="removeLocker(${locker.locker_id})">Slett</button>
+                                    </div>
+                                </div>
                             `;
+                            row.appendChild(td);
                             lockerList.appendChild(row);
                         });
                     }
@@ -331,24 +429,29 @@
                     const roomLockers = data.filter(locker => locker.locker_room_id == roomId);
 
                     roomLockers.forEach(locker => {
-                        let row = `<tr>
-                            <td>${locker.combi_id}</td>
-                            <td>${locker.status}</td>
-                            <td>
-                                  <input
-                                    type="text"
-                                    id="note-input-${locker.locker_id}"
-                                    value="${locker.note !== "N/A" ? locker.note : ""}"
-                                    placeholder="Skriv notat..."
-                                  />
-                                  <button onclick="updateNote(${locker.locker_id})">Lagre</button>
-                            </td>
-                            <td>
-                                <button onclick="unlockLocker(${locker.locker_id})">Lås opp</button>
-                                <button onclick="removeLocker(${locker.locker_id})">Slett</button>
-                            </td>
-                        </tr>`;
-                        lockerTable.innerHTML += row;
+                        const safeNote = locker.note && locker.note !== "N/A" ? locker.note : "";
+                        const noteHtml = locker.note && locker.note !== "N/A" ? locker.note : "<i>Ingen notat</i>";
+                        const row = document.createElement("tr");
+
+                        row.innerHTML = `
+                          <td>${locker.combi_id}</td>
+                          <td>${locker.status}</td>
+                          <td>
+                            <p id="note-text-${locker.locker_id}" style="margin: 4px 0;">${noteHtml}</p>
+                          </td>
+                          <td>
+                            <button onclick="unlockLocker(${locker.locker_id})">Lås opp</button>
+                            <button class="delete-button" onclick="removeLocker(${locker.locker_id})">Slett</button>
+                          </td>
+                        `;
+
+                        const noteCell = row.querySelector("td:nth-child(3)");
+                        const noteButton = document.createElement("button");
+                        noteButton.textContent = "Notat";
+                        noteButton.addEventListener("click", () => openNoteModal(locker.locker_id, safeNote));
+                        noteCell.appendChild(noteButton);
+
+                        lockerTable.appendChild(row);
                     });
                 })
                 .catch(error => console.error("Error fetching lockers:", error));
@@ -377,12 +480,18 @@
         // Låser opp et skap
         function unlockLocker(lockerId) {
             fetch(`/lockers/${lockerId}/unlock`, { method: "PUT" })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error("Kunne ikke låse opp skapet.");
+                    return response.json();
+                })
                 .then(data => {
-                    alert(`Locker ${lockerId} unlocked.`);
+                    showSuccessModal(`Skap ${lockerId} ble låst opp.`);
                     fetchLockersInRoom(selectedRoomId);
                 })
-                .catch(error => console.error("Error unlocking locker:", error));
+                .catch(error => {
+                    console.error("Feil ved opplåsing av skap:", error);
+                    alert("Kunne ikke låse opp skapet.");
+                });
         }
 
         // Sletter et skap
@@ -394,12 +503,19 @@
             .then(data => {
                 alert(data.message);
                 // Refresh the info box after deletion
-                if (selectedRoomId) showRoomInfo({ room_id: selectedRoomId, name: document.getElementById("info-room-name").textContent.replace("Romnavn: ", "") });
+                if (selectedRoomId) {
+                    const roomNameText = document.getElementById("info-room-name").textContent;
+                    const roomName = roomNameText.replace("Romnavn: ", "").trim();
+                    showRoomInfo({ room_id: selectedRoomId, name: roomName });
+                }
             })
             .catch(error => console.error("Error deleting locker:", error));
         }
 
         function updateNote(lockerId) {
+            // Old inline note editing is deprecated; use openNoteModal instead.
+            // You can call openNoteModal(lockerId, existingNote) to open the new modal.
+            // For backward compatibility, keep this function as a fallback.
             const note = document.getElementById(`note-input-${lockerId}`).value;
             fetch(`/lockers/${lockerId}/note?note=${encodeURIComponent(note)}`, {
                 method: "PUT"
@@ -417,6 +533,7 @@
                 alert("Kunne ikke oppdatere notat.");
             });
         }
+
         function deleteAllLockers() {
             if (!selectedRoomId) {
                 alert("Vennligst velg et rom først.");
@@ -501,49 +618,6 @@
     function closeSuccessModal() {
         document.getElementById("success-modal").classList.add("hidden");
     }
-    </script>
-
-
-
-    <!-- Bekreft sletting modal -->
-    <div id="confirm-delete-modal" class="modal hidden">
-      <div class="modal-content">
-        <p>Er du sikker på at du vil slette dette rommet?</p>
-        <div class="modal-buttons">
-          <button id="cancel-delete" class="cancel-button">Avbryt</button>
-          <button id="confirm-delete" class="delete-button">Slett</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Success modal -->
-    <div id="success-modal" class="modal hidden">
-      <div class="modal-content">
-        <p id="success-message">Handling utført!</p>
-        <div class="modal-buttons">
-          <button onclick="closeSuccessModal()">OK</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Room created modal -->
-    <div id="room-created-modal" class="modal hidden">
-      <div class="modal-content">
-        <p>Rommet har blitt opprettet!</p>
-        <div class="modal-buttons">
-          <button onclick="document.getElementById('room-created-modal').classList.add('hidden')">OK</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Lockers created modal -->
-    <div id="lockers-created-modal" class="modal hidden">
-      <div class="modal-content">
-        <p>Skap er lagt til rommet!</p>
-        <div class="modal-buttons">
-          <button onclick="document.getElementById('lockers-created-modal').classList.add('hidden')">OK</button>
-        </div>
-      </div>
-    </div>
+</script>
 </body>
 </html>

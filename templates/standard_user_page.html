@@ -45,13 +45,14 @@
                         // Fjern null (feil), sorter alfabetisk og vis
                         roomData
                             .filter(room => room !== null)
-                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .sort((a, b) => b.available - a.available)
                             .forEach(room => {
                                 const li = document.createElement('li');
                                 li.classList.add('room-box');
                                 li.innerHTML = `<div class="room-name">${room.name}</div><div class="locker-count">${room.available} ledige skap</div>`;
                                 roomList.appendChild(li);
                             });
+                        resizeBoxes();
 
                     })
                     .catch(error => console.error("Feil ved henting av rom:", error));
