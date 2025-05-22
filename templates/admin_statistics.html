@@ -6,27 +6,18 @@
     <link rel="stylesheet" href="/static/styles/admin_statistics.css">
 </head>
 <body>
-    <nav class="admin-navbar">
-        <ul class="nav-menu">
-            <li><button onclick="location.href='/admin_page'">Oversikt</button></li>
-            <li><button onclick="location.href='/admin_wardrobe_management'">Garderobe admin</button></li>
-            <li><button onclick="location.href='/admin_statistics'">Statistikk</button></li>
-            <li><button onclick="location.href='/logout'">Logg ut</button></li>
-        </ul>
-    </nav>
-    <main>
-        <div class="container">
-            <h1>Statistikkoversikt</h1>
-
-            <div class="summary">
-                <p><strong>Totalt antall skap:</strong> <span id="total-lockers">...</span></p>
-                <p><strong>Ledige skap:</strong> <span id="available-lockers">...</span></p>
-                <p><strong>Opptatte skap:</strong> <span id="occupied-lockers">...</span></p>
-                <p><strong>Totalt antall brukere:</strong> <span id="total-users">...</span></p>
-            </div>
+    <div class="admin-navbar-wrapper">
+        <div class="admin-navbar">
+            <ul class="nav-menu">
+                <li><button onclick="navigateTo('overview')">Oversikt</button></li>
+                <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
+                <li><button class="active" onclick="navigateTo('statistics')">Statistikk</button></li>
+                <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
+                <li><button onclick="logout()">Logg ut</button></li>
+            </ul>
 
             <div class="stat-card">
-                <h2>📊 Skap per garderoberom</h2>
+                <h2>Skap per garderoberom</h2>
                 <table>
                     <thead>
                         <tr>
@@ -43,16 +34,23 @@
             </div>
 
             <div class="stat-card">
-                <h2>🏆 Rom med flest bruk</h2>
+                <h2>Rom med flest bruk</h2>
                 <ul id="most-used-rooms"></ul>
+            </div>
+    <main>
+        <div class="dashboard-wrapper">
+            <h1>Statistikkoversikt</h1>
+            <div class="search-controls">
+                <input type="search" id="stats-search" placeholder="Søk rom, skap eller bruker">
+                <select id="stats-time-filter">
+                    <option value="7">Siste 7 dager</option>
+                    <option value="30">Siste 30 dager</option>
+                    <option value="all">Alle</option>
+                </select>
             </div>
 
             <div class="stat-card">
-                <h2>🔥 Mest aktive brukere</h2>
-                <ul id="most-active-users"></ul>
-            </div>
-            <div class="stat-card">
-                <h2>📄 Siste skapbruk</h2>
+                <h2>Siste skapbruk</h2>
                 <table>
                     <thead>
                         <tr>
@@ -65,17 +63,88 @@
                     <tbody id="recent-logs">
                         <!-- JS fyller inn -->
                     </tbody>
+#Mulig feil nede .
                 </table>
+            <div class="stats-chips">
+                <div class="chip"><strong>Totalt antall skap:</strong> <span id="total-lockers">–</span></div>
+                <div class="chip"><strong>Ledige skap:</strong> <span id="available-lockers">–</span></div>
+                <div class="chip"><strong>Opptatte skap:</strong> <span id="occupied-lockers">–</span></div>
+                <div class="chip"><strong>Totalt antall brukere:</strong> <span id="total-users">–</span></div>
+            </div>
+
+            <div class="container">
+                <div class="stat-card stat-card--blue">
+                    <div class="table-header">
+                      <h2>Skap per garderoberom</h2>
+                      <button class="export-btn" title="Eksporter til CSV" onclick="exportTableToCSV('skap_per_garderoberom.csv')">⤓</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Romnavn</th>
+                                <th>Totalt</th>
+                                <th>Ledige</th>
+                                <th>Opptatte</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lockers-by-room">
+                            <!-- Fylles av JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="stat-card stat-card--green">
+                    <h2>Rom med flest opptatte skap</h2>
+                    <ul id="most-used-rooms"></ul>
+                </div>
+
+                <div class="stat-card stat-card--yellow">
+                    <h2>Mest aktive brukere</h2>
+                    <ul id="most-active-users"></ul>
+                </div>
+
+                <div class="stat-card stat-card--red">
+                    <h2>Skap åpnet flest ganger</h2>
+                    <ul id="most-opened-lockers"></ul>
+                </div>
+
+                <div class="stat-card stat-card--purple">
+                    <h2>Siste skapåpninger</h2>
+                    <ul id="recent-locks"></ul>
+                </div>
+#mulig feil oppe ^      
             </div>
         </div>
     </main>
 
     <script>
+        function exportTableToCSV(filename) {
+          const table = document.querySelector('.stat-card--blue table');
+          let csv = [];
+          for (let row of table.rows) {
+            let cols = Array.from(row.cells).map(cell => `"${cell.innerText.replace(/"/g, '""')}"`);
+            csv.push(cols.join(','));
+          }
+          const csvContent = csv.join('\n');
+          const blob = new Blob([csvContent], { type: 'text/csv' });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = filename;
+          link.click();
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const fetchText = (url, targetId, key) => {
                 fetch(url)
                     .then(res => res.json())
-                    .then(data => document.getElementById(targetId).innerText = data[key])
+                    .then(data => {
+                        const value = data[key];
+                        if (value === undefined || value === null || value === "") {
+                            document.getElementById(targetId).innerText = "Ingen data tilgjengelig";
+                        } else {
+                            document.getElementById(targetId).innerText = value;
+                        }
+                    })
                     .catch(err => {
                         document.getElementById(targetId).innerText = "Feil";
                         console.error(err);
@@ -88,6 +157,10 @@
                     .then(data => {
                         const list = document.getElementById(targetId);
                         list.innerHTML = "";
+                        if (!data || data.length === 0) {
+                            list.innerHTML = "<li>Ingen data tilgjengelig.</li>";
+                            return;
+                        }
                         data.forEach(item => {
                             const li = document.createElement("li");
                             li.innerText = formatFn(item);
@@ -112,27 +185,60 @@
                 .then(data => {
                     const tbody = document.getElementById("lockers-by-room");
                     tbody.innerHTML = "";
+                    if (!data || data.length === 0) {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `<td colspan="4">Ingen data tilgjengelig.</td>`;
+                        tbody.appendChild(tr);
+                        return;
+                    }
                     data.forEach(row => {
                         const tr = document.createElement("tr");
-                        tr.innerHTML =
-                                "<td>" + row.room_name + "</td>" +
-                                "<td>" + row.locker_count + "</td>" +
-                                "<td>" + (row.available !== undefined ? row.available : "-") + "</td>" +
-                                "<td>" + (row.occupied !== undefined ? row.occupied : "-") + "</td>";
-
+#siste_INSPURT!!
+#                    tr.innerHTML =
+#                             "<td>" + row.room_name + "</td>" +
+#                              "<td>" + row.locker_count + "</td>" +
+#                               "<td>" + (row.available !== undefined ? row.available : "-") + "</td>" +
+#                               "<td>" + (row.occupied !== undefined ? row.occupied : "-") + "</td>";
+#
+#
+                        tr.innerHTML = `
+                            <td>${row.room_name || "–"}</td>
+                            <td>${row.locker_count !== undefined && row.locker_count !== null ? row.locker_count : "–"}</td>
+                            <td>${row.available !== undefined && row.available !== null ? row.available : "–"}</td>
+                            <td>${row.occupied !== undefined && row.occupied !== null ? row.occupied : "–"}</td>
+                        `;
                         tbody.appendChild(tr);
                     });
                 });
 
             // 🏆 Mest brukte rom
             fetchList("/statistic/most_used_rooms", "most-used-rooms", room =>
-                `${room.room_name} – ${room.occupied_count} bruk`
+
+#                `${room.room_name} – ${room.occupied_count} bruk`
+
+                `${room.room_name || "–"} – ${room.occupied_count !== undefined && room.occupied_count !== null ? room.occupied_count : "–"} opptatte skap`
             );
 
             // 🔥 Mest aktive brukere
             fetchList("/statistic/most_active_users", "most-active-users", user =>
-                `${user.username} – ${user.locker_count} handlinger`
+
+                `${user.username || "–"} – ${user.locker_count !== undefined && user.locker_count !== null ? user.locker_count : "–"} reserveringer`
             );
+
+            fetchList("/statistic/recent_log_entries", "recent-locks", log =>
+                `${log.timestamp || "–"} – Skap ${log.combi_id || "–"}` + (log.username ? ` av ${log.username}` : "")
+            );
+
+
+            fetchList("/statistic/most_opened_lockers", "most-opened-lockers", entry =>
+                `Skap ${entry.combi_id || "–"} – åpnet ${entry.times_opened !== undefined && entry.times_opened !== null ? entry.times_opened : "–"} ganger`
+            );
+
+
+            fetchList("/statistic/recent_log_entries", "recent-locks", log =>
+                `${log.timestamp || "–"} – Skap ${log.combi_id || "–"}` + (log.username ? ` av ${log.username}` : "")
+            );
+            
             fetch("/statistic/recent_log_entries")
                 .then(res => res.json())
                 .then(data => {
@@ -153,6 +259,40 @@
                     console.error(err);
                 });
         });
+
+        document.getElementById("stats-search").addEventListener("input", function() {
+          const search = this.value.trim().toLowerCase();
+          const rows = document.querySelectorAll('.stat-card--blue tbody tr');
+          rows.forEach(row => {
+            if (row.innerText.toLowerCase().includes(search)) {
+              row.style.display = "";
+            } else {
+              row.style.display = "none";
+            }
+          });
+        });
+
+        document.getElementById("stats-time-filter").addEventListener("change", function() {
+          // Placeholder for time filter logic - implement filtering of statistics based on selected time range here
+        });
+
+        function navigateTo(page) {
+            if (page === 'overview') {
+                window.location.href = "/admin_page";
+            } else if (page === 'wardrobe_admin') {
+                window.location.href = "/admin_wardrobe";
+            } else if (page === 'statistics') {
+                window.location.href = "/admin_statistics";
+            } else if (page === 'backup') {
+                window.location.href = "/admin_backup";
+            }
+        }
+
+
+        function logout() {
+
+            window.location.href = "/";
+        }
     </script>
 </body>
 </html>

@@ -1,142 +1,135 @@
-# Skapapp
-# RFID-basert Skaplåssystem
+# RFID-basert garderobesystem for Sunnaas Sykehus
 
-Et komplett FastAPI-prosjekt for å administrere og overvåke et RFID-integrert garderobeskapssystem. Systemet tilbyr dynamisk og statisk skapreservasjon, rollebasert tilgangskontroll (admin/bruker), logging av skapbruk, statistikkvisning og databasebackup.
-
----
+Dette prosjektet er en komplett løsning for administrasjon av låsbare skap ved hjelp av RFID-teknologi, utviklet som en del av en bacheloroppgave. Systemet kombinerer maskinvare og programvare for å tilby sikker, brukervennlig og skalerbar skapadministrasjon tilpasset helseinstitusjoner.
 
 ## Innhold
 
-* [Funksjoner](#funksjoner)
-* [Teknologi](#teknologi)
-* [Katalogstruktur](#katalogstruktur)
-* [Kjøreprosedyre](#kjøreprosedyre)
+* [Funksjonalitet](#funksjonalitet)
+* [Systemarkitektur](#systemarkitektur)
+* [Installasjon](#installasjon)
+* [Teknologier brukt](#teknologier-brukt)
+* [Bruk](#bruk)
 * [API-endepunkter](#api-endepunkter)
-* [Statistikk](#statistikk)
-* [Backup og Restore](#backup-og-restore)
-* [Feilhåndtering](#feilhåndtering)
-* [Videre utvikling](#videre-utvikling)
+* [Testing](#testing)
+* [Videre arbeid](#videre-arbeid)
 
 ---
 
-## Funksjoner
+## Funksjonalitet
 
-* **RFID-integrasjon**: Skanning av RFID-tagger for innlogging og skapbruk
-* **Dynamiske og statiske skap**: Brukere kan reservere ledige skap, eller tilordnes faste
-* **Admin-panel**: Opprettelse og sletting av garderoberom og skap
-* **Logging**: Registrerer alle skapåpninger og -låsinger
-* **Statistikk**: Oversikt over brukere, brukte skap, ledige skap og mer
-* **Backup/Restore**: Eksport og import av databasen til/fra JSON
-* **Asynkron opprydding**: Automatisk frigjøring av reserverte skap etter timeout
+* **RFID-autentisering** av brukere
+* **Reservasjon og frigjøring** av skap
+* **Automatisk utlogging** av brukere etter en gitt tidsperiode
+* **Statistikk** over bruksmønster og skapaktivitet
+* **Administratorverktøy** for åpning av skap, oversikt, merknader m.m.
+* **Sikkerhetslag** med JWT-basert autentisering
+* **Backup og restore** av database via adminpanel
 
----
+## Systemarkitektur
 
-## Teknologi
+* **Frontend**: React.js + HTML/CSS for visuell administrasjon
+* **Backend**: FastAPI med Pydantic og SQLAlchemy
+* **Database**: SQLite lokalt lagret på Raspberry Pi
+* **Maskinvare**: Raspberry Pi + RFID-leser + relékort + magnetlås
+
+## Installasjon
+
+### Backend
+
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+### Maskinvare
+
+* Installer Raspberry Pi OS
+* Koble opp RFID-leser via UART
+* Koble relé og magnetlås til GPIO-pins
+
+## Teknologier brukt
 
 * **Python 3.13**
-* **FastAPI** - Backend-API
-* **SQLite** - Lettvekts database
-* **SQLAlchemy** - ORM
-* **Jinja2** - Templating-motor for HTML
-* **Uvicorn** - ASGI-server
+* **FastAPI** - API-rammeverk med Swagger UI
+* **SQLite** - Lettvekts relasjonsdatabase
+* **React.js** - Dynamisk frontend
+* **RPi.GPIO & serial** - Styring av maskinvare
+* **JWT** - Token-basert autentisering
+* **Pytest** - Automatisk testing
+
+## Bruk
+
+* Brukere autentiserer seg med RFID-kort
+* Oppdatering av skapstatus skjer automatisk via backend
+* Administrator kan se statistikk, åpne skap og gjøre endringer
+
+## API-endepunkter
+
+Systemet tilbyr flere REST-endepunkter for interaksjon mellom frontend, maskinvare og databasen. Nedenfor følger en oversikt over hovedfunksjonene med tilhørende ruter:
+
+### LockerRooms
+
+* `GET /lockerrooms` — Hent alle garderober
+* `POST /lockerrooms` — Opprett ny garderobe
+* `DELETE /lockerrooms/{id}` — Slett en garderobe
+
+### Lockers
+
+* `GET /lockers` — Hent alle skap
+* `POST /lockers/create_multiple` — Opprett flere skap
+* `PUT /lockers/note/{locker_id}` — Oppdater merknad på skap
+* `POST /lockers/reserve` — Reserver skap for bruker
+* `POST /lockers/open/{locker_id}` — Åpne skap manuelt (admin)
+
+### Users
+
+* `POST /users/create` — Registrer ny RFID-bruker
+* `GET /users` — Hent alle brukere
+
+### Admin
+
+* `POST /admin/login` — Autentiser administrator (JWT)
+* `POST /admin/create` — Opprett ny administrator
+* `GET /admin` — Hent adminbrukere
+* `DELETE /admin/{id}` — Slett administrator
+
+### Statistics
+
+* `GET /statistics/daily` — Statistikk for daglig bruk
+* `GET /statistics/active-lockers` — Aktive skap
+
+### LockerLogs
+
+* `GET /lockerlogs` — Hent alle loggposter
+
+### Backup & Restore
+
+* `POST /admin/backup` — Opprett databasebackup
+* `POST /admin/restore` — Gjenopprett fra backup
+
+## Testing
+
+* Automatisk testing kjøres med `pytest`
+* Swagger UI kan brukes for manuell API-verifisering
+
+## Videre arbeid
+
+* Legge til støtte for to-faktor-autentisering
+* Integrere WebSockets for sanntidsstatus
+* Fullføre brukerrollehierarki (vaskehjelp, avdelingsleder m.m.)
+* Automatisk backup til skylagring
 
 ---
 
-## Katalogstruktur
-
-```
-.
-├── main.py                     # Hovedapplikasjon (FastAPI)
-├── database.py                # Databaseoppsett og backupfunksjoner
-├── backend/
-│   └── model/
-│       ├── Locker.py
-│       ├── LockerRoom.py
-│       ├── LockerLog.py
-│       ├── AdminUser.py
-│       ├── StandardUser.py
-│       ├── Statistic.py
-│       └── ErrorHandler.py
-├── static/                    # CSS / JS / bilder
-├── templates/                 # HTML-filer for frontend
-└── database.db                # SQLite databasefil
-```
-
----
-
-## Kjøreprosedyre
-
-1. Installer avhengigheter:
-
-```bash
-pip install -r requirements.txt
-```
-
-2. Start applikasjonen:
-
-```bash
-uvicorn main:api --host localhost --port 8080 --reload
-```
-
-3. Åpne i nettleser: [http://localhost:8080](http://localhost:8080)
-
----
-
-## API-endepunkter (utdrag)
-
-### Brukerautentisering
-
-* `POST /login` - Logg inn med passord
-* `POST /admin_users/` - Opprett ny adminbruker
-
-### RFID og reservasjon
-
-* `POST /scan_rfid/` - Skann tag og hent ledige skap
-* `PUT /lockers/reserve` - Reserver skap
-
-### CRUD-operasjoner
-
-* `POST /locker_rooms/{name}` - Opprett garderoberom
-* `DELETE /lockers/{locker_id}` - Slett skap
-
-### Midlertidige handlinger
-
-* `PUT /lockers/temporary_unlock` - Midlertidig åpning
-* `PUT /lockers/manual_release` - Manuell frigjøring
-
----
-
-## Statistikk
-
-* `GET /statistic/total_lockers` - Totalt antall skap
-* `GET /statistic/occupied_lockers` - Antall brukte skap
-* `GET /statistic/most_active_users` - Topp 10 aktive brukere
-* `GET /statistic/recent_log_entries` - Siste 10 hendelser
-
----
-
-## Backup og Restore
-
-* `GET /admin/backup` - Last ned database som JSON
-* `POST /admin/restore` - Gjenopprett database fra JSON
-
----
-
-## Feilhåndtering
-
-Feil logges automatisk til fil:
-
-* Windows: `%USERPROFILE%/fastapi_logs/fastapi_errors.log`
-* Linux/macOS: `/var/log/fastapi_errors.log`
-
-Feil fanges og returneres som `HTTPException` med riktig statuskode.
-
----
-
-## Videre utvikling
-
-* [ ] JWT-basert autentisering
-* [ ] Mer avansert frontend (f.eks. React eller Vue)
-* [ ] Skapstatus i sanntid via WebSocket
-* [ ] E-post/SMS-varsler
-* [ ] Brukerhistorikkvisning i GUI
+> Dette prosjektet er utviklet som bacheloroppgave ved Høgskolen i Østfold i samarbeid med Sunnaas Sykehus.
