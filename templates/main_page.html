@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkapApp - Innlogging</title>
+    <link rel="stylesheet" href="/static/styles/main_page.css">
+</head>
+<body>
+    <div class="login-container">
+        <h1>Logg inn</h1>
+        <form id="login-form">
+            <input type="password" id="password" name="password" placeholder="Skriv inn kode" required>
+            <button type="submit">Logg inn</button>
+            <p id="error-message" class="error-message"></p>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById("login-form");
+        const errorMessage = document.getElementById("error-message");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const password = document.getElementById("password").value;
+
+            try {
+                const response = await fetch("/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ password })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Ugyldig kode");
+                }
+
+                const data = await response.json();
+                if (data.role === "admin") {
+                    window.location.href = "/admin_page";
+                } else {
+                    window.location.href = "/available_lockers";
+                }
+            } catch (err) {
+                errorMessage.textContent = err.message;
+            }
+        });
+    </script>
+</body>
+</html>

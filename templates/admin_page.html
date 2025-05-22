@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrator Panel</title>
+    <link rel="stylesheet" href="/static/styles/admin_page.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Administrator Panel</h1>
+        <p>Håndter garderoberom og garderobeskap</p>
+
+        <div class="actions">
+
+            <button onclick="goToAvailableLockers()">Tilgengelige Skap</button>
+            <button onclick="goToWardrobe()">Garderobe Administrasjon</button>
+            <button onclick="goToStatistics()">Statistikk</button>
+
+
+        </div>
+
+        <div class="nav-buttons">
+            <button onclick="goBack()">← Tilbake</button>
+            <button onclick="goHome()">🏠 Hjem</button>
+        </div>
+    </div>
+
+    <script>
+        function goToAvailableLockers() {
+            window.location.href = "/available_lockers";
+        }
+        function goToWardrobe() {
+            window.location.href = "/admin_wardrobe";
+        }
+        function goToStatistics() {
+            window.location.href = "/admin_statistics";
+        }
+        function goHome() {
+            window.location.href = "/";
+        }
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>

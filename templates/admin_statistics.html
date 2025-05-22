@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Statistikk</title>
+    <link rel="stylesheet" href="/static/styles/admin_statistics.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Statistikkoversikt</h1>
+
+        <div class="summary">
+            <p><strong>Totalt antall skap:</strong> <span id="total-lockers">...</span></p>
+            <p><strong>Ledige skap:</strong> <span id="available-lockers">...</span></p>
+            <p><strong>Opptatte skap:</strong> <span id="occupied-lockers">...</span></p>
+            <p><strong>Totalt antall brukere:</strong> <span id="total-users">...</span></p>
+        </div>
+
+        <h2>Skap per garderoberom</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Romnavn</th>
+                    <th>Totalt</th>
+                    <th>Ledige</th>
+                    <th>Opptatte</th>
+                </tr>
+            </thead>
+            <tbody id="lockers-by-room">
+                <!-- Fylles av JS -->
+            </tbody>
+        </table>
+
+        <h2>Rom med flest opptatte skap</h2>
+        <ul id="most-used-rooms"></ul>
+
+        <h2>Mest aktive brukere</h2>
+        <ul id="most-active-users"></ul>
+
+        <h2>Skap åpnet flest ganger</h2>
+        <ul id="most-opened-lockers"></ul>
+
+        <h2>Siste skapåpninger</h2>
+        <ul id="recent-locks"></ul>
+
+        <div class="navigation-buttons">
+            <button onclick="location.href='/admin_page'">← Tilbake</button>
+            <button onclick="location.href='/'">🏠 Hjem</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const fetchText = (url, targetId, key) => {
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => document.getElementById(targetId).innerText = data[key])
+                    .catch(err => {
+                        document.getElementById(targetId).innerText = "Feil";
+                        console.error(err);
+                    });
+            };
+
+            const fetchList = (url, targetId, formatFn) => {
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        const list = document.getElementById(targetId);
+                        list.innerHTML = "";
+                        data.forEach(item => {
+                            const li = document.createElement("li");
+                            li.innerText = formatFn(item);
+                            list.appendChild(li);
+                        });
+                    })
+                    .catch(err => {
+                        document.getElementById(targetId).innerHTML = "<li>Feil ved henting.</li>";
+                        console.error(err);
+                    });
+            };
+
+            fetchText("/statistic/total_lockers", "total-lockers", "total_lockers");
+            fetchText("/statistic/available_lockers", "available-lockers", "available_lockers");
+            fetchText("/statistic/occupied_lockers", "occupied-lockers", "occupied_lockers");
+            fetchText("/statistic/total_users", "total-users", "total_users");
+
+            fetch("/statistic/lockers_by_room")
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById("lockers-by-room");
+                    tbody.innerHTML = "";
+                    data.forEach(row => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${row.room_name}</td>
+                            <td>${row.locker_count}</td>
+                            <td>${row.available !== undefined ? row.available : "-"}</td>
+                            <td>${row.occupied !== undefined ? row.occupied : "-"}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                });
+
+            fetchList("/statistic/most_used_rooms", "most-used-rooms", room =>
+                `${room.room_name} – ${room.occupied_count} opptatte skap`
+            );
+
+            fetchList("/statistic/most_active_users", "most-active-users", user =>
+                `${user.username} – ${user.locker_count} reserveringer`
+            );
+
+            fetchList("/statistic/recent_log_entries", "recent-locks", log =>
+                `${log.timestamp} – Skap ${log.combi_id}` + (log.username ? ` av ${log.username}` : "")
+            );
+
+
+            fetchList("/statistic/most_opened_lockers", "most-opened-lockers", entry =>
+                `Skap ${entry.combi_id} – åpnet ${entry.times_opened} ganger`
+            );
+
+
+            fetchList("/statistic/recent_log_entries", "recent-locks", log =>
+                `${log.timestamp} – Skap ${log.combi_id}` + (log.username ? ` av ${log.username}` : "")
+            );
+        });
+    </script>
+</body>
+</html>

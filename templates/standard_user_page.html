@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ledige Skap</title>
+    <link rel="stylesheet" href="/static/styles/standard_user_page.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Ledige Skap i Alle Rom</h1>
+        <ul id="room-list">
+            <!-- Rom og ledige skap vil bli fylt inn dynamisk -->
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchRoomsWithLockers();
+
+            function fetchRoomsWithLockers() {
+                fetch("http://localhost:8080/locker_rooms/")
+                    .then(response => response.json())
+                    .then(async rooms => {
+                        const roomList = document.getElementById("room-list");
+                        roomList.innerHTML = '';
+
+                        // Lag en liste med alle rom og deres tilgjengelige skap
+                        const roomData = await Promise.all(rooms.map(async room => {
+                            try {
+                                const res = await fetch(`http://localhost:8080/locker_rooms/${room.room_id}/available_lockers`);
+                                const data = await res.json();
+                                return {
+                                    name: room.name,
+                                    available: data.available_lockers
+                                };
+                            } catch (err) {
+                                console.error("Feil ved henting:", err);
+                                return null;
+                            }
+                        }));
+
+                        // Fjern null (feil), sorter alfabetisk og vis
+                        roomData
+                            .filter(room => room !== null)
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .forEach(room => {
+                                const listItem = document.createElement('li');
+                                listItem.innerText = `${room.name}: ${room.available} ledige skap`;
+                                roomList.appendChild(listItem);
+                            });
+                    })
+                    .catch(error => console.error("Feil ved henting av rom:", error));
+            }
+
+        });
+    </script>
+</body>
+</html>
