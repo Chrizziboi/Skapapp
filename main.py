@@ -22,11 +22,11 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
+from fastapi import Body
 from pydantic import BaseModel
 
 from database import SessionLocal, setup_database
 from database import backup_database_to_json, restore_database_from_json
-
 # Initialiser SQLite3
 
 setup_database()
@@ -265,7 +265,7 @@ def create_multiple_lockers_endpoint(locker_room_id: int, quantity: int, db: Ses
 
 
 @api.post("/admin_users/")
-def create_admin_user(request: CreateUserRequest, db: Session = Depends(get_db)):
+def create_admin_user(request: CreateUserRequest = Body(...), db: Session = Depends(get_db)):
     """
     Oppretter en ny bruker med pin/passord og rolle.
     """
@@ -462,27 +462,28 @@ def get_total_lockers(db: Session = Depends(get_db)):
     try:
         return {"total_lockers": Statistic.total_lockers(db)}
     except Exception as e:
-        logging.error(f"Feil ved henting av total antall skap: {str(e)}")
-        raise fastapi_error_handler("Kunne ikke hente total antall skap.", status_code=500)
+        return fastapi_error_handler(f"Feil ved henting av total skap: {str(e)}", 500)
+
 
 
 @api.get("/statistic/available_lockers")
-def get_available_lockers(db: Session = Depends(get_db)):
+def get_total_available_lockers(db: Session = Depends(get_db)):
     try:
-        available_lockers = Statistic.available_lockers(db)
-        return available_lockers
+        count = db.query(Locker).filter(Locker.status.ilike("Ledig")).count()
+        return {"available_lockers": count}
     except Exception as e:
-        logging.error(f"Feil ved henting av ledige skap: {str(e)}")
-        raise fastapi_error_handler("Kunne ikke hente ledige skap.", status_code=500)
+        return fastapi_error_handler(f"Feil ved henting av ledige skap: {str(e)}", 500)
+
 
 
 @api.get("/statistic/occupied_lockers")
 def get_occupied_lockers(db: Session = Depends(get_db)):
     try:
-        return {"occupied_lockers": Statistic.occupied_lockers(db)}
+        count = Statistic.occupied_lockers(db)
+        return {"occupied_lockers": count}
     except Exception as e:
-        logging.error(f"Feil ved henting av opptatte skap: {str(e)}")
-        raise fastapi_error_handler("Kunne ikke hente opptatte skap.", status_code=500)
+        return fastapi_error_handler(f"Feil ved henting av opptatte skap: {str(e)}", 500)
+
 
 
 @api.get("/statistic/total_users")
@@ -500,11 +501,10 @@ def get_total_users(db: Session = Depends(get_db)):
 @api.get("/statistic/lockers_by_room")
 def get_lockers_by_room(db: Session = Depends(get_db)):
     try:
-        lockers_by_room = Statistic.lockers_by_room(db)
-        return lockers_by_room
+        return Statistic.lockers_by_room(db)
     except Exception as e:
-        logging.error(f"Feil ved henting av skap per garderoberom: {str(e)}")
-        raise fastapi_error_handler("Kunne ikke hente skap per garderoberom.", status_code=500)
+        return fastapi_error_handler(f"Feil ved henting av skap per rom: {str(e)}", 500)
+
 
 
 @api.get("/statistic/most_opened_lockers")
@@ -522,46 +522,60 @@ def get_most_opened_lockers(db: Session = Depends(get_db)):
     return [{"combi_id": combi_id, "times_opened": count} for combi_id, count in results]
 
 
-@api.get("/statistic/recent_log_entries")
-def get_recent_log_entries(db: Session = Depends(get_db)):
-    results = db.query(
-        LockerLog.timestamp,
-        Locker.combi_id,
-        StandardUser.rfid_tag
-    ).join(Locker, Locker.id == LockerLog.locker_id)\
-     .outerjoin(StandardUser, LockerLog.user_id == StandardUser.id)\
-     .order_by(LockerLog.timestamp.desc())\
-     .limit(10)\
-     .all()
-
-    return [
-        {
-            "timestamp": ts.strftime("%Y-%m-%d %H:%M:%S"),
-            "combi_id": combi,
-            "username": rfid
-        }
-        for ts, combi, rfid in results
-    ]
-
 
 @api.get("/statistic/most_used_rooms")
 def get_most_used_rooms(db: Session = Depends(get_db)):
     try:
-        most_used_rooms = Statistic.most_used_rooms(db)
-        return most_used_rooms
+        return Statistic.most_used_rooms(db)
     except Exception as e:
-        logging.error(f"Feil ved henting av mest brukte garderoberom: {str(e)}")
-        raise fastapi_error_handler("Kunne ikke hente mest brukte garderoberom.", status_code=500)
+        return fastapi_error_handler(f"Feil ved henting av mest brukte rom: {str(e)}", 500)
+
 
 
 @api.get("/statistic/most_active_users")
 def get_most_active_users(db: Session = Depends(get_db)):
     try:
-        most_active_users = Statistic.most_active_users(db)
-        return most_active_users
+        return Statistic.most_active_users(db)
     except Exception as e:
-        logging.error(f"Feil ved henting av mest aktive brukere: {str(e)}")
-        raise fastapi_error_handler("Kunne ikke hente mest aktive brukere.", status_code=500)
+        return fastapi_error_handler(f"Feil ved henting av mest aktive brukere: {str(e)}", 500)
+
+@api.get("/statistic/available_lockers_by_room/{room_id}")
+def get_available_lockers_by_room(room_id: int, db: Session = Depends(get_db)):
+    try:
+        return Statistic.available_lockers(room_id, db)
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved romspesifikk henting av ledige skap: {str(e)}", 500)
+
+@api.get("/statistic/all_lockers")
+def get_all_lockers(db: Session = Depends(get_db)):
+    try:
+        return Statistic.all_lockers(db)
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av alle skap: {str(e)}", 500)
+
+@api.get("/statistic/users_with_usage")
+def get_users_with_usage(db: Session = Depends(get_db)):
+    try:
+        all_users = db.query(StandardUser).all()
+        logs = Statistic.most_active_users(db)
+        log_map = {user["username"]: user["locker_count"] for user in logs}
+
+        result = []
+        for user in all_users:
+            result.append({
+                "username": user.rfid_tag,
+                "locker_count": log_map.get(user.rfid_tag, 0)
+            })
+        return result
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av brukere med aktivitetsdata: {str(e)}", 500)
+
+@api.get("/statistic/recent_log_entries")
+def get_recent_log_entries(db: Session = Depends(get_db)):
+    try:
+        return Statistic.latest_log_entries(db)
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av logg: {str(e)}", 500)
 
         
 ''' BACKUP CALLS '''

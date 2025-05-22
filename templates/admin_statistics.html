@@ -16,9 +16,27 @@
                 <li><button onclick="logout()">Logg ut</button></li>
             </ul>
 
-        </div>
-    </div>
+            <div class="stat-card">
+                <h2>Skap per garderoberom</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Romnavn</th>
+                            <th>Totalt</th>
+                            <th>Ledige</th>
+                            <th>Opptatte</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lockers-by-room">
+                        <!-- Fylles av JS -->
+                    </tbody>
+                </table>
+            </div>
 
+            <div class="stat-card">
+                <h2>Rom med flest bruk</h2>
+                <ul id="most-used-rooms"></ul>
+            </div>
     <main>
         <div class="dashboard-wrapper">
             <h1>Statistikkoversikt</h1>
@@ -30,6 +48,23 @@
                     <option value="all">Alle</option>
                 </select>
             </div>
+
+            <div class="stat-card">
+                <h2>Siste skapbruk</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bruker-ID</th>
+                            <th>Skap-ID</th>
+                            <th>Handling</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-logs">
+                        <!-- JS fyller inn -->
+                    </tbody>
+#Mulig feil nede .
+                </table>
             <div class="stats-chips">
                 <div class="chip"><strong>Totalt antall skap:</strong> <span id="total-lockers">–</span></div>
                 <div class="chip"><strong>Ledige skap:</strong> <span id="available-lockers">–</span></div>
@@ -77,6 +112,7 @@
                     <h2>Siste skapåpninger</h2>
                     <ul id="recent-locks"></ul>
                 </div>
+#mulig feil oppe ^      
             </div>
         </div>
     </main>
@@ -137,11 +173,13 @@
                     });
             };
 
+            // 🔢 Tallverdier
             fetchText("/statistic/total_lockers", "total-lockers", "total_lockers");
             fetchText("/statistic/available_lockers", "available-lockers", "available_lockers");
             fetchText("/statistic/occupied_lockers", "occupied-lockers", "occupied_lockers");
             fetchText("/statistic/total_users", "total-users", "total_users");
 
+            // 📊 Skap per rom
             fetch("/statistic/lockers_by_room")
                 .then(res => res.json())
                 .then(data => {
@@ -155,6 +193,14 @@
                     }
                     data.forEach(row => {
                         const tr = document.createElement("tr");
+#siste_INSPURT!!
+#                    tr.innerHTML =
+#                             "<td>" + row.room_name + "</td>" +
+#                              "<td>" + row.locker_count + "</td>" +
+#                               "<td>" + (row.available !== undefined ? row.available : "-") + "</td>" +
+#                               "<td>" + (row.occupied !== undefined ? row.occupied : "-") + "</td>";
+#
+#
                         tr.innerHTML = `
                             <td>${row.room_name || "–"}</td>
                             <td>${row.locker_count !== undefined && row.locker_count !== null ? row.locker_count : "–"}</td>
@@ -165,11 +211,17 @@
                     });
                 });
 
+            // 🏆 Mest brukte rom
             fetchList("/statistic/most_used_rooms", "most-used-rooms", room =>
+
+#                `${room.room_name} – ${room.occupied_count} bruk`
+
                 `${room.room_name || "–"} – ${room.occupied_count !== undefined && room.occupied_count !== null ? room.occupied_count : "–"} opptatte skap`
             );
 
+            // 🔥 Mest aktive brukere
             fetchList("/statistic/most_active_users", "most-active-users", user =>
+
                 `${user.username || "–"} – ${user.locker_count !== undefined && user.locker_count !== null ? user.locker_count : "–"} reserveringer`
             );
 
@@ -186,6 +238,26 @@
             fetchList("/statistic/recent_log_entries", "recent-locks", log =>
                 `${log.timestamp || "–"} – Skap ${log.combi_id || "–"}` + (log.username ? ` av ${log.username}` : "")
             );
+            
+            fetch("/statistic/recent_log_entries")
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById("recent-logs");
+                    tbody.innerHTML = "";
+                    data.forEach(log => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML =
+                            "<td>" + (log.user_id ?? "Ukjent") + "</td>" +
+                            "<td>" + log.locker_id + "</td>" +
+                            "<td>" + log.action + "</td>" +
+                            "<td>" + new Date(log.timestamp).toLocaleString() + "</td>";
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => {
+                    document.getElementById("recent-logs").innerHTML = "<tr><td colspan='4'>Feil ved henting av logg.</td></tr>";
+                    console.error(err);
+                });
         });
 
         document.getElementById("stats-search").addEventListener("input", function() {
