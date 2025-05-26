@@ -1,5 +1,6 @@
 import asyncio
 import os
+import threading
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -34,6 +35,15 @@ from database import backup_database_to_json, restore_database_from_json
 
 # Initialiser SQLite3
 
+def run_reader_helper():
+    """
+    Starter RFID-leseren i en egen tråd slik at den ikke blokkerer hovedløkken.
+    """
+    thread = threading.Thread(target=reader_helper, daemon=True)
+    thread.start()
+    print("[DEBUG] RFID-leser er startet i bakgrunnstråd.")
+
+
 setup_database()
 
 # Initialiser async funksjonalitet
@@ -41,6 +51,7 @@ setup_database()
 async def lifespan(_):
     asyncio.create_task(release_expired_loop())
     #asyncio.create_task(rfid_background_listener())
+    run_reader_helper()
     print("[DEBUG] release_expired_loop STARTET")
     yield
 
@@ -612,8 +623,6 @@ try:
     asyncio.run(main())
 finally:
     GPIO.cleanup()
-    
-    
 
 if __name__ == "__main__":
     uvicorn.run(

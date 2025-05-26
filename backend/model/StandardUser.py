@@ -179,7 +179,6 @@ def scan_rfid_action(rfid_tag: str, locker_room_id: int, db: Session):
 
     from backend.model.LockerLog import log_reserved_action
     log_reserved_action(locker_id=locker.id, user_id=user.id, db=db)
-    RaspberryPi.reader_helper()
     return {
         "message": f"Garderobeskap {locker.combi_id} reservert for bruker.",
         "access_granted": True

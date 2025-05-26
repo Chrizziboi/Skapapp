@@ -5,9 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="fixed all broken and outdated tests so they now test on the current implementation, changed all test_.py files so they have more correct names and made a share-file for all backend tests, but kept some to not make test_backend.py to messy after more tests have been added.">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/model/Statistic.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/model/Statistic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/model/StandardUser.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/model/StandardUser.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -36,12 +35,12 @@
     &quot;assignee&quot;: &quot;hannan0912&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Chrizziboi/Skapapp.git",
-    "accountId": "fa7261af-db22-450b-ba63-cdaaf130b04b"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Chrizziboi/Skapapp.git&quot;,
+    &quot;accountId&quot;: &quot;fa7261af-db22-450b-ba63-cdaaf130b04b&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 7
@@ -89,7 +88,8 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "Statistic__finishing__touches",
+    "git-widget-placeholder": "RiV2",
+    "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "C:/Users/hanna/OneDrive/Dokumenter/GitHub/Skapapp",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -215,7 +215,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-348a24fa61fa-5312c7369657-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-251.23774.444" />
+        <option value="bundled-python-sdk-dfff61a61320-9cdd278e9d02-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-251.25410.159" />
       </set>
     </attachedChunks>
   </component>
