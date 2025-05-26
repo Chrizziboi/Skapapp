@@ -17,7 +17,7 @@ from backend.Service.ErrorHandler import fastapi_error_handler
 from backend.model.AdminUser import authenticate_user
 from backend.model.StandardUser import get_user_by_rfid_tag, create_standard_user
 
-from fastapi import FastAPI, Depends, Request, HTTPException
+from fastapi import FastAPI, Depends, Request, HTTPException, Query
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import UploadFile, File
@@ -140,6 +140,13 @@ def serve_backup_page(request: Request):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved lasting av admin_backup.html: {str(e)}", status_code=500)
 
+@api.get("/admin_log")
+def serve_log_page(request: Request):
+    try:
+        return templates.TemplateResponse("admin_log.html", {"request": request})
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved lasting av admin_log.html: {str(e)}", status_code=500)
+
 
 ''' GET CALLS '''
 
@@ -196,14 +203,26 @@ def get_all_lockers_endpoint(db: Session = Depends(get_db)):
 
 
 @api.get("/locker_logs")
-def get_all_logs(db: Session = Depends(get_db)):
-    logs = db.query(LockerLog).all()
+def get_all_logs(
+    from_date: str = Query(None, description="Fra dato, f.eks. 2022-01-01"),
+    to_date: str = Query(None, description="Til dato, f.eks. 2024-12-31"),
+    db: Session = Depends(get_db)
+):
+    query = db.query(LockerLog)
+    # Filtrer på dato hvis spesifisert
+    if from_date:
+        query = query.filter(LockerLog.timestamp >= from_date)
+    if to_date:
+        # For å inkludere hele to_date-dagen kan du evt. plusse på ett døgn/tid
+        query = query.filter(LockerLog.timestamp <= to_date + " 23:59:59")
+    logs = query.order_by(LockerLog.timestamp.desc()).all()
     return [
         {
+            "id": log.id,
             "locker_id": log.locker_id,
             "user_id": log.user_id,
             "action": log.action,
-            "timestamp": log.timestamp
+            "timestamp": log.timestamp.isoformat() if log.timestamp else None,
         }
         for log in logs
     ]

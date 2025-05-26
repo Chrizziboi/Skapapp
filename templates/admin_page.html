@@ -16,6 +16,7 @@
                 <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
                 <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
                 <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
+                <li><button onclick="navigateTo('log')">Logg</button></li>
                 <li><button onclick="logout()">Logg ut</button></li>
             </ul>
         </nav>
@@ -44,6 +45,8 @@
                 window.location.href = "/admin_statistics";
             } else if (page === 'backup') {
                 window.location.href = "/admin_backup";
+            } else if (page === 'log') {
+                window.location.href = "/admin_log";
             }
         }
 
