@@ -63,6 +63,7 @@ def reader_helper():
         time.sleep(1)
 
     #finally:
+    #this is an empty line!!!
         #GPIO.cleanup()
 
 
