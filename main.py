@@ -52,7 +52,7 @@ async def lifespan(_):
     asyncio.create_task(release_expired_loop())
     #asyncio.create_task(rfid_background_listener())
     run_reader_helper()
-    print("[DEBUG] release_expired_loop STARTET")
+    #print("[DEBUG] release_expired_loop STARTET")
     yield
 
 # Initialiser FastAPI
@@ -74,7 +74,7 @@ logging.basicConfig(level=logging.ERROR, format="%(asctime)s - %(levelname)s - %
 # Dependency for databaseøkter
 def get_db():
     db = SessionLocal()
-    print("[DEBUG] Kjører release_expired_lockers_logic...")
+    #print("[DEBUG] Kjører release_expired_lockers_logic...")
     released = release_expired_lockers_logic(db)
     try:
         yield db
@@ -82,7 +82,7 @@ def get_db():
         db.close()
     
 #GPIO.setmode(GPIO.BCM)
-MAGNETLÅS_PIN = 17
+#MAGNETLÅS_PIN = 17
 #GPIO.setup(MAGNETLÅS_PIN, GPIO.OUT)
 #GPIO.output(MAGNETLÅS_PIN, GPIO.LOW)
 
@@ -581,7 +581,7 @@ async def release_expired_loop():
                 db.close()
 
         await asyncio.sleep(600)  # 10 minutter
-reader = SimpleMFRC522()
+#reader = SimpleMFRC522()
 '''async def poll_rfid():
     while True:
         print("Venter på RFID-kort")
@@ -629,4 +629,4 @@ if __name__ == "__main__":
         reload=True
     )
     
-GPIO.cleanup()
+#GPIO.cleanup()

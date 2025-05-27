@@ -5,7 +5,6 @@ import requests
 from mfrc522 import SimpleMFRC522
 import json
 
-
 # --- Konfigurasjon ---
 
 MAGNETLÅS_PIN = 17
@@ -16,23 +15,30 @@ with open("config.json", "r") as config_file:
 LOCKER_ROOM_ID = CONFIG.get("locker_room_id", 1)  # fallback til 1 hvis ikke satt
 
 API_URL = "http://localhost:8080/scan_rfid/"  # Endre til FastAPI-serverens adresse/IP
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(MAGNETLÅS_PIN, GPIO.OUT)
 
 def magnet_release(pin):
-    GPIO.output(pin, GPIO.HIGH)
-    time.sleep(1)
-    GPIO.output(pin, GPIO.LOW)
+    try:
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(pin, GPIO.OUT)
+        GPIO.output(pin, GPIO.HIGH)
+        time.sleep(1)
+        GPIO.output(pin, GPIO.LOW)
+        GPIO.cleanup()
 
+    except Exception as e:
+        print(f"Pin eksisterer ikke: {e}")
 
 
 def reader_helper():
+    print("[DEBUG] RFID-tråd startet", flush=True)
+
     reader = SimpleMFRC522()
     print("Hold kortet inntil leseren...")
 
     while True:
         try:
             (status, TagType) = reader.READER.MFRC522_Request(reader.READER.PICC_REQIDL)
+            print("READER status:", status)
             if status != reader.READER.MI_OK:
                 time.sleep(0.2)
                 continue
