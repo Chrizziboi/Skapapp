@@ -9,6 +9,8 @@ import json
 
 MAGNETLÅS_PIN = 17
 
+GPIO.setmode(GPIO.BCM)
+
 with open("config.json", "r") as config_file:
     CONFIG = json.load(config_file)
 
@@ -18,12 +20,12 @@ API_URL = "http://localhost:8080/scan_rfid/"  # Endre til FastAPI-serverens adre
 
 def magnet_release(pin):
     try:
-        GPIO.setmode(GPIO.BCM)
+
         GPIO.setup(pin, GPIO.OUT)
         GPIO.output(pin, GPIO.HIGH)
         time.sleep(1)
         GPIO.output(pin, GPIO.LOW)
-        GPIO.cleanup()
+
 
     except Exception as e:
         print(f"Pin eksisterer ikke: {e}")
