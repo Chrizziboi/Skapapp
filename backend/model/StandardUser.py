@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import Session
 
-import RaspberryPi
 from backend.Service.ErrorHandler import fastapi_error_handler
 from database import Base
 from backend.model.Locker import Locker
@@ -93,7 +92,7 @@ def unlock_locker(user_id: int, db: Session):
     db.commit()
     db.refresh(locker)
 
-    log_unlock_action(locker_id=locker.combi_id, user_id=user_id, db=db)
+    log_unlock_action(locker_id=locker.id, user_id=user_id, db=db)
 
     return {"message": f"Garderobeskap {locker.combi_id} er nå frigjort og tilgjengelig for andre brukere."}
 
@@ -183,3 +182,60 @@ def scan_rfid_action(rfid_tag: str, locker_room_id: int, db: Session):
         "message": f"Garderobeskap {locker.combi_id} reservert for bruker.",
         "access_granted": True
     }
+
+def assign_locker_after_manual_closure(rfid_tag: str, locker_room_id: int, db: Session):
+    """
+    Kalles etter manuell skaplukking, og RFID skannes.
+    Hvis bruker er ny → opprettes.
+    Hvis bruker allerede har skap → ingenting skjer.
+    Hvis bruker er ny og skap er ledig → reserver skap.
+    """
+    user = get_user_by_rfid_tag(rfid_tag, db)
+    if not user:
+        user = create_standard_user(rfid_tag, db)
+
+    # Sjekk om brukeren allerede har et aktivt skap
+    locker = db.query(Locker).filter(
+        Locker.user_id == user.id,
+        Locker.status == "Opptatt"
+    ).first()
+
+    if locker:
+        return {
+            "message": f"Brukeren har allerede skap {locker.combi_id}.",
+            "access_granted": True
+        }
+
+    # Finn et ledig skap i det angitte rommet
+    locker = db.query(Locker).filter(
+        Locker.status == "Ledig",
+        Locker.locker_room_id == locker_room_id
+    ).order_by(Locker.combi_id.asc()).first()
+
+    if not locker:
+        return {
+            "message": "Ingen ledige skap tilgjengelig.",
+            "access_granted": False
+        }
+
+    # Sjekk at ingen andre tok dette skapet i mellomtiden
+    refreshed = db.query(Locker).filter(Locker.id == locker.id).first()
+    if refreshed.status != "Ledig":
+        return {
+            "message": "Skapet ble reservert av noen andre akkurat nå.",
+            "access_granted": False
+        }
+
+    locker.status = "Opptatt"
+    locker.user_id = user.id
+    db.commit()
+
+    from backend.model.LockerLog import log_reserved_action
+    log_reserved_action(locker_id=locker.id, user_id=user.id, db=db)
+
+    return {
+    "message": f"Skap {locker.combi_id} reservert for bruker.",
+    "access_granted": True,
+    "locker_id": locker.id,
+    "combi_id": locker.combi_id}
+
