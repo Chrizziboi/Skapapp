@@ -6,7 +6,7 @@ from mfrc522 import SimpleMFRC522
 import json
 
 # --- Konfigurasjon ---
-
+GPIO.setwarnings(False)
 MAGNETLÅS_PIN = 17
 
 GPIO.setmode(GPIO.BCM)
