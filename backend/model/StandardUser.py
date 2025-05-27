@@ -149,7 +149,7 @@ def scan_rfid_action(rfid_tag: str, locker_room_id: int, db: Session):
 
     locker = db.query(Locker).filter(
         Locker.user_id == user.id,
-        Locker.status == "Opptatt"
+                 Locker.status == "Opptatt"
     ).first()
 
     if locker:

@@ -619,10 +619,7 @@ while True:
 '''async def main():
     await poll_rfid()
 '''
-try:
-    asyncio.run(main())
-finally:
-    GPIO.cleanup()
+
 
 if __name__ == "__main__":
     uvicorn.run(

@@ -3,23 +3,27 @@ import time
 import spidev
 import requests
 from mfrc522 import SimpleMFRC522
-from backend.model.StandardUser import get_user_by_rfid_tag
+import json
 
-from backend.model import LockerRoom
 
 # --- Konfigurasjon ---
 
 MAGNETLÅS_PIN = 17
+
+with open("config.json", "r") as config_file:
+    CONFIG = json.load(config_file)
+
+LOCKER_ROOM_ID = CONFIG.get("locker_room_id", 1)  # fallback til 1 hvis ikke satt
+
 API_URL = "http://localhost:8080/scan_rfid/"  # Endre til FastAPI-serverens adresse/IP
-LOCKER_ROOM_ID = 1  # Tilpass etter faktisk garderoberom ID
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(MAGNETLÅS_PIN, GPIO.OUT)
 
-def magnet_release():
-    GPIO.output(MAGNETLÅS_PIN, GPIO.HIGH)
+def magnet_release(pin):
+    GPIO.output(pin, GPIO.HIGH)
     time.sleep(1)
-    GPIO.output(MAGNETLÅS_PIN, GPIO.LOW)
-    time.sleep(1)
+    GPIO.output(pin, GPIO.LOW)
+
 
 
 def reader_helper():
@@ -53,7 +57,7 @@ def reader_helper():
 
             if response.status_code == 200 and data.get("access_granted"):
                 print("Tilgang gitt!", data.get("message"))
-                magnet_release()  # Kun når tilgang er bekreftet
+                magnet_release(MAGNETLÅS_PIN)  # Kun når tilgang er bekreftet
             else:
                 print("Tilgang nektet:", data.get("message"))
 
@@ -61,10 +65,3 @@ def reader_helper():
             print(f"[API-FEIL]: {e}")
 
         time.sleep(1)
-
-    #finally:
-    #this is an empty line!!!
-        #GPIO.cleanup()
-
-
-
