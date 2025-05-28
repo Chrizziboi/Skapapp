@@ -75,6 +75,10 @@ docs/_build/
 .pybuilder/
 target/
 
+# JetBrains IDE files
+.idea/workspace.xml
+
+
 # Jupyter Notebook
 .ipynb_checkpoints
 
