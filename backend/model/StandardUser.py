@@ -137,9 +137,7 @@ def lock_locker_after_use(user_id: int, db: Session):
 
 def scan_rfid_action(rfid_tag: str, locker_room_id: int, db: Session):
     """
-    Hovedfunksjon: Brukes når RFID-skanning skjer.
-    Hvis bruker har opptatt skap, åpne det (frigjøre).
-    Hvis ikke, reserver nytt skap.
+    Brukes når en kjent bruker skanner RFID for å åpne sitt eksisterende skap midlertidig.
     """
     user = get_user_by_rfid_tag(rfid_tag, db)
     if not user:
@@ -148,7 +146,7 @@ def scan_rfid_action(rfid_tag: str, locker_room_id: int, db: Session):
 
     locker = db.query(Locker).filter(
         Locker.user_id == user.id,
-                 Locker.status == "Opptatt"
+                Locker.status == "Opptatt"
     ).first()
 
     if locker:
@@ -157,31 +155,16 @@ def scan_rfid_action(rfid_tag: str, locker_room_id: int, db: Session):
         log_action(locker_id=locker.id, user_id=user.id, action="Låst opp", db=db)
         return {
             "message": f"Skap {locker.combi_id} er midlertidig åpnet for bruker.",
-            "access_granted": True
+            "access_granted": True,
+            "locker_id": locker.id,
+            "combi_id": locker.combi_id
         }
 
-    # Ellers reserver nytt skap
-    locker = db.query(Locker).filter(
-        Locker.status == "Ledig",
-        Locker.locker_room_id == locker_room_id
-    ).order_by(Locker.combi_id.asc()).first()
-
-    if not locker:
-        return {
-            "message": "Ingen ledige skap tilgjengelig.",
-            "access_granted": False
-        }
-    locker.status = "Opptatt"
-    locker.user_id = user.id
-    db.commit()
-
-
-    from backend.model.LockerLog import log_reserved_action
-    log_reserved_action(locker_id=locker.id, user_id=user.id, db=db)
     return {
-        "message": f"Garderobeskap {locker.combi_id} reservert for bruker.",
-        "access_granted": True
+        "message": "Brukeren har ikke noe opptatt skap fra før.",
+        "access_granted": False
     }
+
 
 def assign_locker_after_manual_closure(rfid_tag: str, locker_room_id: int, db: Session):
     """

@@ -28,9 +28,10 @@ for gpio_pin in LOCKER_GPIO_MAP.values():
 for close_pin in LOCKER_CLOSE_PIN_MAP.values():
     GPIO.setup(close_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-API_URL = "http://localhost:8080/assign_after_closure/"
+API_URL_REG = "http://localhost:8080/assign_after_closure/"
+API_URL_SCAN = "http://localhost:8080/scan_rfid/"
 
-def scan_for_rfid(timeout=2):
+def scan_for_rfid(timeout=5):
     reader = SimpleMFRC522()
     start_time = time.time()
     print("[RFID] Klar for skanning...")
@@ -54,22 +55,25 @@ def reader_helper():
     skap_lukket_tidligere = {locker_id: False for locker_id in LOCKER_CLOSE_PIN_MAP}
 
     while True:
+        # 1. Sjekk for skap som lukkes (bruker setter kort etter lukking)
         for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
             if GPIO.input(close_pin) == GPIO.LOW and not skap_lukket_tidligere[locker_id]:
+                # ← kjøres kun én gang per lukking
                 print(f"[INNGANG] Skap {locker_id} lukket – aktiverer RFID-skanning")
 
                 skap_lukket_tidligere[locker_id] = True  # Unngå dobbeltrigger
 
-                rfid_tag = scan_for_rfid(timeout=2)
+                rfid_tag = scan_for_rfid()
 
                 if rfid_tag:
                     try:
                         response = requests.post(
-                            API_URL,
+                            API_URL_REG,
                             params={"rfid_tag": rfid_tag, "locker_room_id": LOCKER_ROOM_ID},
                             timeout=5
                         )
                         data = response.json()
+
 
                         if response.status_code == 200 and data.get("access_granted"):
                             assigned_id = data.get("locker_id")
@@ -92,6 +96,34 @@ def reader_helper():
             # Tilbakestill når skap åpnes igjen
             elif GPIO.input(close_pin) == GPIO.HIGH:
                 skap_lukket_tidligere[locker_id] = False
+                # 2. Sjekk om noen skanner RFID for å åpne allerede tildelt skap
+                rfid_tag = scan_for_rfid()
+                if rfid_tag:
+                    try:
+                        response = requests.post(
+                            API_URL_SCAN,
+                            params={"rfid_tag": rfid_tag, "locker_room_id": LOCKER_ROOM_ID},
+                            timeout=5
+                        )
+                        data = response.json()
+
+                        if response.status_code == 200 and data.get("access_granted"):
+                            assigned_id = data.get("locker_id")
+                            gpio_pin = LOCKER_GPIO_MAP.get(assigned_id)
+
+                            if gpio_pin is not None:
+                                print(f"[GJENBRUK] Åpner skap {assigned_id} på pin {gpio_pin}")
+                                GPIO.output(gpio_pin, GPIO.HIGH)
+                                time.sleep(1)
+                                GPIO.output(gpio_pin, GPIO.LOW)
+                            else:
+                                print(f"[FEIL] Ingen GPIO-pinn definert for locker_id {assigned_id}")
+                        else:
+                            print("[RFID] Ingen tilgang – kortet er ikke koblet til noe skap")
+                    except Exception as e:
+                        print(f"[API-FEIL]: {e}")
+
+                time.sleep(0.1)
 
         time.sleep(0.1)
 
