@@ -50,7 +50,7 @@ def scan_for_rfid(timeout=5):
                 rfid_tag = "".join([str(num) for num in uid])
                 print("[RFID] Funnet:", rfid_tag)
                 return rfid_tag
-        time.sleep(0.1)
+        time.sleep(2)
 
     print("[RFID] Ingen RFID registrert")
     return None
@@ -80,7 +80,7 @@ def reader_helper():
                                 "locker_room_id": LOCKER_ROOM_ID,
                                 "locker_id": locker_id
                             },
-                            timeout=5
+                            timeout=1
                         )
 
                         data = response.json()
@@ -126,7 +126,7 @@ def reader_helper():
                             API_URL_SCAN,
 
                             params={"rfid_tag": rfid_tag, "locker_room_id": LOCKER_ROOM_ID},
-                            timeout=5
+                            timeout=1
                         )
                         data = response.json()
 
@@ -137,7 +137,8 @@ def reader_helper():
 
                             if gpio_pin is not None:
                                 print(f"[GJENBRUK] Åpner skap {assigned_id} på pin {gpio_pin}")
-                                magnet_release(magnet_release(gpio_pin))
+                                magnet_release(gpio_pin)
+
                             else:
                                 print(f"[FEIL] Ingen GPIO-pinn definert for locker_id {assigned_id}")
                         else:
