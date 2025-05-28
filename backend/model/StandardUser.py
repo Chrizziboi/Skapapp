@@ -166,7 +166,7 @@ def scan_rfid_action(rfid_tag: str, locker_room_id: int, db: Session):
     }
 
 
-def assign_locker_after_manual_closure(rfid_tag: str, locker_room_id: int, db: Session):
+def assign_locker_after_manual_closure(rfid_tag: str, locker_room_id: int, locker_id: int, db: Session):
     """
     Kalles etter manuell skaplukking, og RFID skannes.
     Hvis bruker er ny → opprettes.
@@ -192,9 +192,9 @@ def assign_locker_after_manual_closure(rfid_tag: str, locker_room_id: int, db: S
 
     # Finn et ledig skap i det angitte rommet
     locker = db.query(Locker).filter(
+        Locker.id == locker_id,
         Locker.status == "Ledig",
-        Locker.locker_room_id == locker_room_id
-    ).order_by(Locker.combi_id.asc()).first()
+        Locker.locker_room_id == locker_room_id).first()
 
     if not locker:
         return {

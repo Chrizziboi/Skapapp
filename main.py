@@ -306,13 +306,13 @@ def scan_rfid(rfid_tag: str, locker_room_id: int = 1, db: Session = Depends(get_
         return fastapi_error_handler(f"Feil ved RFID-skanning: {str(e)}", status_code=400)
 
 @api.post("/assign_after_closure/")
-def assign_after_closure(rfid_tag: str, locker_room_id: int = 1, db: Session = Depends(get_db)):
+def assign_after_closure(rfid_tag: str, locker_room_id: int, locker_id: int, db: Session = Depends(get_db)):
     """
     Kalles etter manuell lukking → RFID skannes → skap reserveres hvis mulig.
     """
     try:
         from backend.model.StandardUser import assign_locker_after_manual_closure
-        result = assign_locker_after_manual_closure(rfid_tag, locker_room_id, db)
+        result = assign_locker_after_manual_closure(rfid_tag, locker_room_id, locker_id, db)
         return result
     except Exception as e:
         return fastapi_error_handler(f"Feil ved RFID-registrering etter lukking: {str(e)}", status_code=500)

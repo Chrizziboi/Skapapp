@@ -69,9 +69,14 @@ def reader_helper():
                     try:
                         response = requests.post(
                             API_URL_REG,
-                            params={"rfid_tag": rfid_tag, "locker_room_id": LOCKER_ROOM_ID},
+                            params={
+                                "rfid_tag": rfid_tag,
+                                "locker_room_id": LOCKER_ROOM_ID,
+                                "locker_id": locker_id
+                            },
                             timeout=5
                         )
+
                         data = response.json()
 
 
@@ -84,6 +89,7 @@ def reader_helper():
                                 GPIO.output(gpio_pin, GPIO.HIGH)
                                 time.sleep(1)
                                 GPIO.output(gpio_pin, GPIO.LOW)
+
                             else:
                                 print(f"[FEIL] Ingen GPIO-pinn definert for locker_id {assigned_id}")
                         else:
@@ -102,6 +108,7 @@ def reader_helper():
                     try:
                         response = requests.post(
                             API_URL_SCAN,
+
                             params={"rfid_tag": rfid_tag, "locker_room_id": LOCKER_ROOM_ID},
                             timeout=5
                         )
@@ -110,6 +117,7 @@ def reader_helper():
                         if response.status_code == 200 and data.get("access_granted"):
                             assigned_id = data.get("locker_id")
                             gpio_pin = LOCKER_GPIO_MAP.get(assigned_id)
+                            print(f"[DEBUG] locker_id={assigned_id}, gpio_pin={gpio_pin}")
 
                             if gpio_pin is not None:
                                 print(f"[GJENBRUK] Åpner skap {assigned_id} på pin {gpio_pin}")
@@ -120,6 +128,7 @@ def reader_helper():
                                 print(f"[FEIL] Ingen GPIO-pinn definert for locker_id {assigned_id}")
                         else:
                             print("[RFID] Ingen tilgang – kortet er ikke koblet til noe skap")
+
                     except Exception as e:
                         print(f"[API-FEIL]: {e}")
 
