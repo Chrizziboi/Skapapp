@@ -4,11 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="added scanning functionality based on scan_rfid_action.">
+    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RaspberryPi.py" beforeDir="false" afterPath="$PROJECT_DIR$/RaspberryPi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/model/StandardUser.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/model/StandardUser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -358,7 +355,14 @@
       <option name="presentableId" value="LOCAL−00018" />
       <updated>1748432264144</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL−00019" summary="Y">
+      <option name="closed" value="true" />
+      <created>1748440469884</created>
+      <option name="number" value="LOCAL−00019" />
+      <option name="presentableId" value="LOCAL−00019" />
+      <updated>1748440469884</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -394,7 +398,8 @@
     <MESSAGE value="Made config.json to now store all information about lockerrooms and lockers. &#10;&#10;also cleaned up the code a bit to now use parameters more correctly so there isn't any direct pin calls in the code, now it uses just a variable for all pins and its based on what locker is served by rfid_tag → backend." />
     <MESSAGE value="added the sensor pins to the config.json so it is dynamically added to RaspberryPi.py code." />
     <MESSAGE value="added scanning functionality based on scan_rfid_action." />
-    <option name="LAST_COMMIT_MESSAGE" value="added scanning functionality based on scan_rfid_action." />
+    <MESSAGE value="Y" />
+    <option name="LAST_COMMIT_MESSAGE" value="Y" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1744033091162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

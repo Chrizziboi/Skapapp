@@ -86,14 +86,15 @@ def reader_helper():
 
                             if gpio_pin is not None:
                                 print(f"[TILGANG] RFID godkjent. Aktiverer skap {assigned_id} på pin {gpio_pin}")
-                                GPIO.output(gpio_pin, GPIO.HIGH)
-                                time.sleep(1)
-                                GPIO.output(gpio_pin, GPIO.LOW)
 
                             else:
                                 print(f"[FEIL] Ingen GPIO-pinn definert for locker_id {assigned_id}")
                         else:
                             print("[RFID] RFID ikke godkjent – skap forblir åpent")
+                            GPIO.output(gpio_pin, GPIO.HIGH)
+                            time.sleep(1)
+                            GPIO.output(gpio_pin, GPIO.LOW)
+
                     except Exception as e:
                         print(f"[API-FEIL]: {e}")
                 else:
