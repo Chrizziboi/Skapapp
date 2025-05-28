@@ -31,10 +31,10 @@ for close_pin in LOCKER_CLOSE_PIN_MAP.values():
 API_URL_REG = "http://localhost:8080/assign_after_closure/"
 API_URL_SCAN = "http://localhost:8080/scan_rfid/"
 
-def magnet_release(gpio_pin):
-    GPIO.output(gpio_pin, GPIO.HIGH)
+def magnet_release(pin):
+    GPIO.output(pin, GPIO.HIGH)
     time.sleep(1)
-    GPIO.output(gpio_pin, GPIO.LOW)
+    GPIO.output(pin, GPIO.LOW)
 
 
 def scan_for_rfid(timeout=5):
@@ -96,14 +96,24 @@ def reader_helper():
                             else:
                                 print(f"[FEIL] Ingen GPIO-pinn definert for locker_id {assigned_id}")
                         else:
-                            print("[RFID] RFID ikke godkjent – skap forblir åpent")
-                            magnet_release(gpio_pin)
+                            print("[RFID] RFID ikke godkjent – frigjør skap igjen")
+                            gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
+                            if gpio_pin is not None:
+                                magnet_release(gpio_pin)
+                            else:
+                                print(f"[FEIL] Ingen GPIO definert for locker_id {locker_id}")
+
 
                     except Exception as e:
                         print(f"[API-FEIL]: {e}")
                 else:
-                    print("[TIDSKUTT] Ingen RFID registrert – ingen låsing")
-                    magnet_release(gpio_pin)
+                    print("[TIDSKUTT] Ingen RFID registrert – frigjør skap igjen")
+                    gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
+                    if gpio_pin is not None:
+                        magnet_release(gpio_pin)
+                    else:
+                        print(f"[FEIL] Ingen GPIO definert for locker_id {locker_id}")
+
 
             # Tilbakestill når skap åpnes igjen
             elif GPIO.input(close_pin) == GPIO.HIGH:
