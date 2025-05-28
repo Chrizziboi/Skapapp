@@ -31,6 +31,11 @@ for close_pin in LOCKER_CLOSE_PIN_MAP.values():
 API_URL_REG = "http://localhost:8080/assign_after_closure/"
 API_URL_SCAN = "http://localhost:8080/scan_rfid/"
 
+def magnet_release():
+    GPIO.output(gpio_pin, GPIO.HIGH)
+    time.sleep(1)
+    GPIO.output(gpio_pin, GPIO.LOW)
+
 def scan_for_rfid(timeout=5):
     reader = SimpleMFRC522()
     start_time = time.time()
@@ -91,14 +96,13 @@ def reader_helper():
                                 print(f"[FEIL] Ingen GPIO-pinn definert for locker_id {assigned_id}")
                         else:
                             print("[RFID] RFID ikke godkjent – skap forblir åpent")
-                            GPIO.output(gpio_pin, GPIO.HIGH)
-                            time.sleep(1)
-                            GPIO.output(gpio_pin, GPIO.LOW)
+                            magnet_release()
 
                     except Exception as e:
                         print(f"[API-FEIL]: {e}")
                 else:
                     print("[TIDSKUTT] Ingen RFID registrert – ingen låsing")
+                    magnet_release()
 
             # Tilbakestill når skap åpnes igjen
             elif GPIO.input(close_pin) == GPIO.HIGH:
@@ -122,9 +126,7 @@ def reader_helper():
 
                             if gpio_pin is not None:
                                 print(f"[GJENBRUK] Åpner skap {assigned_id} på pin {gpio_pin}")
-                                GPIO.output(gpio_pin, GPIO.HIGH)
-                                time.sleep(1)
-                                GPIO.output(gpio_pin, GPIO.LOW)
+                                magnet_release()
                             else:
                                 print(f"[FEIL] Ingen GPIO-pinn definert for locker_id {assigned_id}")
                         else:
