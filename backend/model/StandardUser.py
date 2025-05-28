@@ -189,6 +189,7 @@ def assign_locker_after_manual_closure(rfid_tag: str, locker_room_id: int, db: S
     Hvis bruker er ny → opprettes.
     Hvis bruker allerede har skap → ingenting skjer.
     Hvis bruker er ny og skap er ledig → reserver skap.
+
     """
     user = get_user_by_rfid_tag(rfid_tag, db)
     if not user:
