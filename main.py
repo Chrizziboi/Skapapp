@@ -86,6 +86,13 @@ def get_db():
 #GPIO.setup(MAGNETLÅS_PIN, GPIO.OUT)
 #GPIO.output(MAGNETLÅS_PIN, GPIO.LOW)
 
+from pydantic import BaseModel
+
+class RFIDScanRequest(BaseModel):
+    rfid_tag: str
+    locker_room_id: int
+
+
 ''' FRONTPAGE '''
 # Pydantic-modell for login
 class LoginRequest(BaseModel):
@@ -294,16 +301,17 @@ def create_admin_user(request: CreateUserRequest, db: Session = Depends(get_db))
 
 
 @api.post("/scan_rfid/")
-def scan_rfid(rfid_tag: str, locker_room_id: int, db: Session = Depends(get_db)):
+def scan_rfid(request: RFIDScanRequest, db: Session = Depends(get_db)):
     """
     Skann et RFID-kort. Reserver skap hvis mulig. Returner tilgangsbeskjed.
     """
     try:
         from backend.model.StandardUser import scan_rfid_action
-        result = scan_rfid_action(rfid_tag, locker_room_id, db)
+        result = scan_rfid_action(request.rfid_tag, request.locker_room_id, db)
         return result
     except Exception as e:
         return fastapi_error_handler(f"Feil ved RFID-skanning: {str(e)}", status_code=400)
+
 
 @api.post("/assign_after_closure/")
 def assign_after_closure(rfid_tag: str, locker_room_id: int, locker_id: int, db: Session = Depends(get_db)):

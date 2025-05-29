@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y5.9.04.0498??">
-      <change beforePath="$PROJECT_DIR$/RaspberryPi.py" beforeDir="false" afterPath="$PROJECT_DIR$/RaspberryPi.py" afterDir="false" />
-    </list>
+    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y5.9.04.0498645645645645645645645??" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -467,7 +465,14 @@
       <option name="presentableId" value="LOCAL−00034" />
       <updated>1748529704953</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL−00035" summary="Y5.9.04.0498645645645645645645645??">
+      <option name="closed" value="true" />
+      <created>1748530197467</created>
+      <option name="number" value="LOCAL−00035" />
+      <option name="presentableId" value="LOCAL−00035" />
+      <updated>1748530197467</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -485,7 +490,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="EMPTY TEST CHANGE!" />
     <MESSAGE value="tried to fix the [API-FEIL] by changing magnet_release to now take in a parameter pin." />
     <MESSAGE value="fixed the API error." />
     <MESSAGE value="fixed the mode error." />
@@ -510,7 +514,8 @@
     <MESSAGE value="Y5.9?" />
     <MESSAGE value="Y5.9.02.0498??" />
     <MESSAGE value="Y5.9.04.0498??" />
-    <option name="LAST_COMMIT_MESSAGE" value="Y5.9.04.0498??" />
+    <MESSAGE value="Y5.9.04.0498645645645645645645645??" />
+    <option name="LAST_COMMIT_MESSAGE" value="Y5.9.04.0498645645645645645645645??" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1744033091162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
