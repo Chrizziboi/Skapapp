@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y5.02?">
+    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y5.03?">
       <change beforePath="$PROJECT_DIR$/RaspberryPi.py" beforeDir="false" afterPath="$PROJECT_DIR$/RaspberryPi.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -411,7 +411,14 @@
       <option name="presentableId" value="LOCAL−00026" />
       <updated>1748515499103</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL−00027" summary="Y5.03?">
+      <option name="closed" value="true" />
+      <created>1748516059486</created>
+      <option name="number" value="LOCAL−00027" />
+      <option name="presentableId" value="LOCAL−00027" />
+      <updated>1748516059486</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -429,7 +436,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="refactored and sorted the code so that all get-functions are in statistic.py, gave all api-calls with a backend return, and made all backend returns into json format to correctly display what has been done so the user can see the messages.&#10;&#10;fixed some error_handler stuff." />
     <MESSAGE value="changed all exceptions to go through ErrorHandler.py first.&#10;&#10;corrected some error texts to fit norwegian." />
     <MESSAGE value="Changed the frontend text to norwegian" />
     <MESSAGE value="Changed the frontend text to norwegian#2" />
@@ -454,7 +460,8 @@
     <MESSAGE value="Y5" />
     <MESSAGE value="Y5.01?" />
     <MESSAGE value="Y5.02?" />
-    <option name="LAST_COMMIT_MESSAGE" value="Y5.02?" />
+    <MESSAGE value="Y5.03?" />
+    <option name="LAST_COMMIT_MESSAGE" value="Y5.03?" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1744033091162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
