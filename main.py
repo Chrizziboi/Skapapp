@@ -294,7 +294,7 @@ def create_admin_user(request: CreateUserRequest, db: Session = Depends(get_db))
 
 
 @api.post("/scan_rfid/")
-def scan_rfid(rfid_tag: str, locker_room_id: int = 1, db: Session = Depends(get_db)):
+def scan_rfid(rfid_tag: str, locker_room_id: int, db: Session = Depends(get_db)):
     """
     Skann et RFID-kort. Reserver skap hvis mulig. Returner tilgangsbeskjed.
     """

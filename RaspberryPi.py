@@ -52,7 +52,7 @@ def scan_for_rfid(timeout=5, init_delay=0):
                 rfid_tag = "".join([str(num) for num in uid])
                 print("[RFID] Funnet:", rfid_tag)
                 return rfid_tag
-        time.sleep(0.1)
+        time.sleep(1)
 
     print("[RFID] Ingen RFID registrert")
     return None
@@ -100,6 +100,15 @@ def Register_locker(rfid_tag, locker_id):
     """
     Forsøker å koble RFID til skapet etter manuell lukking.
     """
+    global siste_rfid, siste_skann_tid
+    nå = time.time()
+    if rfid_tag == siste_rfid and nå - siste_skann_tid < 2:
+        print(f"[RFID] Ignorerer duplikatskann av {rfid_tag} under registrering")
+        return
+
+    siste_rfid = rfid_tag
+    siste_skann_tid = nå
+
     try:
         response = requests.post(
             API_URL_REG,

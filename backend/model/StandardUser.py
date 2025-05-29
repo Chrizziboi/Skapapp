@@ -138,19 +138,21 @@ def lock_locker_after_use(user_id: int, db: Session):
 def scan_rfid_action(rfid_tag: str, locker_room_id: int, db: Session):
     """
     Brukes når en kjent bruker skanner RFID for å åpne sitt eksisterende skap midlertidig.
+    Sjekker også at skapet er i riktig garderoberom.
     """
     user = get_user_by_rfid_tag(rfid_tag, db)
     if not user:
         # Registrer bruker automatisk hvis ukjent kort
         user = create_standard_user(rfid_tag, db)
 
+    # Hent skap som tilhører brukeren og er i bruk i spesifikt garderoberom
     locker = db.query(Locker).filter(
         Locker.user_id == user.id,
-                Locker.status == "Opptatt"
+        Locker.status == "Opptatt",
+        Locker.locker_room_id == locker_room_id
     ).first()
 
     if locker:
-        # Brukeren har allerede et skap → åpne (midlertidig)
         from backend.model.LockerLog import log_action
         log_action(locker_id=locker.id, user_id=user.id, action="Låst opp", db=db)
         return {
@@ -161,9 +163,10 @@ def scan_rfid_action(rfid_tag: str, locker_room_id: int, db: Session):
         }
 
     return {
-        "message": "Brukeren har ikke noe opptatt skap fra før.",
+        "message": "Brukeren har ikke noe opptatt skap i dette garderoberommet.",
         "access_granted": False
     }
+
 
 
 def assign_locker_after_manual_closure(rfid_tag: str, locker_room_id: int, locker_id: int, db: Session):
