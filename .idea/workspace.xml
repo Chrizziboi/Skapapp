@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y5.01.22.65?">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RaspberryPi.py" beforeDir="false" afterPath="$PROJECT_DIR$/RaspberryPi.py" afterDir="false" />
-    </list>
+    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y5.6?" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -440,7 +437,14 @@
       <option name="presentableId" value="LOCAL−00030" />
       <updated>1748518294807</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL−00031" summary="Y5.6?">
+      <option name="closed" value="true" />
+      <created>1748519060655</created>
+      <option name="number" value="LOCAL−00031" />
+      <option name="presentableId" value="LOCAL−00031" />
+      <updated>1748519060655</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -458,7 +462,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="test_AdminUser.py fixed" />
     <MESSAGE value="fixed all broken and outdated tests so they now test on the current implementation, changed all test_.py files so they have more correct names and made a share-file for all backend tests, but kept some to not make test_backend.py to messy after more tests have been added." />
     <MESSAGE value="changed the async reader_helper function to a thread function." />
     <MESSAGE value="added rfid converter from list to str.&#10;&#10;made additional changes to raspberrypi" />
@@ -483,7 +486,8 @@
     <MESSAGE value="Y5.01.2?" />
     <MESSAGE value="Y5.01.22?" />
     <MESSAGE value="Y5.01.22.65?" />
-    <option name="LAST_COMMIT_MESSAGE" value="Y5.01.22.65?" />
+    <MESSAGE value="Y5.6?" />
+    <option name="LAST_COMMIT_MESSAGE" value="Y5.6?" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1744033091162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
