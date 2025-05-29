@@ -100,15 +100,6 @@ def Register_locker(rfid_tag, locker_id):
     """
     Forsøker å koble RFID til skapet etter manuell lukking.
     """
-    global siste_rfid, siste_skann_tid
-    nå = time.time()
-    if rfid_tag == siste_rfid and nå - siste_skann_tid < 2:
-        print(f"[RFID] Ignorerer duplikatskann av {rfid_tag} under registrering")
-        return
-
-    siste_rfid = rfid_tag
-    siste_skann_tid = nå
-
     try:
         response = requests.post(
             API_URL_REG,
@@ -183,8 +174,8 @@ def reader_helper():
         # 2. Kontinuerlig RFID-lytting for åpning av tidligere registrerte skap
         rfid_tag = scan_for_rfid(timeout=1)  # rask responsloop
 
-        if not rfid_tag:
-            continue
+        #if not rfid_tag:
+        #    continue
 
         nå = time.time()
         if rfid_tag == siste_rfid and nå - siste_skann_tid < 2:
