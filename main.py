@@ -19,8 +19,6 @@ from backend.model.Locker import add_locker, add_note_to_locker, add_multiple_lo
 from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
 from backend.model.AdminUser import authenticate_user
-from backend.model.StandardUser import get_user_by_rfid_tag, create_standard_user
-from RaspberryPi import reader_helper
 
 from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.templating import Jinja2Templates
@@ -31,6 +29,8 @@ from pydantic import BaseModel
 
 from database import SessionLocal, setup_database
 from database import backup_database_to_json, restore_database_from_json
+
+from RaspberryPi import reader_helper
 
 
 # Initialiser SQLite3
