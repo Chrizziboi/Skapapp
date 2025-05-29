@@ -152,15 +152,52 @@ def Reuse_locker(rfid_tag):
 
 def reader_helper():
     """
-    Hovedløkke som overvåker alle skap. Aktiverer RFID-skanning kun ved fysisk lukking (GPIO LOW).
+    Hovedløkke som håndterer:
+    1. Registrering av skap ved ny lukking (triggeres av fysisk lukking)
+    2. Gjenbruk av skap basert på allerede registrerte RFID-kort
     """
-    print("[SYSTEM] RFID-løkke startet. Venter på manuell lukking.")
+    print("[SYSTEM] RFID-løkke startet. Systemet overvåker skap og lytter etter kort.")
+
+    global siste_rfid, siste_skann_tid
+
     while True:
+        # 1. Sjekk om noen skap er manuelt lukket (bare én gang per lukking)
         for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
             if GPIO.input(close_pin) == GPIO.LOW and not skap_lukket_tidligere[locker_id]:
-                print(f"[INNGANG] Skap {locker_id} er lukket – aktiverer RFID")
+                print(f"[INNGANG] Skap {locker_id} lukket – starter registreringsprosess")
                 skap_lukket_tidligere[locker_id] = True
-                handle_rfid_scan(locker_id)
+                handle_rfid_scan(locker_id)  # → Register eller Reuse avh. av status
 
-            if GPIO.input(close_pin) == GPIO.HIGH:
+            elif GPIO.input(close_pin) == GPIO.HIGH:
                 skap_lukket_tidligere[locker_id] = False
+
+        # 2. Kontinuerlig RFID-lytting for åpning av tidligere registrerte skap
+        rfid_tag = scan_for_rfid(timeout=1)  # rask responsloop
+
+        if not rfid_tag:
+            continue
+
+        nå = time.time()
+        if rfid_tag == siste_rfid and nå - siste_skann_tid < 2:
+            print(f"[RFID] Ignorerer duplikatskann av {rfid_tag}")
+            continue
+
+        siste_rfid = rfid_tag
+        siste_skann_tid = nå
+
+        try:
+            response = requests.post(
+                API_URL_SCAN,
+                params={"rfid_tag": rfid_tag, "locker_room_id": LOCKER_ROOM_ID},
+                timeout=0.5
+            )
+            data = response.json()
+
+            if response.status_code == 200 and data.get("access_granted"):
+                Reuse_locker(rfid_tag)
+            else:
+                print("[RFID] Kortet har ikke tilgang – avventer fysisk lukking for registrering")
+
+        except Exception as e:
+            print(f"[API-FEIL]: {e}")
+
