@@ -9,13 +9,15 @@ from backend.model.LockerLog import LockerLog
 from backend.model.LockerLog import log_unlock_action, release_expired_lockers_logic
 from backend.model import Locker
 from backend.model.Statistic import *
-from backend.model.AdminUser import create_admin
+from backend.model.AdminUser import *
 from backend.model.StandardUser import reserve_locker
 from backend.model.Locker import add_locker, add_note_to_locker, add_multiple_lockers
 from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
 from backend.model.AdminUser import authenticate_user
 from backend.model.StandardUser import get_user_by_rfid_tag, create_standard_user
+from backend.auth.auth_handler import create_access_token, decode_access_token, verify_password
+from backend.auth.auth_schema import Token, UserLogin
 
 from fastapi import FastAPI, Depends, Request, HTTPException, Query
 from fastapi.templating import Jinja2Templates
@@ -23,6 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
 from fastapi import Body
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from pydantic import BaseModel
 
 from database import SessionLocal, setup_database
@@ -53,6 +56,8 @@ templates = Jinja2Templates(directory="templates")
 
 # Oppsett for logging av feil
 logging.basicConfig(level=logging.ERROR, format="%(asctime)s - %(levelname)s - %(message)s")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 
 # Dependency for databaseøkter
@@ -102,50 +107,34 @@ def serve_standard_user_page_endpoint(request: Request):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av brukersiden. {str(e)}", status_code=500)
 
-
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    payload = decode_access_token(token)
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    return payload
+# main.py - ENDRING I ADMIN-PAGE RUTEN
 @api.get("/admin_page")
-def serve_admin_page_endpoint(request: Request):
-    """
-    Serverer admin_page.html for admin-brukere.
-    """
-    try:
-        return templates.TemplateResponse("admin_page.html", {"request": request})
-    except Exception as e:
-        return fastapi_error_handler(f"Feil ved henting av adminsiden. {str(e)}", status_code=500)
+async def serve_admin_page_endpoint(request: Request):
+    return templates.TemplateResponse("admin_page.html", {"request": request})
+
 
 
 @api.get("/admin_wardrobe")
 def serve_admin_wardrobe_management_endpoint(request: Request):
-    try:
-        return templates.TemplateResponse("admin_wardrobe_management.html", {"request": request})
-    except Exception as e:
-        return fastapi_error_handler(f"Feil ved henting av siden. {str(e)}", status_code=500)
-
+    return templates.TemplateResponse("admin_wardrobe_management.html", {"request": request})
 
 @api.get("/admin_statistics")
 def serve_statistics_page(request: Request):
-    try:
-        return templates.TemplateResponse("admin_statistics.html", {"request": request})
-    except Exception as e:
-        return fastapi_error_handler(f"Feil ved henting av statistikk-siden. {str(e)}", status_code=500)
-
-
-@api.get("/admin_backup")
-def serve_backup_page(request: Request):
-    """
-    Serverer admin_backup.html for backup og restore.
-    """
-    try:
-        return templates.TemplateResponse("admin_backup.html", {"request": request})
-    except Exception as e:
-        return fastapi_error_handler(f"Feil ved lasting av admin_backup.html: {str(e)}", status_code=500)
+    return templates.TemplateResponse("admin_statistics.html", {"request": request})
 
 @api.get("/admin_log")
 def serve_log_page(request: Request):
-    try:
-        return templates.TemplateResponse("admin_log.html", {"request": request})
-    except Exception as e:
-        return fastapi_error_handler(f"Feil ved lasting av admin_log.html: {str(e)}", status_code=500)
+    return templates.TemplateResponse("admin_log.html", {"request": request})
+
+@api.get("/admin_backup")
+def serve_backup_page(request: Request):
+    return templates.TemplateResponse("admin_backup.html", {"request": request})
+
 
 
 ''' GET CALLS '''
@@ -226,24 +215,28 @@ def get_all_logs(
         }
         for log in logs
     ]
-  
+@api.get("/api/admin/data")
+async def get_admin_data(current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+    return {"data": "secure admin data"}
+
+
 
 ''' POST CALLS '''
 
 
-@api.post("/login")
-def login(request: LoginRequest, db: Session = Depends(get_db)):
-    """
-    Logger inn en bruker basert på pin/passord.
-    """
-    user = authenticate_user(request.password, db)
+@api.post("/login", response_model=Token)
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: SessionLocal = Depends(get_db)):
+    user = authenticate_user(form_data.password, db)  # Merk kun bruk av password
     if not user:
-        raise HTTPException(status_code=401, detail="Ugyldig kode")
+        raise HTTPException(status_code=401, detail="Incorrect password")
 
-    return {
-        "message": "Innlogging vellykket",
-        "role": user.role
-    }
+    token_data = {"sub": str(user.id), "role": user.role}
+    access_token = create_access_token(token_data)
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
 
 @api.post("/locker_rooms/{name}")
 def create_room_endpoint(name: str, db: Session = Depends(get_db)):

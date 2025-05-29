@@ -85,9 +85,9 @@ def test_statistic_functions(db):
 
     most_used = Statistic.most_used_rooms(db)
     print(f"✅ most_used_rooms(): {most_used}")
-    assert most_used[0]["usage_count"] == 3
+    assert most_used[0]["occupied_count"] == 3
 
     most_active = Statistic.most_active_users(db)
     print(f"✅ most_active_users(): {most_active}")
-    assert most_active[0]["rfid_tag"] == "AAA111"
-    assert most_active[0]["usage_count"] == 2
+    assert most_active[0]["username"] == "AAA111"
+    assert most_active[0]["locker_count"] == 2

@@ -35,83 +35,116 @@
         </div>
     </div>
 
-    <script>
-        function navigateTo(page) {
-            if (page === 'overview') {
-                window.location.href = "/admin_page";
-            } else if (page === 'wardrobe_admin') {
-                window.location.href = "/admin_wardrobe";
-            } else if (page === 'statistics') {
-                window.location.href = "/admin_statistics";
-            } else if (page === 'backup') {
-                window.location.href = "/admin_backup";
-            } else if (page === 'log') {
-                window.location.href = "/admin_log";
-            }
-        }
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const token = localStorage.getItem('token');
 
-
-        function logout() {
-
+        if (!token) {
             window.location.href = "/";
+            return;
         }
-</script>
-<script>
-    const totalLockers = 41;
-    const occupiedLockers = totalLockers - (12 + 23 + 2 + 4); // from current room data
-    const percent = Math.round((occupiedLockers / totalLockers) * 100);
-    document.getElementById('occupancy-text').textContent = percent + '%';
-</script>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-      const roomList = document.getElementById("admin-room-list");
 
-      fetch("http://localhost:8080/locker_rooms/")
-          .then(response => response.json())
-          .then(async rooms => {
-              roomList.innerHTML = '';
+        const payload = JSON.parse(atob(token.split('.')[1]));
 
-              const roomData = await Promise.all(rooms.map(async room => {
-                  try {
-                      const res = await fetch(`http://localhost:8080/locker_rooms/${room.room_id}/available_lockers`);
-                      const data = await res.json();
-                      return {
-                          name: room.name,
-                          available: data.available_lockers,
-                          total: room.number_of_lockers
-                      };
-                  } catch (err) {
-                      console.error("Feil ved henting:", err);
-                      return null;
-                  }
-              }));
+        if (payload.role !== "admin") {
+            localStorage.removeItem('token');
+            window.location.href = "/";
+            return;
+        }
 
-              roomData
-                  .filter(room => room !== null)
-                  .sort((a, b) => a.name.localeCompare(b.name))
-                  .forEach((room, i) => {
-                      const wrapper = document.createElement('div');
-                      wrapper.classList.add('room-wrapper');
+        fetch("/api/admin/data", {
+            headers: {"Authorization": `Bearer ${token}`}
+        })
+                .then(res => {
+                    if (!res.ok) throw new Error("Unauthorized");
+                    return res.json();
+                })
+                .then(data => {
+                    console.log("Data:", data);
+                    // Her viser du admin-data til siden
+                })
+                .catch(err => {
+                    localStorage.removeItem('token');
+                    window.location.href = "/";
+                });
+    });
 
-                      const card = document.createElement('div');
-                      const colors = ['color-a', 'color-b', 'color-c', 'color-d'];
-                      const colorClass = colors[i % colors.length];
-                      card.classList.add('room-card', colorClass);
-                      card.innerHTML = `
-                          ${room.name}<br>
-                          <span>${room.available} ledige skap</span>
-                          <div class="room-progress">
-                              <div class="room-progress-fill" style="width: ${room.total ? Math.min(Math.round((room.available / room.total) * 100), 100) : 0}%"></div>
-                          </div>
-                      `;
 
-                      wrapper.appendChild(card);
-                      roomList.appendChild(wrapper);
-                  });
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = "/";
+    }
 
-          })
-          .catch(error => console.error("Feil ved henting av rom:", error));
-  });
+    function navigateTo(page) {
+        if (page === 'overview') {
+            window.location.href = "/admin_page";
+        } else if (page === 'wardrobe_admin') {
+            window.location.href = "/admin_wardrobe";
+        } else if (page === 'statistics') {
+            window.location.href = "/admin_statistics";
+        } else if (page === 'backup') {
+            window.location.href = "/admin_backup";
+        } else if (page === 'log') {
+            window.location.href = "/admin_log";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const roomList = document.getElementById("admin-room-list");
+
+        fetch("http://localhost:8080/locker_rooms/")
+            .then(response => response.json())
+            .then(async rooms => {
+                roomList.innerHTML = '';
+
+                const roomData = await Promise.all(rooms.map(async room => {
+                    try {
+                        const res = await fetch(`http://localhost:8080/locker_rooms/${room.room_id}/available_lockers`);
+                        const data = await res.json();
+                        return {
+                            name: room.name,
+                            available: data.available_lockers,
+                            total: room.number_of_lockers
+                        };
+                    } catch (err) {
+                        console.error("Feil ved henting:", err);
+                        return null;
+                    }
+                }));
+
+                roomData
+                    .filter(room => room !== null)
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .forEach((room, i) => {
+                        const wrapper = document.createElement('div');
+                        wrapper.classList.add('room-wrapper');
+
+                        const card = document.createElement('div');
+                        const colors = ['color-a', 'color-b', 'color-c', 'color-d'];
+                        const colorClass = colors[i % colors.length];
+
+                        // Calculate percentage width safely
+                        let percentWidth = 0;
+                        if (room.total && room.total > 0 && room.available !== undefined) {
+                            percentWidth = Math.min(Math.round((room.available / room.total) * 100), 100);
+                        }
+
+                        card.classList.add('room-card', colorClass);
+                        card.innerHTML = `
+                            ${room.name}<br>
+                            <span>${room.available} ledige skap</span>
+                            <div class="room-progress">
+                                <div class="room-progress-fill" style="width: ${percentWidth}%"></div>
+                            </div>
+                        `;
+
+                        wrapper.appendChild(card);
+                        roomList.appendChild(wrapper);
+                    });
+
+            })
+            .catch(error => console.error("Feil ved henting av rom:", error));
+    });
 </script>
 </body>
 </html>

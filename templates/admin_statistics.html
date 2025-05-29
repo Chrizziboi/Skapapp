@@ -99,7 +99,7 @@
             const table = document.querySelector('.stat-card--blue table');
             let csv = [];
             for (let row of table.rows) {
-                let cols = Array.from(row.cells).map(cell => `"${cell.innerText.replace(/"/g, '""')}"`);
+                let cols = Array.from(row.cells).map(cell => cell.innerText);
                 csv.push(cols.join(','));
             }
             const csvContent = csv.join('\n');
@@ -110,23 +110,47 @@
             link.click();
         }
 
+        // Function to fetch text values for statistics
+        const fetchText = (url, elementId, dataKey) => {
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data[dataKey] !== undefined) {
+                        document.getElementById(elementId).innerText = data[dataKey];
+                    } else {
+                        document.getElementById(elementId).innerText = "–";
+                    }
+                })
+                .catch(err => {
+                    document.getElementById(elementId).innerText = "Feil";
+                    console.error(err);
+                });
+        };
+
         document.addEventListener("DOMContentLoaded", () => {
-            const fetchText = (url, targetId, key) => {
-                fetch(url)
-                    .then(res => res.json())
-                    .then(data => {
-                        const value = data[key];
-                        if (value === undefined || value === null || value === "") {
-                            document.getElementById(targetId).innerText = "Ingen data tilgjengelig";
-                        } else {
-                            document.getElementById(targetId).innerText = value;
-                        }
-                    })
-                    .catch(err => {
-                        document.getElementById(targetId).innerText = "Feil";
-                        console.error(err);
-                    });
-            };
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = "/";
+                return;
+            }
+
+            fetch("/api/admin/data", {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Unauthorized");
+                return res.json();
+            })
+            .then(data => {
+                console.log("Bruker er autorisert.");
+                // her kan du laste data fra backend hvis ønskelig
+            })
+            .catch(err => {
+                console.error("Uautorisert tilgang:", err);
+                localStorage.removeItem('token');
+                window.location.href = "/";
+            });
 
             const fetchList = (url, targetId, formatFn) => {
                 fetch(url)
@@ -164,35 +188,34 @@
                     tbody.innerHTML = "";
                     if (!data || data.length === 0) {
                         const tr = document.createElement("tr");
-                        tr.innerHTML = `<td colspan="4">Ingen data tilgjengelig.</td>`;
+                        tr.innerHTML = "<td colspan='4'>Ingen data tilgjengelig.</td>";
                         tbody.appendChild(tr);
                         return;
                     }
                     data.forEach(row => {
                         const tr = document.createElement("tr");
-                        tr.innerHTML = `
-                            <td>${row.room_name || "–"}</td>
-                            <td>${row.locker_count !== undefined && row.locker_count !== null ? row.locker_count : "–"}</td>
-                            <td>${row.available !== undefined && row.available !== null ? row.available : "–"}</td>
-                            <td>${row.occupied !== undefined && row.occupied !== null ? row.occupied : "–"}</td>
-                        `;
+                        tr.innerHTML = 
+                            "<td>" + (row.room_name || "–") + "</td>" +
+                            "<td>" + (row.locker_count !== undefined && row.locker_count !== null ? row.locker_count : "–") + "</td>" +
+                            "<td>" + (row.available !== undefined && row.available !== null ? row.available : "–") + "</td>" +
+                            "<td>" + (row.occupied !== undefined && row.occupied !== null ? row.occupied : "–") + "</td>";
                         tbody.appendChild(tr);
                     });
                 });
 
             // 🏆 Mest brukte rom
             fetchList("/statistic/most_used_rooms", "most-used-rooms", room =>
-                `${room.room_name || "–"} – ${room.occupied_count !== undefined && room.occupied_count !== null ? room.occupied_count : "–"} opptatte skap`
+                (room.room_name || "–") + " – " + (room.occupied_count !== undefined && room.occupied_count !== null ? room.occupied_count : "–") + " opptatte skap"
             );
 
             // 🔥 Mest aktive brukere
             fetchList("/statistic/most_active_users", "most-active-users", user =>
-                `${user.username || "–"} – ${user.locker_count !== undefined && user.locker_count !== null ? user.locker_count : "–"} reserveringer`
+                (user.username || "–") + " – " + (user.locker_count !== undefined && user.locker_count !== null ? user.locker_count : "–") + " reserveringer"
             );
 
             // 🔓 Skap åpnet flest ganger
             fetchList("/statistic/most_opened_lockers", "most-opened-lockers", entry =>
-                `Skap ${entry.combi_id || "–"} – åpnet ${entry.times_opened !== undefined && entry.times_opened !== null ? entry.times_opened : "–"} ganger`
+                "Skap " + (entry.combi_id || "–") + " – åpnet " + (entry.times_opened !== undefined && entry.times_opened !== null ? entry.times_opened : "–") + " ganger"
             );
 
             // 📋 Siste skapåpninger (tabell)
@@ -203,7 +226,7 @@
                     tbody.innerHTML = "";
                     if (!data || data.length === 0) {
                         const tr = document.createElement("tr");
-                        tr.innerHTML = `<td colspan="4">Ingen logg funnet.</td>`;
+                        tr.innerHTML = "<td colspan='4'>Ingen logg funnet.</td>";
                         tbody.appendChild(tr);
                         return;
                     }
@@ -236,7 +259,7 @@
         });
 
         document.getElementById("stats-time-filter").addEventListener("change", function() {
-            // Du kan implementere filtrering basert på valgt tidsrom her
+            // Filtrering kan implementeres her om ønskelig
         });
 
         function navigateTo(page) {
@@ -254,6 +277,7 @@
         }
 
         function logout() {
+            localStorage.removeItem('token');
             window.location.href = "/";
         }
     </script>

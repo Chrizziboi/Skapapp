@@ -364,18 +364,30 @@
             infoModal.classList.remove("hidden");
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            fetchRooms();
-            fetchLockersInRoom();
-            document.getElementById("add-lockers-btn").addEventListener("click", createMultipleLockers);
-            // Oppdater selectedRoomId når brukeren velger et rom fra dropdown
-            document.getElementById("room-dropdown").addEventListener("change", function () {
-                selectedRoomId = this.value;
-            });
-            // Koble modal-close etter at DOM er ferdig lastet
-            document.getElementById("modal-close").onclick = function () {
-                document.getElementById("room-modal").classList.add("hidden");
-            };
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = "/";
+                return;
+            }
+
+            fetch("/api/admin/data", {
+                headers: {"Authorization": `Bearer ${token}`}
+            })
+                    .then(res => {
+                        if (!res.ok) throw new Error("Unauthorized");
+                        return res.json();
+                    })
+                    .then(data => {
+                        console.log("Bruker er autorisert.");
+                        // her kan du laste data fra backend hvis ønskelig
+                    })
+                    .catch(err => {
+                        console.error("Uautorisert tilgang:", err);
+                        localStorage.removeItem('token');
+                        window.location.href = "/";
+                    });
         });
 
         // Sletter et garderoberom med modal-bekreftelse
@@ -607,7 +619,7 @@
 
 
         function logout() {
-
+            localStorage.removeItem('token');
             window.location.href = "/";
         }
     // Success modal functions
