@@ -65,96 +65,67 @@ def reader_helper():
     print("[SYSTEM] RFID-løkke startet. Skapene er passivt åpne.")
 
     skap_lukket_tidligere = {locker_id: False for locker_id in LOCKER_CLOSE_PIN_MAP}
+    rfid_mode = None  # enten 'reg' eller 'reuse'
+    aktiv_locker_id = None
+    rfid_start_tid = 0
 
     while True:
-        # 1. Sjekk for skap som lukkes (bruker setter kort etter lukking)
         for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
-            if GPIO.input(close_pin) == GPIO.LOW and not skap_lukket_tidligere[locker_id]:
-                # ← kjøres kun én gang per lukking
+            current_state = GPIO.input(close_pin)
+
+            if current_state == GPIO.LOW and not skap_lukket_tidligere[locker_id]:
                 print(f"[INNGANG] Skap {locker_id} lukket – aktiverer RFID-skanning")
+                skap_lukket_tidligere[locker_id] = True
+                rfid_mode = "reg"
+                aktiv_locker_id = locker_id
+                rfid_start_tid = time.time()
 
-                skap_lukket_tidligere[locker_id] = True  # Unngå dobbeltrigger
+            elif current_state == GPIO.HIGH:
+                skap_lukket_tidligere[locker_id] = False
+                if rfid_mode is None:
+                    rfid_mode = "reuse"
+                    rfid_start_tid = time.time()
 
-                rfid_tag = scan_for_rfid()
-
+        # Utfør RFID-skanning dersom en modus er aktiv
+        if rfid_mode is not None:
+            delay = 2 if rfid_mode == "reuse" else 0
+            elapsed = time.time() - rfid_start_tid
+            if elapsed >= delay:
+                rfid_tag = scan_for_rfid(timeout=5)
                 if rfid_tag:
                     try:
-                        response = requests.post(
-                            API_URL_REG,
-                            params={
+                        if rfid_mode == "reg":
+                            response = requests.post(API_URL_REG, params={
                                 "rfid_tag": rfid_tag,
                                 "locker_room_id": LOCKER_ROOM_ID,
-                                "locker_id": locker_id
-                            },
-                            timeout=1
-                        )
-
-                        data = response.json()
-
-
-                        if response.status_code == 200 and data.get("access_granted"):
-                            assigned_id = data.get("locker_id")
-                            gpio_pin = LOCKER_GPIO_MAP.get(assigned_id)
-
-                            if gpio_pin is not None:
-                                print(f"[TILGANG] RFID godkjent. Aktiverer skap {assigned_id} på pin {gpio_pin}")
-
-                            else:
-                                print(f"[FEIL] Ingen GPIO-pinn definert for locker_id {assigned_id}")
+                                "locker_id": aktiv_locker_id
+                            }, timeout=1)
                         else:
-                            print("[RFID] RFID ikke godkjent – frigjør skap igjen")
-                            gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
-                            if gpio_pin is not None:
-                                magnet_release(gpio_pin)
-                            else:
-                                print(f"[FEIL] Ingen GPIO definert for locker_id {locker_id}")
+                            response = requests.post(API_URL_SCAN, params={
+                                "rfid_tag": rfid_tag,
+                                "locker_room_id": LOCKER_ROOM_ID
+                            }, timeout=1)
 
-
-                    except Exception as e:
-                        print(f"[API-FEIL]: {e}")
-                else:
-                    print("[TIDSKUTT] Ingen RFID registrert – frigjør skap igjen")
-                    gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
-                    if gpio_pin is not None:
-                        magnet_release(gpio_pin)
-                    else:
-                        print(f"[FEIL] Ingen GPIO definert for locker_id {locker_id}")
-
-
-            # Tilbakestill når skap åpnes igjen
-            elif GPIO.input(close_pin) == GPIO.HIGH:
-                skap_lukket_tidligere[locker_id] = False
-                # 2. Sjekk om noen skanner RFID for å åpne allerede tildelt skap
-                rfid_tag = scan_for_rfid()
-                if rfid_tag:
-                    time.sleep(2)  # ← VENT litt før gjenbruksskanning
-                    try:
-                        response = requests.post(
-                            API_URL_SCAN,
-
-                            params={"rfid_tag": rfid_tag, "locker_room_id": LOCKER_ROOM_ID},
-                            timeout=1
-                        )
                         data = response.json()
 
                         if response.status_code == 200 and data.get("access_granted"):
                             assigned_id = data.get("locker_id")
                             gpio_pin = LOCKER_GPIO_MAP.get(assigned_id)
-                            print(f"[DEBUG] locker_id={assigned_id}, gpio_pin={gpio_pin}")
-
                             if gpio_pin is not None:
-                                print(f"[GJENBRUK] Åpner skap {assigned_id} på pin {gpio_pin}")
+                                print(f"[RFID] Åpner skap {assigned_id} på pin {gpio_pin}")
                                 magnet_release(gpio_pin)
-
-                            else:
-                                print(f"[FEIL] Ingen GPIO-pinn definert for locker_id {assigned_id}")
                         else:
-                            print("[RFID] Ingen tilgang – kortet er ikke koblet til noe skap")
-
+                            print("[RFID] Ingen tilgang eller ugyldig registrering")
+                            if rfid_mode == "reg":
+                                fallback_pin = LOCKER_GPIO_MAP.get(aktiv_locker_id)
+                                if fallback_pin:
+                                    magnet_release(fallback_pin)
                     except Exception as e:
                         print(f"[API-FEIL]: {e}")
 
-                time.sleep(0.1)
+                # Reset
+                rfid_mode = None
+                aktiv_locker_id = None
+                rfid_start_tid = 0
 
-        time.sleep(0.1)
-
+        time.sleep(0.05)
