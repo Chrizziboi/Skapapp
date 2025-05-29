@@ -62,6 +62,8 @@ def handle_rfid_scan(locker_id):
     """
     Kalles når et skap fysisk er lukket. Scanner RFID og bestemmer om det skal registreres eller gjenbrukes.
     """
+    global siste_rfid, siste_skann_tid
+
     rfid_tag = scan_for_rfid()
     if not rfid_tag:
         print("[TIDSKUTT] Ingen RFID – frigjør skap")
@@ -70,19 +72,15 @@ def handle_rfid_scan(locker_id):
             magnet_release(gpio_pin)
         return
 
-    global siste_rfid, siste_skann_tid
     nå = time.time()
     if rfid_tag == siste_rfid and nå - siste_skann_tid < 2:
         print(f"[RFID] Ignorerer duplikatskann av {rfid_tag}")
         return
 
-    siste_rfid = rfid_tag
-    siste_skann_tid = nå
-
     try:
         response = requests.post(
             API_URL_SCAN,
-            params={"rfid_tag": rfid_tag, "locker_room_id": LOCKER_ROOM_ID},
+            json={"rfid_tag": rfid_tag, "locker_room_id": LOCKER_ROOM_ID},
             timeout=0.5
         )
         data = response.json()
@@ -91,9 +89,15 @@ def handle_rfid_scan(locker_id):
         return
 
     if response.status_code == 200 and data.get("access_granted"):
+        print("[INFO] RFID er allerede registrert – starter gjenbruk")
         Reuse_locker(rfid_tag)
     else:
         Register_locker(rfid_tag, locker_id)
+        print("[INFO] RFID registrert – venter for å unngå duplikat")
+        time.sleep(2)  # viktig: gi leseren tid til å "slippe" RFID
+        siste_rfid = None  # nullstill slik at neste scanning blir gyldig
+        siste_skann_tid = 0
+
 
 
 def Register_locker(rfid_tag, locker_id):
