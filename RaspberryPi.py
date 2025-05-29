@@ -65,6 +65,8 @@ def reader_helper():
     print("[SYSTEM] RFID-løkke startet. Skapene er passivt åpne.")
 
     skap_lukket_tidligere = {locker_id: False for locker_id in LOCKER_CLOSE_PIN_MAP}
+    siste_rfid = None
+    siste_skann_tid = 0
 
     while True:
         # 1. Sjekk for skap som lukkes (bruker setter kort etter lukking)
@@ -86,7 +88,7 @@ def reader_helper():
                                 "locker_room_id": LOCKER_ROOM_ID,
                                 "locker_id": locker_id
                             },
-                            timeout=0.1
+                            timeout=0.5
                         )
 
                         data = response.json()
@@ -124,16 +126,22 @@ def reader_helper():
             # Tilbakestill når skap åpnes igjen
             elif GPIO.input(close_pin) == GPIO.HIGH:
                 skap_lukket_tidligere[locker_id] = False
-                time.sleep(1)  # ← VENT litt før gjenbruksskanning
+                #time.sleep(1)  # ← VENT litt før gjenbruksskanning
                 # 2. Sjekk om noen skanner RFID for å åpne allerede tildelt skap
-                rfid_tag = scan_for_rfid(timeout=2)
+                rfid_tag = scan_for_rfid()
                 if rfid_tag:
+                    nå = time.time()
+                    if rfid_tag == siste_rfid and nå - siste_skann_tid < 2:
+                        print(f"[RFID] Ignorerer duplikatskann av {rfid_tag}")
+                    else:
+                        siste_rfid = rfid_tag
+                        siste_skann_tid = nå
                     try:
                         response = requests.post(
                             API_URL_SCAN,
 
                             params={"rfid_tag": rfid_tag, "locker_room_id": LOCKER_ROOM_ID},
-                            timeout=0.1
+                            timeout=0.5
                         )
                         data = response.json()
 
