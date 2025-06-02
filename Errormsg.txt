@@ -1,0 +1,24 @@
+[DEBUG] Skap 1 (pin 20) status: LUKKET | Tidligere lukket: True
+[DEBUG] Skap 2 (pin 19) status: LUKKET | Tidligere lukket: True
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[DEBUG] Skap 1 (pin 20) status: ÅPEN | Tidligere lukket: True
+[STATUS] Skap 1 åpnet igjen.
+[DEBUG] Skap 2 (pin 19) status: LUKKET | Tidligere lukket: True
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[DEBUG] Skap 1 (pin 20) status: LUKKET | Tidligere lukket: False
+[TRIGGER] Skap 1 lukket – klar for ny registrering.
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[TIDSKUTT] Ingen gyldig RFID – frigjør skap.
+[DEBUG] Skap 2 (pin 19) status: LUKKET | Tidligere lukket: True
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[DEBUG] Skap 1 (pin 20) status: ÅPEN | Tidligere lukket: True
+[STATUS] Skap 1 åpnet igjen.
+[DEBUG] Skap 2 (pin 19) status: LUKKET | Tidligere lukket: True
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[DEBUG] Skap 1 (pin 20) status: ÅPEN | Tidligere lukket: False
+[DEBUG] Skap 2 (pin 19) status: LUKKET | Tidligere lukket: True
