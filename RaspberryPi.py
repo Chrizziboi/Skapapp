@@ -38,6 +38,14 @@ def magnet_release(pin):
     time.sleep(1)
     GPIO.output(pin, GPIO.LOW)
 
+# Les GPIO tre ganger med kort delay for å verifisere tilstanden
+def is_locker_closed(close_pin):
+    reads = []
+    for _ in range(3):
+        reads.append(GPIO.input(close_pin))
+        time.sleep(0.02)  # 20 ms mellom hver lesing
+    return all(state == GPIO.LOW for state in reads)
+
 
 def scan_for_rfid(timeout=5, init_delay=0):
     time.sleep(init_delay)
@@ -132,8 +140,7 @@ def reader_helper():
     while True:
         # --- Registrer ved ny lukking ---
         for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
-            Locker_closed =  GPIO.input(close_pin) == GPIO.LOW
-            print(f"[OVERVÅKING] Skap {locker_id} er lukket")
+            Locker_closed =  is_locker_closed(close_pin)
             if Locker_closed and not skap_lukket_tidligere[locker_id]:
                 print(f"[INNGANG] Skap {locker_id} lukket – klar for ny registrering.")
                 skap_lukket_tidligere[locker_id] = True
@@ -152,7 +159,6 @@ def reader_helper():
                     Register_locker(rfid_tag, locker_id)
                     time.sleep(1.5)
                 else:
-                    rfid_tag = None
                     print("[TIDSKUTT] Ingen RFID – frigjør skap.")
                     gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
                     if gpio_pin:
