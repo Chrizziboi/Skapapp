@@ -135,35 +135,45 @@ def lock_locker_after_use(user_id: int, db: Session):
 
     return {"message": f"Skap {locker.combi_id} er nå låst igjen for bruker {user_id}."}
 
-def scan_rfid_action(rfid_tag: str, locker_room_id: int, db: Session):
+def free_or_unlock_locker(rfid_tag: str, locker_room_id: int, db: Session):
     """
-    Brukes når en kjent bruker skanner RFID for å åpne sitt eksisterende skap midlertidig.
+    Frigjør skapet hvis brukeren har ett, og logger at det er åpnet og frigjort.
+    Brukes i stedet for scan_rfid_action for gjenbruk.
     """
     user = get_user_by_rfid_tag(rfid_tag, db)
     if not user:
-        # Registrer bruker automatisk hvis ukjent kort
-        user = create_standard_user(rfid_tag, db)
+        return {
+            "message": "Ukjent kort – ingen skap å frigjøre.",
+            "access_granted": False
+        }
 
     locker = db.query(Locker).filter(
         Locker.user_id == user.id,
-                Locker.status == "Opptatt"
+        Locker.status == "Opptatt",
+        Locker.locker_room_id == locker_room_id
     ).first()
 
-    if locker:
-        # Brukeren har allerede et skap → åpne (midlertidig)
-        from backend.model.LockerLog import log_action
-        log_action(locker_id=locker.id, user_id=user.id, action="Låst opp", db=db)
+    if not locker:
         return {
-            "message": f"Skap {locker.combi_id} er midlertidig åpnet for bruker.",
-            "access_granted": True,
-            "locker_id": locker.id,
-            "combi_id": locker.combi_id
+            "message": "Brukeren har ikke noe opptatt skap i dette garderoberommet.",
+            "access_granted": False
         }
 
+    # Frigjør skapet
+    locker.status = "Ledig"
+    locker.user_id = None
+    db.commit()
+
+    from backend.model.LockerLog import log_action
+    log_action(locker_id=locker.id, user_id=user.id, action="Låst opp og frigjort", db=db)
+
     return {
-        "message": "Brukeren har ikke noe opptatt skap fra før.",
-        "access_granted": False
+        "message": f"Skap {locker.combi_id} er nå åpnet og frigjort.",
+        "access_granted": True,
+        "locker_id": locker.id,
+        "combi_id": locker.combi_id
     }
+
 
 
 def assign_locker_after_manual_closure(rfid_tag: str, locker_room_id: int, locker_id: int, db: Session):

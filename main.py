@@ -307,13 +307,13 @@ def create_admin_user(request: CreateUserRequest, db: Session = Depends(get_db))
 
 
 @api.post("/scan_rfid/")
-def scan_rfid(rfid_tag: str, locker_room_id: int = 1, db: Session = Depends(get_db)):
+def scan_rfid(rfid_tag: str, locker_room_id: int, db: Session):
     """
     Skann et RFID-kort. Reserver skap hvis mulig. Returner tilgangsbeskjed.
     """
     try:
-        from backend.model.StandardUser import scan_rfid_action
-        result = scan_rfid_action(rfid_tag, locker_room_id, db)
+        from backend.model.StandardUser import free_or_unlock_locker
+        result = free_or_unlock_locker(rfid_tag, locker_room_id, db)
         return result
     except Exception as e:
         return fastapi_error_handler(f"Feil ved RFID-skanning: {str(e)}", status_code=400)
