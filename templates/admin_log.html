@@ -100,6 +100,31 @@
     </div>
 
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = "/";
+                return;
+            }
+
+            fetch("/api/admin/data", {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Unauthorized");
+                return res.json();
+            })
+            .then(data => {
+                console.log("Bruker er autorisert.");
+                // her kan du laste data fra backend hvis ønskelig
+            })
+            .catch(err => {
+                console.error("Uautorisert tilgang:", err);
+                localStorage.removeItem('token');
+                window.location.href = "/";
+            });
+        });
         function navigateTo(page) {
             // Denne funksjonen må matche routing i din FastAPI/web-app
             const mapping = {
@@ -111,8 +136,10 @@
             };
             window.location.href = mapping[page] || "/";
         }
+
         function logout() {
-            window.location.href = "/logout";
+            localStorage.removeItem('token');
+            window.location.href = "/";
         }
 
         // === Hent logg fra backend ===

@@ -9,7 +9,7 @@
     <div class="container">
         <div class="navigation">
             <button onclick="goBack()">← Tilbake</button>
-            <button onclick="goHome()">🏠 Hjem</button>
+            <button onclick="logout()">Logg Ut</button>
         </div>
 
         <h1>Backup & Restore</h1>
@@ -27,10 +27,37 @@
     </div>
 
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = "/";
+                return;
+            }
+
+            fetch("/api/admin/data", {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Unauthorized");
+                return res.json();
+            })
+            .then(data => {
+                console.log("Bruker er autorisert.");
+                // her kan du laste data fra backend hvis ønskelig
+            })
+            .catch(err => {
+                console.error("Uautorisert tilgang:", err);
+                localStorage.removeItem('token');
+                window.location.href = "/";
+            });
+        });
         function goBack() {
             window.history.back();
         }
-        function goHome() {
+
+        function logout() {
+            localStorage.removeItem('token');
             window.location.href = "/";
         }
     </script>

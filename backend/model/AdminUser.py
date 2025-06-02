@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from backend.Service.ErrorHandler import fastapi_error_handler
 from database import Base
 from passlib.context import CryptContext
+from backend.auth.auth_handler import verify_password
+
 
 # Passordkryptering
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -49,12 +51,10 @@ def delete_admin(admin_id: int, db: Session):
     db.commit()
     return {"message": f"Bruker med ID {admin_id} er slettet."}
 
-def authenticate_user(input_password: str, db: Session):
-    """
-    Autentiserer bruker kun basert på pin/passord.
-    """
+def authenticate_user(password: str, db):
     users = db.query(AdminUser).all()
     for user in users:
-        if pwd_context.verify(input_password, user.password):
+        if verify_password(password, user.password):
             return user
     return None
+

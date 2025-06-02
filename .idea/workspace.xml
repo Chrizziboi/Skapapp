@@ -5,17 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0005eedd-721e-4bd0-8303-d481d9634d7e" name="Changes" comment="Updated info panel, and made the last finishing touches to wardrobe management page so it has modal all around.">
+      <change afterPath="$PROJECT_DIR$/backend/auth/auth_handler.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/auth/auth_schema.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/styles/admin_page.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/admin_page.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/styles/admin_rooms.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/admin_rooms.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/styles/admin_statistics.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/admin_statistics.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/styles/main_page.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/main_page.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/styles/standard_user_page.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/styles/standard_user_page.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/model/AdminUser.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/model/AdminUser.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/admin_backup.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_backup.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/admin_log.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_log.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/admin_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_page.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/admin_statistics.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_statistics.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/admin_wardrobe_management.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_wardrobe_management.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/main_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/main_page.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/standard_user_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/standard_user_page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/backend_tests/test_Statistic.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/backend_tests/test_Statistic.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,6 +26,13 @@
   </component>
   <component name="ExportToHTMLSettings">
     <option name="OUTPUT_DIRECTORY" value="$PROJECT_DIR$/exportToHTML" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -39,12 +48,12 @@
     &quot;assignee&quot;: &quot;emirnhiof&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/Chrizziboi/Skapapp.git&quot;,
-    &quot;accountId&quot;: &quot;a5361ee2-9628-4955-aee7-808d9c2d7312&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Chrizziboi/Skapapp.git",
+    "accountId": "6b9804fe-42a4-4abd-88d9-7330bcb4597e"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 8
@@ -54,20 +63,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;UIEnd&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.database.executor": "Run",
+    "Python.main.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "Oauth__token",
+    "junie.onboarding.icon.badge.shown": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -89,6 +100,7 @@
       <workItem from="1747153799122" duration="2532000" />
       <workItem from="1747224565901" duration="26427000" />
       <workItem from="1747762382261" duration="3141000" />
+      <workItem from="1748512082083" duration="9482000" />
     </task>
     <task id="LOCAL-00001" summary="Updated main page so that there is a button for avaliable lockers info, and made changes to management so that fuctions work.">
       <option name="closed" value="true" />
@@ -122,13 +134,14 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main.py</url>
-          <line>223</line>
+          <line>212</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1747765508092" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Skapapp$database.coverage" NAME="database Coverage Results" MODIFIED="1748517376834" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1748522304459" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
