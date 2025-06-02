@@ -165,7 +165,7 @@ def free_or_unlock_locker(rfid_tag: str, locker_room_id: int, db: Session):
     db.commit()
 
     from backend.model.LockerLog import log_action
-    log_action(locker_id=locker.id, user_id=user.id, action="Låst opp og frigjort", db=db)
+    log_action(locker_id=locker.id, user_id=user.id, action="Frigjort", db=db)
 
     return {
         "message": f"Skap {locker.combi_id} er nå åpnet og frigjort.",

@@ -98,7 +98,10 @@ def Reuse_locker(rfid_tag):
     try:
         response = requests.post(
             API_URL_SCAN,
-            params={"rfid_tag": rfid_tag, "locker_room_id": LOCKER_ROOM_ID},
+            params={
+                "rfid_tag": rfid_tag,
+                "locker_room_id": LOCKER_ROOM_ID
+            },
             timeout=0.5
         )
         data = response.json()
@@ -126,7 +129,9 @@ def reader_helper():
     while True:
         # --- Registrer ved ny lukking ---
         for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
-            if GPIO.input(close_pin) == GPIO.LOW and not skap_lukket_tidligere[locker_id]:
+            Locker_closed =  GPIO.input(close_pin) == GPIO.LOW
+
+            if Locker_closed and not skap_lukket_tidligere[locker_id]:
                 print(f"[INNGANG] Skap {locker_id} lukket – klar for ny registrering.")
                 skap_lukket_tidligere[locker_id] = True
 
@@ -149,7 +154,7 @@ def reader_helper():
                     if gpio_pin:
                         magnet_release(gpio_pin)
 
-            elif GPIO.input(close_pin) == GPIO.HIGH:
+            if not Locker_closed:
                 skap_lukket_tidligere[locker_id] = False
 
         # --- Tillat åpning av opptatte skap via RFID ---
