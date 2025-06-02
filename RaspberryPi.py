@@ -140,6 +140,7 @@ def reader_helper():
                     siste_rfid = rfid_tag
                     siste_skann_tid = nå
                     Register_locker(rfid_tag, locker_id)
+                    time.sleep(1.5)
                 else:
                     print("[TIDSKUTT] Ingen RFID – frigjør skap.")
                     gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
@@ -162,3 +163,4 @@ def reader_helper():
         siste_rfid = rfid_tag
         siste_skann_tid = nå
         Reuse_locker(rfid_tag)
+        time.sleep(1.5)
