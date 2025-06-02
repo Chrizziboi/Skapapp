@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y7T2">
+    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y7T4">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/model/StandardUser.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/model/StandardUser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RaspberryPi.py" beforeDir="false" afterPath="$PROJECT_DIR$/RaspberryPi.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -518,7 +517,21 @@
       <option name="presentableId" value="LOCAL−00041" />
       <updated>1748858375465</updated>
     </task>
-    <option name="localTasksCounter" value="42" />
+    <task id="LOCAL−00042" summary="Y7T3">
+      <option name="closed" value="true" />
+      <created>1748859552652</created>
+      <option name="number" value="LOCAL−00042" />
+      <option name="presentableId" value="LOCAL−00042" />
+      <updated>1748859552652</updated>
+    </task>
+    <task id="LOCAL−00043" summary="Y7T4">
+      <option name="closed" value="true" />
+      <created>1748859784946</created>
+      <option name="number" value="LOCAL−00043" />
+      <option name="presentableId" value="LOCAL−00043" />
+      <updated>1748859784946</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -536,8 +549,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="added the sensor pins to the config.json so it is dynamically added to RaspberryPi.py code." />
-    <MESSAGE value="added scanning functionality based on scan_rfid_action." />
     <MESSAGE value="Y" />
     <MESSAGE value="Y1" />
     <MESSAGE value="Y2" />
@@ -561,7 +572,9 @@
     <MESSAGE value="Y7T" />
     <MESSAGE value="Y7T1" />
     <MESSAGE value="Y7T2" />
-    <option name="LAST_COMMIT_MESSAGE" value="Y7T2" />
+    <MESSAGE value="Y7T3" />
+    <MESSAGE value="Y7T4" />
+    <option name="LAST_COMMIT_MESSAGE" value="Y7T4" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1744033091162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

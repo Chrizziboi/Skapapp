@@ -9,7 +9,7 @@ import json
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
-reader = SimpleMFRC522()
+
 
 with open("config.json", "r") as config_file:
     CONFIG = json.load(config_file)
@@ -42,6 +42,7 @@ def magnet_release(pin):
 
 def scan_for_rfid(timeout=5, init_delay=0):
     time.sleep(init_delay)
+    reader = SimpleMFRC522()
     start_time = time.time()
     print("[RFID] Klar for skanning...")
 
