@@ -33,7 +33,6 @@ skap_lukket_tidligere = {locker_id: False for locker_id in LOCKER_CLOSE_PIN_MAP}
 siste_rfid = None
 siste_skann_tid = 0
 
-
 def magnet_release(pin):
     GPIO.output(pin, GPIO.HIGH)
     time.sleep(1)
@@ -52,8 +51,12 @@ def scan_for_rfid(timeout=5, init_delay=0):
             (status, uid) = reader.READER.MFRC522_Anticoll()
             if status == reader.READER.MI_OK:
                 rfid_tag = "".join([str(num) for num in uid])
-                print("[RFID] Funnet:", rfid_tag)
-                return rfid_tag
+                if len(rfid_tag) >= 8 and rfid_tag.isdigit():
+                    print("[RFID] Funnet:", rfid_tag)
+                    return rfid_tag
+                else:
+                    rfid_tag = None
+                    print("[ADVARSEL] Ugyldig RFID format – ignorerer")
         time.sleep(0.1)
 
     print("[RFID] Ingen RFID registrert")
@@ -130,7 +133,7 @@ def reader_helper():
         # --- Registrer ved ny lukking ---
         for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
             Locker_closed =  GPIO.input(close_pin) == GPIO.LOW
-
+            print(f"[OVERVÅKING] Skap {locker_id} er lukket")
             if Locker_closed and not skap_lukket_tidligere[locker_id]:
                 print(f"[INNGANG] Skap {locker_id} lukket – klar for ny registrering.")
                 skap_lukket_tidligere[locker_id] = True
@@ -149,13 +152,15 @@ def reader_helper():
                     Register_locker(rfid_tag, locker_id)
                     time.sleep(1.5)
                 else:
+                    rfid_tag = None
                     print("[TIDSKUTT] Ingen RFID – frigjør skap.")
                     gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
                     if gpio_pin:
                         magnet_release(gpio_pin)
 
-            if not Locker_closed:
+            elif not Locker_closed and skap_lukket_tidligere[locker_id]:
                 skap_lukket_tidligere[locker_id] = False
+                print(f"[STATUS] Skap {locker_id} åpnet igjen.")
 
         # --- Tillat åpning av opptatte skap via RFID ---
         rfid_tag = scan_for_rfid(timeout=1)  # Kort timeout for responsivitet
