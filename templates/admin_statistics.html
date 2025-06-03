@@ -127,52 +127,31 @@
                 });
         };
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const token = localStorage.getItem('token');
-
-            if (!token) {
-                window.location.href = "/";
-                return;
-            }
-
-            fetch("/api/admin/data", {
-                headers: { "Authorization": `Bearer ${token}` }
-            })
-            .then(res => {
-                if (!res.ok) throw new Error("Unauthorized");
-                return res.json();
-            })
-            .then(data => {
-                console.log("Bruker er autorisert.");
-                // her kan du laste data fra backend hvis ønskelig
-            })
-            .catch(err => {
-                console.error("Uautorisert tilgang:", err);
-                localStorage.removeItem('token');
-                window.location.href = "/";
-            });
-
-            const fetchList = (url, targetId, formatFn) => {
-                fetch(url)
-                    .then(res => res.json())
-                    .then(data => {
-                        const list = document.getElementById(targetId);
-                        list.innerHTML = "";
-                        if (!data || data.length === 0) {
-                            list.innerHTML = "<li>Ingen data tilgjengelig.</li>";
-                            return;
-                        }
-                        data.forEach(item => {
-                            const li = document.createElement("li");
-                            li.innerText = formatFn(item);
-                            list.appendChild(li);
-                        });
-                    })
-                    .catch(err => {
-                        document.getElementById(targetId).innerHTML = "<li>Feil ved henting.</li>";
-                        console.error(err);
+        const fetchList = (url, targetId, formatFn) => {
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById(targetId);
+                    list.innerHTML = "";
+                    if (!data || data.length === 0) {
+                        list.innerHTML = "<li>Ingen data tilgjengelig.</li>";
+                        return;
+                    }
+                    data.forEach(item => {
+                        const li = document.createElement("li");
+                        li.innerText = formatFn(item);
+                        list.appendChild(li);
                     });
-            };
+                })
+                .catch(err => {
+                    document.getElementById(targetId).innerHTML = "<li>Feil ved henting.</li>";
+                    console.error(err);
+                });
+        };
+
+        // Function to refresh all statistics data
+        const refreshAllStatistics = () => {
+            console.log("Refreshing all statistics data...");
 
             // 🔢 Tallverdier
             fetchText("/statistic/total_lockers", "total-lockers", "total_lockers");
@@ -244,6 +223,86 @@
                     document.getElementById("recent-logs").innerHTML = "<tr><td colspan='4'>Feil ved henting av logg.</td></tr>";
                     console.error(err);
                 });
+        };
+
+        // WebSocket connection setup
+        let socket;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        const reconnectDelay = 3000; // 3 seconds
+
+        const connectWebSocket = () => {
+            // Close existing socket if any
+            if (socket) {
+                socket.close();
+            }
+
+            // Create new WebSocket connection
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
+
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log('WebSocket connection established');
+                reconnectAttempts = 0; // Reset reconnect attempts on successful connection
+            };
+
+            socket.onmessage = (event) => {
+                const message = event.data;
+                console.log('WebSocket message received:', message);
+
+                if (message === 'update') {
+                    refreshAllStatistics();
+                }
+            };
+
+            socket.onclose = (event) => {
+                console.log('WebSocket connection closed', event);
+
+                // Attempt to reconnect if not a normal closure or if we haven't exceeded max attempts
+                if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
+                    setTimeout(connectWebSocket, reconnectDelay);
+                } else if (reconnectAttempts >= maxReconnectAttempts) {
+                    console.error('Maximum reconnection attempts reached');
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = "/";
+                return;
+            }
+
+            fetch("/api/admin/data", {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Unauthorized");
+                return res.json();
+            })
+            .then(data => {
+                console.log("Bruker er autorisert.");
+                // Initialize WebSocket connection after authentication
+                connectWebSocket();
+            })
+            .catch(err => {
+                console.error("Uautorisert tilgang:", err);
+                localStorage.removeItem('token');
+                window.location.href = "/";
+            });
+
+            // Load initial statistics data
+            refreshAllStatistics();
         });
 
         document.getElementById("stats-search").addEventListener("input", function() {

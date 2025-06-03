@@ -17,112 +17,148 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            fetchRoomsWithLockers();
+        let socket;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        const reconnectDelay = 3000;
 
-            function fetchRoomsWithLockers() {
-                fetch("http://localhost:8080/locker_rooms/")
-                    .then(response => response.json())
-                    .then(async rooms => {
-                        const roomList = document.getElementById("room-list");
-                        roomList.innerHTML = '';
+        function connectWebSocket() {
+            if (socket) socket.close();
 
-                        // Lag en liste med alle rom og deres tilgjengelige skap
-                        const roomData = await Promise.all(rooms.map(async room => {
-                            try {
-                                const res = await fetch(`http://localhost:8080/locker_rooms/${room.room_id}/available_lockers`);
-                                const data = await res.json();
-                                return {
-                                    name: room.name,
-                                    available: data.available_lockers
-                                };
-                            } catch (err) {
-                                console.error("Feil ved henting:", err);
-                                return null;
-                            }
-                        }));
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
 
-                        // Fjern null (feil), sorter alfabetisk og vis
-                        roomData
-                            .filter(room => room !== null)
-                            .sort((a, b) => b.available - a.available)
-                            .forEach(room => {
-                                const li = document.createElement('li');
-                                li.classList.add('room-box');
-                                li.innerHTML = `<div class="room-name">${room.name}</div><div class="locker-count">${room.available} ledige skap</div>`;
-                                roomList.appendChild(li);
-                            });
-                        resizeBoxes();
+            socket = new WebSocket(wsUrl);
 
-                    })
-                    .catch(error => console.error("Feil ved henting av rom:", error));
-            }
+            socket.onopen = () => {
+                console.log("WebSocket connection established");
+                reconnectAttempts = 0;
+            };
 
-        });
-    </script>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const container = document.getElementById("room-list");
+            socket.onmessage = (event) => {
+                const message = event.data;
+                console.log("WebSocket message received:", message);
 
-      function resizeBoxes() {
-        const boxes = container.querySelectorAll(".room-box");
-        const totalBoxes = boxes.length;
-        if (totalBoxes === 0) return;
+                if (message === "update") {
+                    fetchRoomsWithLockers();
+                }
+            };
 
-        const maxWidth = window.innerWidth;
-        const maxHeight = window.innerHeight - 100;
+            socket.onclose = (event) => {
+                console.log("WebSocket connection closed", event);
+                if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    console.log(`Reconnecting attempt ${reconnectAttempts}/${maxReconnectAttempts}`);
+                    setTimeout(connectWebSocket, reconnectDelay);
+                } else {
+                    console.error("Max reconnect attempts reached.");
+                }
+            };
 
-        let bestCols = 1;
-        let bestRows = totalBoxes;
-        let bestBoxSize = 0;
-
-        for (let cols = 1; cols <= totalBoxes; cols++) {
-          const rows = Math.ceil(totalBoxes / cols);
-          const boxWidth = (maxWidth - (cols + 1) * 16) / cols;
-          const boxHeight = (maxHeight - (rows + 1) * 16) / rows;
-          const size = Math.min(boxWidth, boxHeight);
-          if (size > bestBoxSize) {
-            bestBoxSize = size;
-            bestCols = cols;
-            bestRows = rows;
-          }
+            socket.onerror = (error) => {
+                console.error("WebSocket error:", error);
+            };
         }
 
-        container.style.display = "grid";
-        container.style.gridTemplateColumns = `repeat(${bestCols}, 1fr)`;
-        container.style.gridAutoRows = `${bestBoxSize}px`;
-        container.style.justifyContent = "center";
-        container.style.gap = "16px";
-        container.style.height = `${maxHeight}px`;
-        container.style.overflow = "hidden";
+        function fetchRoomsWithLockers() {
+            fetch("http://localhost:8080/locker_rooms/")
+                .then(response => response.json())
+                .then(async rooms => {
+                    const roomList = document.getElementById("room-list");
+                    roomList.innerHTML = '';
 
-        boxes.forEach(box => {
-          box.style.width = "100%";
-          box.style.height = "100%";
-          const fontSize = Math.max(12, bestBoxSize * 0.08);
-          box.style.fontSize = `${fontSize}px`;
+                    const roomData = await Promise.all(rooms.map(async room => {
+                        try {
+                            const res = await fetch(`http://localhost:8080/locker_rooms/${room.room_id}/available_lockers`);
+                            const data = await res.json();
+                            return {
+                                name: room.name,
+                                available: data.available_lockers
+                            };
+                        } catch (err) {
+                            console.error("Feil ved henting:", err);
+                            return null;
+                        }
+                    }));
 
-          const lockerText = box.querySelector(".locker-count")?.textContent || "";
-          const countMatch = lockerText.match(/(\d+)/);
-          const available = countMatch ? parseInt(countMatch[1]) : 0;
+                    roomData
+                        .filter(room => room !== null)
+                        .sort((a, b) => b.available - a.available)
+                        .forEach(room => {
+                            const li = document.createElement('li');
+                            li.classList.add('room-box');
+                            li.innerHTML = `<div class="room-name">${room.name}</div><div class="locker-count">${room.available} ledige skap</div>`;
+                            roomList.appendChild(li);
+                        });
 
-          box.classList.remove("available-high", "available-medium", "available-low", "available-none");
+                    resizeBoxes();
+                })
+                .catch(error => console.error("Feil ved henting av rom:", error));
+        }
 
-          if (available >= 10) {
-            box.classList.add("available-high");
-          } else if (available >= 5) {
-            box.classList.add("available-medium");
-          } else if (available > 0) {
-            box.classList.add("available-low");
-          } else {
-            box.classList.add("available-none");
-          }
+        function resizeBoxes() {
+            const container = document.getElementById("room-list");
+            const boxes = container.querySelectorAll(".room-box");
+            const totalBoxes = boxes.length;
+            if (totalBoxes === 0) return;
+
+            const maxWidth = window.innerWidth;
+            const maxHeight = window.innerHeight - 100;
+
+            let bestCols = 1;
+            let bestRows = totalBoxes;
+            let bestBoxSize = 0;
+
+            for (let cols = 1; cols <= totalBoxes; cols++) {
+                const rows = Math.ceil(totalBoxes / cols);
+                const boxWidth = (maxWidth - (cols + 1) * 16) / cols;
+                const boxHeight = (maxHeight - (rows + 1) * 16) / rows;
+                const size = Math.min(boxWidth, boxHeight);
+                if (size > bestBoxSize) {
+                    bestBoxSize = size;
+                    bestCols = cols;
+                    bestRows = rows;
+                }
+            }
+
+            container.style.display = "grid";
+            container.style.gridTemplateColumns = `repeat(${bestCols}, 1fr)`;
+            container.style.gridAutoRows = `${bestBoxSize}px`;
+            container.style.justifyContent = "center";
+            container.style.gap = "16px";
+            container.style.height = `${maxHeight}px`;
+            container.style.overflow = "hidden";
+
+            boxes.forEach(box => {
+                box.style.width = "100%";
+                box.style.height = "100%";
+                const fontSize = Math.max(12, bestBoxSize * 0.08);
+                box.style.fontSize = `${fontSize}px`;
+
+                const lockerText = box.querySelector(".locker-count")?.textContent || "";
+                const countMatch = lockerText.match(/(\d+)/);
+                const available = countMatch ? parseInt(countMatch[1]) : 0;
+
+                box.classList.remove("available-high", "available-medium", "available-low", "available-none");
+
+                if (available >= 10) {
+                    box.classList.add("available-high");
+                } else if (available >= 5) {
+                    box.classList.add("available-medium");
+                } else if (available > 0) {
+                    box.classList.add("available-low");
+                } else {
+                    box.classList.add("available-none");
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchRoomsWithLockers();
+            resizeBoxes();
+            window.addEventListener("resize", resizeBoxes);
+            connectWebSocket();
         });
-      }
-
-      resizeBoxes();
-      window.addEventListener("resize", resizeBoxes);
-    });
-</script>
+    </script>
 </body>
 </html>

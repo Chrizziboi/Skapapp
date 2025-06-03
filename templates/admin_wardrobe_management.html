@@ -132,6 +132,62 @@
     <script>
         let selectedRoomId = null;
         let currentNoteLockerId = null;
+
+        // WebSocket connection setup
+        let socket;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        const reconnectDelay = 3000; // 3 seconds
+
+        const connectWebSocket = () => {
+            // Close existing socket if any
+            if (socket) {
+                socket.close();
+            }
+
+            // Create new WebSocket connection
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
+
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log('WebSocket connection established');
+                reconnectAttempts = 0; // Reset reconnect attempts on successful connection
+            };
+
+            socket.onmessage = (event) => {
+                const message = event.data;
+                console.log('WebSocket message received:', message);
+
+                if (message === 'update') {
+                    // Refresh the list of locker rooms
+                    fetchRooms();
+
+                    // If a room is selected, refresh the locker list in that room
+                    if (selectedRoomId) {
+                        fetchLockersInRoom(selectedRoomId);
+                    }
+                }
+            };
+
+            socket.onclose = (event) => {
+                console.log('WebSocket connection closed', event);
+
+                // Attempt to reconnect if not a normal closure or if we haven't exceeded max attempts
+                if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
+                    setTimeout(connectWebSocket, reconnectDelay);
+                } else if (reconnectAttempts >= maxReconnectAttempts) {
+                    console.error('Maximum reconnection attempts reached');
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        };
         function openNoteModal(lockerId, existingNote) {
             currentNoteLockerId = lockerId;
             document.getElementById("note-locker-id").textContent = lockerId;
@@ -381,7 +437,8 @@
                     })
                     .then(data => {
                         console.log("Bruker er autorisert.");
-                        // her kan du laste data fra backend hvis ønskelig
+                        // Initialize WebSocket connection after authentication
+                        connectWebSocket();
                     })
                     .catch(err => {
                         console.error("Uautorisert tilgang:", err);
