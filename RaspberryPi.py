@@ -9,6 +9,8 @@ import json
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
+
+
 with open("config.json", "r") as config_file:
     CONFIG = json.load(config_file)
 
@@ -36,6 +38,7 @@ def magnet_release(pin):
     time.sleep(1)
     GPIO.output(pin, GPIO.LOW)
 
+
 def scan_for_rfid(timeout=5, init_delay=0):
     time.sleep(init_delay)
     reader = SimpleMFRC522()
@@ -52,6 +55,7 @@ def scan_for_rfid(timeout=5, init_delay=0):
                     print("[RFID] Funnet:", rfid_tag)
                     return rfid_tag
                 else:
+                    rfid_tag = None
                     print("[ADVARSEL] Ugyldig RFID format – ignorerer")
         time.sleep(0.1)
 
@@ -60,8 +64,10 @@ def scan_for_rfid(timeout=5, init_delay=0):
 
 
 def Register_locker(rfid_tag, locker_id):
+    """
+    Forsøker å koble RFID til skapet etter manuell lukking.
+    """
     try:
-        print(f"[API-KALL] Register_locker() for locker_id={locker_id}, rfid={rfid_tag}")
         response = requests.post(
             API_URL_REG,
             params={
@@ -87,7 +93,11 @@ def Register_locker(rfid_tag, locker_id):
     except Exception as e:
         print(f"[API-FEIL]: {e}")
 
+
 def Reuse_locker(rfid_tag):
+    """
+    Gjenåpner et skap tilknyttet samme RFID hvis det er lukket igjen.
+    """
     try:
         response = requests.post(
             API_URL_SCAN,
@@ -109,27 +119,27 @@ def Reuse_locker(rfid_tag):
     except Exception as e:
         print(f"[API-FEIL]: {e}")
 
+
 def reader_helper():
+    """
+    Hovedløkke som:
+    1. Reagerer på manuell lukking av skap (triggerer RFID og registrering).
+    2. Tillater brukere med opptatte skap å åpne igjen via ny RFID-skanning.
+    """
     global siste_rfid, siste_skann_tid
     print("[SYSTEM] Starter RFID-løkke – overvåker lukking og kort.")
 
     while True:
         # --- Registrer ved ny lukking ---
         for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
-            is_closed = GPIO.input(close_pin) == GPIO.LOW
-
-            print(f"[DEBUG] Skap {locker_id} (pin {close_pin}) status: {'LUKKET' if is_closed else 'ÅPEN'} | Tidligere lukket: {skap_lukket_tidligere[locker_id]}")
-
-            if is_closed:
-                if skap_lukket_tidligere[locker_id]:
-                    # Skap er allerede registrert som lukket, gjør ingenting
-                    continue
-
+            Locker_closed =  GPIO.input(close_pin) == GPIO.LOW
+            print(f"[OVERVÅKING] Skap {locker_id} er lukket")
+            if Locker_closed and not skap_lukket_tidligere[locker_id]:
                 print(f"[INNGANG] Skap {locker_id} lukket – klar for ny registrering.")
-
+                skap_lukket_tidligere[locker_id] = True
 
                 # Skann for kort umiddelbart ved lukking
-                rfid_tag = scan_for_rfid(timeout=6)
+                rfid_tag = scan_for_rfid(timeout=6)  # Gi brukeren tid til å skanne
 
                 nå = time.time()
                 if rfid_tag:
@@ -140,23 +150,20 @@ def reader_helper():
                     siste_rfid = rfid_tag
                     siste_skann_tid = nå
                     Register_locker(rfid_tag, locker_id)
-                    skap_lukket_tidligere[locker_id] = True
-
                     time.sleep(1.5)
                 else:
+                    rfid_tag = None
                     print("[TIDSKUTT] Ingen RFID – frigjør skap.")
                     gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
                     if gpio_pin:
                         magnet_release(gpio_pin)
-                    skap_lukket_tidligere[locker_id] = False
 
-
-            else:
-                # Hvis skapet er fysisk åpent, men ikke har blitt behandlet enda, ikke gjør noe.
-                pass
+            elif not Locker_closed and skap_lukket_tidligere[locker_id]:
+                skap_lukket_tidligere[locker_id] = False
+                print(f"[STATUS] Skap {locker_id} åpnet igjen.")
 
         # --- Tillat åpning av opptatte skap via RFID ---
-        rfid_tag = scan_for_rfid(timeout=1)
+        rfid_tag = scan_for_rfid(timeout=1)  # Kort timeout for responsivitet
         if not rfid_tag:
             continue
 
