@@ -53,12 +53,10 @@ def scan_for_rfid(timeout=5, init_delay=0):
                     print("[RFID] Funnet:", rfid_tag)
                     return rfid_tag
                 else:
-                    rfid_tag = None
                     print("[ADVARSEL] Ugyldig RFID format – ignorerer")
         time.sleep(0.1)
 
     print("[RFID] Ingen RFID registrert")
-    return None
 
 
 def Register_locker(rfid_tag, locker_id):
