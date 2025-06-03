@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y7.3[TEST].01">
+    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y7.3[TEST].03">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RaspberryPi.py" beforeDir="false" afterPath="$PROJECT_DIR$/RaspberryPi.py" afterDir="false" />
     </list>
@@ -229,20 +229,6 @@
       <workItem from="1739872136387" duration="921000" />
       <workItem from="1740045481576" duration="4077000" />
       <workItem from="1744027286264" duration="5200000" />
-    </task>
-    <task id="LOCAL−00015" summary="the start of trying to change the system to detect when a locker is locked to then start the registering of a given user to that spesific locker.">
-      <option name="closed" value="true" />
-      <created>1748355363282</created>
-      <option name="number" value="LOCAL−00015" />
-      <option name="presentableId" value="LOCAL−00015" />
-      <updated>1748355363282</updated>
-    </task>
-    <task id="LOCAL−00016" summary="Made config.json to now store all information about lockerrooms and lockers. &#10;&#10;also cleaned up the code a bit to now use parameters more correctly so there isn't any direct pin calls in the code, now it uses just a variable for all pins and its based on what locker is served by rfid_tag → backend.">
-      <option name="closed" value="true" />
-      <created>1748429328187</created>
-      <option name="number" value="LOCAL−00016" />
-      <option name="presentableId" value="LOCAL−00016" />
-      <updated>1748429328187</updated>
     </task>
     <task id="LOCAL−00017" summary="added the sensor pins to the config.json so it is dynamically added to RaspberryPi.py code.">
       <option name="closed" value="true" />
@@ -573,7 +559,21 @@
       <option name="presentableId" value="LOCAL−00063" />
       <updated>1748966139674</updated>
     </task>
-    <option name="localTasksCounter" value="64" />
+    <task id="LOCAL−00064" summary="Y7.3[TEST].02J">
+      <option name="closed" value="true" />
+      <created>1748966964796</created>
+      <option name="number" value="LOCAL−00064" />
+      <option name="presentableId" value="LOCAL−00064" />
+      <updated>1748966964796</updated>
+    </task>
+    <task id="LOCAL−00065" summary="Y7.3[TEST].03">
+      <option name="closed" value="true" />
+      <created>1748967375742</created>
+      <option name="number" value="LOCAL−00065" />
+      <option name="presentableId" value="LOCAL−00065" />
+      <updated>1748967375742</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -591,8 +591,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Y7T" />
-    <MESSAGE value="Y7T1" />
     <MESSAGE value="Y7T2" />
     <MESSAGE value="Y7T3" />
     <MESSAGE value="Y7T4" />
@@ -616,7 +614,9 @@
     <MESSAGE value="Y7.2[TEST].022" />
     <MESSAGE value="Y7.3" />
     <MESSAGE value="Y7.3[TEST].01" />
-    <option name="LAST_COMMIT_MESSAGE" value="Y7.3[TEST].01" />
+    <MESSAGE value="Y7.3[TEST].02J" />
+    <MESSAGE value="Y7.3[TEST].03" />
+    <option name="LAST_COMMIT_MESSAGE" value="Y7.3[TEST].03" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1744033091162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
