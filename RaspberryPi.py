@@ -132,10 +132,9 @@ def reader_helper():
 
             if is_closed:
                 if skap_lukket_tidligere[locker_id]:
-                    continue  # Vi har allerede behandlet denne lukkingen
+                    continue
 
                 print(f"[INNGANG] Skap {locker_id} lukket – initierer RFID-registrering")
-
                 rfid_tag = scan_for_rfid(timeout=6)
 
                 nå = time.time()
@@ -149,19 +148,17 @@ def reader_helper():
 
                     skap_lukket_tidligere[locker_id] = True
                     print(f"[STATUS] Registrerer skap {locker_id} med RFID {rfid_tag}")
-                    Register_locker(rfid_tag, locker_id)
+
+                    try:
+                        Register_locker(rfid_tag, locker_id)
+                    except Exception as e:
+                        print(f"[FEIL] Register_locker feilet: {e}")
                     time.sleep(1.5)
 
-                    if not rfid_tag:
-                        print(f"[TIDSKUTT] Ingen RFID registrert for skap {locker_id} – gjør ingenting.")
+                else:
+                    print(f"[TIDSKUTT] Ingen RFID registrert for skap {locker_id} – gjør ingenting.")
+                    skap_lukket_tidligere[locker_id] = True  # Hindre ny registrering uten RFID
 
-                        skap_lukket_tidligere[locker_id] = True  # Ikke åpne skapet igjen
-
-                        continue
-
-                    else:
-                        print(f"[FEIL] Fant ikke GPIO-pin for skap {locker_id}")
-                    skap_lukket_tidligere[locker_id] = False
 
             else:
                 if skap_lukket_tidligere[locker_id]:
