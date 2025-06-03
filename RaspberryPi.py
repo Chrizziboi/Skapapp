@@ -1,9 +1,10 @@
+# RaspberryPi.py
+
 import RPi.GPIO as GPIO
 import time
-import spidev
 import requests
-from mfrc522 import SimpleMFRC522
 import json
+from mfrc522 import SimpleMFRC522
 
 # --- Konfigurasjon ---
 GPIO.setwarnings(False)
@@ -15,8 +16,12 @@ with open("config.json", "r") as config_file:
 LOCKER_ROOM_ID = CONFIG.get("locker_room_id", 1)
 LOCKER_GPIO_MAP = {int(k): v for k, v in CONFIG.get("locker_gpio_map", {}).items()}
 LOCKER_CLOSE_PIN_MAP = {int(k): v for k, v in CONFIG.get("locker_close_pin_map", {}).items()}
+RFID_TIMEOUT_SEC = CONFIG.get("rfid_timeout_sec", 8)
 
-# Initialiser GPIO
+API_URL_REG = "http://localhost:8080/assign_after_closure/"
+API_URL_SCAN = "http://localhost:8080/scan_rfid/"
+
+# --- Init GPIO ---
 for gpio_pin in LOCKER_GPIO_MAP.values():
     GPIO.setup(gpio_pin, GPIO.OUT)
     GPIO.output(gpio_pin, GPIO.LOW)
@@ -24,159 +29,106 @@ for gpio_pin in LOCKER_GPIO_MAP.values():
 for close_pin in LOCKER_CLOSE_PIN_MAP.values():
     GPIO.setup(close_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-API_URL_REG = "http://localhost:8080/assign_after_closure/"
-API_URL_SCAN = "http://localhost:8080/scan_rfid/"
-
+# --- Hjelpevariabler ---
 skap_lukket_tidligere = {locker_id: False for locker_id in LOCKER_CLOSE_PIN_MAP}
 siste_rfid = None
 siste_skann_tid = 0
 
-def magnet_release(pin):
+reader = SimpleMFRC522()
+
+def magnet_release(locker_id):
+    """Fjerner strøm til magnetlåsen for å åpne skapet"""
+    pin = LOCKER_GPIO_MAP[locker_id]
     GPIO.output(pin, GPIO.HIGH)
     time.sleep(1)
     GPIO.output(pin, GPIO.LOW)
 
-
-def scan_for_rfid(timeout=5, init_delay=0):
-    time.sleep(init_delay)
-    reader = SimpleMFRC522()
-    start_time = time.time()
-    print("[RFID] Klar for skanning...")
-
-    while time.time() - start_time < timeout:
-        (status, TagType) = reader.READER.MFRC522_Request(reader.READER.PICC_REQIDL)
-        if status == reader.READER.MI_OK:
-            (status, uid) = reader.READER.MFRC522_Anticoll()
-            if status == reader.READER.MI_OK:
-                rfid_tag = "".join([str(num) for num in uid])
-                if len(rfid_tag) >= 8 and rfid_tag.isdigit():
-                    print("[RFID] Funnet:", rfid_tag)
-                    return rfid_tag
-                else:
-                    print("[ADVARSEL] Ugyldig RFID format – ignorerer")
+def scan_for_rfid(timeout=RFID_TIMEOUT_SEC):
+    """Skanner etter RFID-brikke innen gitt tid"""
+    print("Hold kortet inntil leseren...")
+    start = time.time()
+    while time.time() - start < timeout:
+        id, text = reader.read_no_block()
+        if id:
+            print(f"RFID funnet: {id}")
+            return str(id)
         time.sleep(0.1)
+    print("Ingen RFID funnet, timeout.")
+    return None
 
-    print("[RFID] Ingen RFID registrert")
+def register_locker():
+    """Lytter på skaplukking, triggere RFID-scan og API-kall"""
+    global skap_lukket_tidligere
 
+    for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
+        if GPIO.input(close_pin) == GPIO.LOW and not skap_lukket_tidligere[locker_id]:
+            print(f"[INNGANG] Skap {locker_id} lukket – aktiverer RFID-skanning")
+            skap_lukket_tidligere[locker_id] = True
 
-def Register_locker(rfid_tag, locker_id):
-    """
-    Forsøker å koble RFID til skapet etter manuell lukking.
-    """
-    try:
-        response = requests.post(
-            API_URL_REG,
-            params={
-                "rfid_tag": rfid_tag,
-                "locker_room_id": LOCKER_ROOM_ID,
-                "locker_id": locker_id
-            },
-            timeout=0.5
-        )
-        data = response.json()
-        if response.status_code == 200 and data.get("access_granted"):
-            assigned_id = data.get("locker_id")
-            gpio_pin = LOCKER_GPIO_MAP.get(assigned_id)
-            if gpio_pin:
-                print(f"[TILGANG] RFID godkjent – Skap {assigned_id} låst")
-            else:
-                print(f"[FEIL] Mangler GPIO for skap {assigned_id}")
-        else:
-            print("[RFID] Ikke godkjent – frigjør skap")
-            gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
-            if gpio_pin:
-                magnet_release(gpio_pin)
-    except Exception as e:
-        print(f"[API-FEIL]: {e}")
-
-
-def Reuse_locker(rfid_tag):
-    """
-    Gjenåpner et skap tilknyttet samme RFID hvis det er lukket igjen.
-    """
-    try:
-        response = requests.post(
-            API_URL_SCAN,
-            params={
-                "rfid_tag": rfid_tag,
-                "locker_room_id": LOCKER_ROOM_ID
-            },
-            timeout=0.5
-        )
-        data = response.json()
-        if response.status_code == 200 and data.get("access_granted"):
-            assigned_id = data.get("locker_id")
-            gpio_pin = LOCKER_GPIO_MAP.get(assigned_id)
-            if gpio_pin:
-                print(f"[Frigjøring] Åpner skap {assigned_id}")
-                magnet_release(gpio_pin)
-            return assigned_id
-        else:
-            print("[RFID] Kortet har ikke tilgang til skap")
-    except Exception as e:
-        print(f"[API-FEIL]: {e}")
-
-
-def reader_helper():
-    global siste_rfid, siste_skann_tid
-    print("[SYSTEM] Starter RFID-løkke – overvåker lukking og kort.")
-
-    while True:
-        for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
-            is_closed = GPIO.input(close_pin) == GPIO.LOW
-
-            # --- Bare trigge ved NY lukking ---
-            if is_closed and not skap_lukket_tidligere[locker_id]:
-                print(f"[INNGANG] Skap {locker_id} nettopp lukket – starter registrering")
-                rfid_tag = scan_for_rfid(timeout=6)
-
-                nå = time.time()
-                if rfid_tag:
-                    if rfid_tag == siste_rfid and nå - siste_skann_tid < 2:
-                        print(f"[DUPLIKAT] RFID {rfid_tag} ignorert (for rask skanning).")
-                        continue
-
-                    siste_rfid = rfid_tag
-                    siste_skann_tid = nå
-
-                    print(f"[STATUS] Registrerer skap {locker_id} med RFID {rfid_tag}")
-                    try:
-                        Register_locker(rfid_tag, locker_id)
-                    except Exception as e:
-                        print(f"[FEIL] Register_locker feilet: {e}")
-                    time.sleep(1.5)
-                else:
-                    print(f"[TIDSKUTT] Ingen RFID registrert for skap {locker_id}.")
-                    gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
-                    if gpio_pin is not None:
-                        magnet_release(gpio_pin)
+            rfid_tag = scan_for_rfid()
+            if rfid_tag:
+                try:
+                    response = requests.post(
+                        API_URL_REG,
+                        params={
+                            "rfid_tag": rfid_tag,
+                            "locker_room_id": LOCKER_ROOM_ID,
+                            "locker_id": locker_id
+                        },
+                        timeout=2
+                    )
+                    res = response.json()
+                    print(f"Backend-respons: {res}")
+                    if res.get("success"):
+                        # Lås skapet (hold lås aktivert)
+                        GPIO.output(LOCKER_GPIO_MAP[locker_id], GPIO.LOW)
+                        print(f"Skap {locker_id} reservert til bruker.")
                     else:
-                        print(f"[FEIL] Fant ikke gpio_pin for skap {locker_id}")
+                        print("Ingen tilgang – åpner igjen.")
+                        magnet_release(locker_id)
+                except Exception as e:
+                    print(f"API-feil: {e}")
+                    magnet_release(locker_id)
+            else:
+                # Timeout, åpne igjen
+                magnet_release(locker_id)
 
-                skap_lukket_tidligere[locker_id] = True  # Viktig: først ETTER at alt over er gjort!
+        # Reset ved åpning
+        elif GPIO.input(close_pin) == GPIO.HIGH:
+            skap_lukket_tidligere[locker_id] = False
 
-            # --- Bare trigge ved NY åpning ---
-            elif not is_closed and skap_lukket_tidligere[locker_id]:
-                print(f"[STATUS] Skap {locker_id} nettopp åpnet – klar for ny syklus")
-                print(f"[IO-STATUS] {GPIO.input(20)} - SKAP 1")
-                print(f"[IO-STATUS] {GPIO.input(19)} - SKAP 2")
-                skap_lukket_tidligere[locker_id] = False
+def reuse_locker():
+    """Lytter etter RFID-gjenbruk – åpne skap hvis tilgang"""
+    id, text = reader.read_no_block()
+    if id:
+        try:
+            response = requests.post(
+                API_URL_SCAN,
+                params={
+                    "rfid_tag": str(id),
+                    "locker_room_id": LOCKER_ROOM_ID
+                },
+                timeout=2
+            )
+            res = response.json()
+            if res.get("open_locker_id") is not None:
+                locker_id = res["open_locker_id"]
+                print(f"Åpner skap {locker_id} for eksisterende bruker.")
+                magnet_release(locker_id)
+        except Exception as e:
+            print(f"Gjenbruk API-feil: {e}")
 
+def main_loop():
+    print("[SYSTEM] RaspberryPi skaplås-system starter...")
+    try:
+        while True:
+            register_locker()
+            reuse_locker()
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+        print("Avslutter og rydder opp GPIO.")
+    finally:
+        GPIO.cleanup()
 
-        # --- Gjenbruk: RFID gir tilgang til tidligere reservert skap ---
-        rfid_tag = scan_for_rfid(timeout=1)
-        if not rfid_tag:
-            continue
-
-        nå = time.time()
-        if rfid_tag == siste_rfid and nå - siste_skann_tid < 2:
-            print(f"[DUPLIKAT] RFID {rfid_tag} ignorert (gjenbruk).")
-            continue
-
-        siste_rfid = rfid_tag
-        siste_skann_tid = nå
-        print(f"[GJENBRUK] RFID {rfid_tag} forsøker åpning av tidligere skap")
-        reuse_locker_id = Reuse_locker(rfid_tag)
-        if reuse_locker_id is not None and reuse_locker_id in skap_lukket_tidligere:
-            skap_lukket_tidligere[reuse_locker_id] = False
-        time.sleep(1.5)
+if __name__ == "__main__":
+    main_loop()
