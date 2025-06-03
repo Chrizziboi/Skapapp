@@ -30,7 +30,6 @@ from pydantic import BaseModel
 from database import SessionLocal, setup_database
 from database import backup_database_to_json, restore_database_from_json
 
-from RaspberryPi import reader_helper
 
 
 # Initialiser SQLite3

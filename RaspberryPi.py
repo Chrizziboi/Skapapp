@@ -118,17 +118,3 @@ def reuse_locker():
         except Exception as e:
             print(f"Gjenbruk API-feil: {e}")
 
-def main_loop():
-    print("[SYSTEM] RaspberryPi skaplås-system starter...")
-    try:
-        while True:
-            register_locker()
-            reuse_locker()
-            time.sleep(0.1)
-    except KeyboardInterrupt:
-        print("Avslutter og rydder opp GPIO.")
-    finally:
-        GPIO.cleanup()
-
-if __name__ == "__main__":
-    main_loop()
