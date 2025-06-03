@@ -1,20 +1,81 @@
-[DEBUG] Skap 1 (pin 20) status: LUKKET | Tidligere lukket: True
-[DEBUG] Skap 2 (pin 19) status: ÅPEN | Tidligere lukket: True
-[STATUS] Skap 2 åpnet igjen – nullstiller status
+[DEBUG] Skap 1 (pin 20) status: ÅPEN | Tidligere lukket: False
+[DEBUG] Skap 2 (pin 19) status: LUKKET | Tidligere lukket: False
+[INNGANG] Skap 2 lukket – initierer RFID-registrering
+[RFID] Klar for skanning...
+[RFID] Funnet: 4293149116150
+[STATUS] Registrerer skap 2 med RFID 4293149116150
+[Automatisk Skapopplåser] Fant 0 opptatte skap
+INFO:     127.0.0.1:51776 - "POST /assign_after_closure/?rfid_tag=4293149116150&locker_room_id=1&locker_id=2 HTTP/1.1" 200 OK
+[TILGANG] RFID godkjent – Skap 2 låst
+[FEIL] Fant ikke GPIO-pin for skap 2
 [RFID] Klar for skanning...
 [RFID] Ingen RFID registrert
-[DEBUG] Skap 1 (pin 20) status: LUKKET | Tidligere lukket: True
+[DEBUG] Skap 1 (pin 20) status: ÅPEN | Tidligere lukket: False
 [DEBUG] Skap 2 (pin 19) status: LUKKET | Tidligere lukket: False
 [INNGANG] Skap 2 lukket – initierer RFID-registrering
 [RFID] Klar for skanning...
 [RFID] Ingen RFID registrert
-[TIDSKUTT] Ingen RFID – frigjør skap 2
-[FRIGJØRING] Skap 2 åpnet etter timeout uten RFID
 [RFID] Klar for skanning...
 [RFID] Ingen RFID registrert
-[DEBUG] Skap 1 (pin 20) status: LUKKET | Tidligere lukket: True
+[DEBUG] Skap 1 (pin 20) status: LUKKET | Tidligere lukket: False
+[INNGANG] Skap 1 lukket – initierer RFID-registrering
+[RFID] Klar for skanning...
+[RFID] Funnet: 17019878539
+[STATUS] Registrerer skap 1 med RFID 17019878539
+[Automatisk Skapopplåser] Fant 1 opptatte skap
+INFO:     127.0.0.1:37466 - "POST /assign_after_closure/?rfid_tag=17019878539&locker_room_id=1&locker_id=1 HTTP/1.1" 200 OK
+[TILGANG] RFID godkjent – Skap 1 låst
+[FEIL] Fant ikke GPIO-pin for skap 1
+[DEBUG] Skap 2 (pin 19) status: LUKKET | Tidligere lukket: False
+[INNGANG] Skap 2 lukket – initierer RFID-registrering
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[DEBUG] Skap 1 (pin 20) status: LUKKET | Tidligere lukket: False
+[INNGANG] Skap 1 lukket – initierer RFID-registrering
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[DEBUG] Skap 2 (pin 19) status: LUKKET | Tidligere lukket: False
+[INNGANG] Skap 2 lukket – initierer RFID-registrering
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[DEBUG] Skap 1 (pin 20) status: LUKKET | Tidligere lukket: False
+[INNGANG] Skap 1 lukket – initierer RFID-registrering
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[DEBUG] Skap 2 (pin 19) status: LUKKET | Tidligere lukket: False
+[INNGANG] Skap 2 lukket – initierer RFID-registrering
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[DEBUG] Skap 1 (pin 20) status: LUKKET | Tidligere lukket: False
+[INNGANG] Skap 1 lukket – initierer RFID-registrering
+[RFID] Klar for skanning...
+[RFID] Funnet: 17019878539
+[STATUS] Registrerer skap 1 med RFID 17019878539
+[Automatisk Skapopplåser] Fant 2 opptatte skap
+INFO:     127.0.0.1:38004 - "POST /assign_after_closure/?rfid_tag=17019878539&locker_room_id=1&locker_id=1 HTTP/1.1" 200 OK
+[FEIL] Mangler GPIO for skap None
+[FEIL] Fant ikke GPIO-pin for skap 1
+[DEBUG] Skap 2 (pin 19) status: LUKKET | Tidligere lukket: False
+[INNGANG] Skap 2 lukket – initierer RFID-registrering
+[RFID] Klar for skanning...
+[RFID] Funnet: 4293149116150
+[STATUS] Registrerer skap 2 med RFID 4293149116150
+[Automatisk Skapopplåser] Fant 2 opptatte skap
+INFO:     127.0.0.1:38018 - "POST /assign_after_closure/?rfid_tag=4293149116150&locker_room_id=1&locker_id=2 HTTP/1.1" 200 OK
+[FEIL] Mangler GPIO for skap None
+[FEIL] Fant ikke GPIO-pin for skap 2
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
+[DEBUG] Skap 1 (pin 20) status: LUKKET | Tidligere lukket: False
+[INNGANG] Skap 1 lukket – initierer RFID-registrering
+[RFID] Klar for skanning...
+[RFID] Ingen RFID registrert
 [DEBUG] Skap 2 (pin 19) status: ÅPEN | Tidligere lukket: False
 [RFID] Klar for skanning...
 [RFID] Ingen RFID registrert
-[DEBUG] Skap 1 (pin 20) status: LUKKET | Tidligere lukket: True
-[DEBUG] Skap 2 (pin 19) status: ÅPEN | Tidligere lukket: False
