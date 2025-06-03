@@ -87,19 +87,23 @@ def Register_locker(rfid_tag, locker_id):
     except Exception as e:
         print(f"[API-FEIL]: {e}")
 
-def Reuse_locker(rfid_tag):
+def Reuse_locker(rfid_tag, locker_id):
     try:
         response = requests.post(
             API_URL_SCAN,
             params={
                 "rfid_tag": rfid_tag,
-                "locker_room_id": LOCKER_ROOM_ID
+                "locker_room_id": LOCKER_ROOM_ID,
+                "locker_id": locker_id  # ← NYTT
             },
             timeout=0.5
         )
         data = response.json()
         if response.status_code == 200 and data.get("access_granted"):
             assigned_id = data.get("locker_id")
+            if assigned_id != locker_id:
+                print(f"[AVVIST] Skap {locker_id} er ikke knyttet til RFID {rfid_tag}.")
+                return
             gpio_pin = LOCKER_GPIO_MAP.get(assigned_id)
             if gpio_pin:
                 print(f"[Frigjøring] Åpner skap {assigned_id}")
@@ -108,6 +112,7 @@ def Reuse_locker(rfid_tag):
             print("[RFID] Kortet har ikke tilgang til skap")
     except Exception as e:
         print(f"[API-FEIL]: {e}")
+
 
 def reader_helper():
     global siste_rfid, siste_skann_tid
@@ -167,7 +172,8 @@ def reader_helper():
 
         siste_rfid = rfid_tag
         siste_skann_tid = nå
-        Reuse_locker(rfid_tag)
-        skap_lukket_tidligere[locker_id] = False
+        for locker_id in LOCKER_GPIO_MAP:
+            Reuse_locker(rfid_tag, locker_id)
+            skap_lukket_tidligere[locker_id] = False
         time.sleep(1.5)
 

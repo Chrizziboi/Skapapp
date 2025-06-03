@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y7T7.02[DEBUG].04(Joakim speciale)">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RaspberryPi.py" beforeDir="false" afterPath="$PROJECT_DIR$/RaspberryPi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-    </list>
+    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y7T7.02[DEBUG].05(Joakim speciale)" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -230,13 +226,6 @@
       <workItem from="1739872136387" duration="921000" />
       <workItem from="1740045481576" duration="4077000" />
       <workItem from="1744027286264" duration="5200000" />
-    </task>
-    <task id="LOCAL−00004" summary="Changed the frontend text to norwegian">
-      <option name="closed" value="true" />
-      <created>1743075534840</created>
-      <option name="number" value="LOCAL−00004" />
-      <option name="presentableId" value="LOCAL−00004" />
-      <updated>1743075534840</updated>
     </task>
     <task id="LOCAL−00005" summary="Changed the frontend text to norwegian#2">
       <option name="closed" value="true" />
@@ -574,7 +563,14 @@
       <option name="presentableId" value="LOCAL−00052" />
       <updated>1748943238431</updated>
     </task>
-    <option name="localTasksCounter" value="53" />
+    <task id="LOCAL−00053" summary="Y7T7.02[DEBUG].05(Joakim speciale)">
+      <option name="closed" value="true" />
+      <created>1748945392822</created>
+      <option name="number" value="LOCAL−00053" />
+      <option name="presentableId" value="LOCAL−00053" />
+      <updated>1748945392822</updated>
+    </task>
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -592,7 +588,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Y5.01.2?" />
     <MESSAGE value="Y5.01.22?" />
     <MESSAGE value="Y5.01.22.65?" />
     <MESSAGE value="Y5.6?" />
@@ -617,7 +612,8 @@
     <MESSAGE value="Y7T7.02[DEBUG].02(Joakim speciale)" />
     <MESSAGE value="Y7T7.02[DEBUG].03(Joakim speciale)" />
     <MESSAGE value="Y7T7.02[DEBUG].04(Joakim speciale)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Y7T7.02[DEBUG].04(Joakim speciale)" />
+    <MESSAGE value="Y7T7.02[DEBUG].05(Joakim speciale)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Y7T7.02[DEBUG].05(Joakim speciale)" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1744033091162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
