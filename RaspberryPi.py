@@ -121,49 +121,54 @@ def Reuse_locker(rfid_tag):
 
 
 def reader_helper():
-    """
-    Hovedløkke som:
-    1. Reagerer på manuell lukking av skap (triggerer RFID og registrering).
-    2. Tillater brukere med opptatte skap å åpne igjen via ny RFID-skanning.
-    """
     global siste_rfid, siste_skann_tid
     print("[SYSTEM] Starter RFID-løkke – overvåker lukking og kort.")
 
     while True:
-        # --- Registrer ved ny lukking ---
         for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
-            Locker_closed =  GPIO.input(close_pin) == GPIO.LOW
-            print(f"[OVERVÅKING] Skap {locker_id} er lukket")
-            if Locker_closed and not skap_lukket_tidligere[locker_id]:
-                print(f"[INNGANG] Skap {locker_id} lukket – klar for ny registrering.")
-                skap_lukket_tidligere[locker_id] = True
+            is_closed = GPIO.input(close_pin) == GPIO.LOW
 
-                # Skann for kort umiddelbart ved lukking
-                rfid_tag = scan_for_rfid(timeout=6)  # Gi brukeren tid til å skanne
+            print(f"[DEBUG] Skap {locker_id} (pin {close_pin}) status: {'LUKKET' if is_closed else 'ÅPEN'} | Tidligere lukket: {skap_lukket_tidligere[locker_id]}")
+
+            if is_closed:
+                if skap_lukket_tidligere[locker_id]:
+                    continue  # Vi har allerede behandlet denne lukkingen
+
+                print(f"[INNGANG] Skap {locker_id} lukket – initierer RFID-registrering")
+
+                rfid_tag = scan_for_rfid(timeout=6)
 
                 nå = time.time()
                 if rfid_tag:
                     if rfid_tag == siste_rfid and nå - siste_skann_tid < 2:
-                        print(f"[DUPLIKAT] RFID {rfid_tag} ignorert (registrering).")
+                        print(f"[DUPLIKAT] RFID {rfid_tag} ignorert (for rask skanning).")
                         continue
 
                     siste_rfid = rfid_tag
                     siste_skann_tid = nå
+
+                    skap_lukket_tidligere[locker_id] = True
+                    print(f"[STATUS] Registrerer skap {locker_id} med RFID {rfid_tag}")
                     Register_locker(rfid_tag, locker_id)
                     time.sleep(1.5)
+
                 else:
-                    rfid_tag = None
-                    print("[TIDSKUTT] Ingen RFID – frigjør skap.")
+                    print(f"[TIDSKUTT] Ingen RFID – frigjør skap {locker_id}")
                     gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
                     if gpio_pin:
                         magnet_release(gpio_pin)
+                        print(f"[FRIGJØRING] Skap {locker_id} åpnet etter timeout uten RFID")
+                    else:
+                        print(f"[FEIL] Fant ikke GPIO-pin for skap {locker_id}")
+                    skap_lukket_tidligere[locker_id] = False
 
-            elif not Locker_closed and skap_lukket_tidligere[locker_id]:
-                skap_lukket_tidligere[locker_id] = False
-                print(f"[STATUS] Skap {locker_id} åpnet igjen.")
+            else:
+                if skap_lukket_tidligere[locker_id]:
+                    print(f"[STATUS] Skap {locker_id} åpnet igjen – nullstiller status")
+                    skap_lukket_tidligere[locker_id] = False
 
-        # --- Tillat åpning av opptatte skap via RFID ---
-        rfid_tag = scan_for_rfid(timeout=1)  # Kort timeout for responsivitet
+        # --- Gjenbruk: RFID gir tilgang til tidligere reservert skap ---
+        rfid_tag = scan_for_rfid(timeout=1)
         if not rfid_tag:
             continue
 
@@ -174,5 +179,6 @@ def reader_helper():
 
         siste_rfid = rfid_tag
         siste_skann_tid = nå
+        print(f"[GJENBRUK] RFID {rfid_tag} forsøker åpning av tidligere skap")
         Reuse_locker(rfid_tag)
         time.sleep(1.5)
