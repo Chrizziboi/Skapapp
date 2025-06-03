@@ -27,6 +27,45 @@
     </div>
 
     <script>
+        let socket;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        const reconnectDelay = 3000; // 3 sekunder
+
+        const connectWebSocket = () => {
+            if (socket) socket.close();
+
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log("WebSocket connection established.");
+                reconnectAttempts = 0;
+            };
+
+            socket.onmessage = (event) => {
+                const message = event.data;
+                console.log("WebSocket message received:", message);
+                if (message === "update") {
+                    alert("Databasen ble oppdatert – last inn siden på nytt for å se endringer.");
+                }
+            };
+
+            socket.onclose = (event) => {
+                console.warn("WebSocket connection closed", event);
+                if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    console.log(`Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})`);
+                    setTimeout(connectWebSocket, reconnectDelay);
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error("WebSocket error:", error);
+            };
+        };
+
         document.addEventListener("DOMContentLoaded", () => {
             const token = localStorage.getItem('token');
 
@@ -44,7 +83,7 @@
             })
             .then(data => {
                 console.log("Bruker er autorisert.");
-                // her kan du laste data fra backend hvis ønskelig
+                connectWebSocket(); // Start WebSocket etter godkjent token
             })
             .catch(err => {
                 console.error("Uautorisert tilgang:", err);
@@ -52,6 +91,7 @@
                 window.location.href = "/";
             });
         });
+
         function goBack() {
             window.history.back();
         }

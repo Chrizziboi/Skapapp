@@ -121,8 +121,7 @@
                 </div>
             </form>
         </div>
-    </div> <!-- End of split-layout -->
-
+    </div>
 
     <script>
         const form = document.getElementById("login-form");
@@ -133,7 +132,7 @@
 
             const password = document.getElementById("password").value;
             const formData = new URLSearchParams();
-            formData.append('username', 'default'); // kreves av OAuth2 formdata
+            formData.append('username', 'default');
             formData.append('password', password);
 
             try {
@@ -152,7 +151,6 @@
                 const data = await response.json();
                 localStorage.setItem("token", data.access_token);
 
-                // Dekod JWT for å sjekke rolle
                 const payload = JSON.parse(atob(data.access_token.split('.')[1]));
 
                 if (payload.role === "admin") {
@@ -165,6 +163,33 @@
                 errorMessage.textContent = err.message;
             }
         });
+
+        // WebSocket connection setup (even for login page if needed for future visual cues)
+        let socket;
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
+
+        const connectWebSocket = () => {
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log("WebSocket connection established");
+            };
+
+            socket.onmessage = (event) => {
+                console.log("WebSocket message received on login page (optional use):", event.data);
+            };
+
+            socket.onclose = (event) => {
+                console.log("WebSocket connection closed", event);
+            };
+
+            socket.onerror = (error) => {
+                console.error("WebSocket error:", error);
+            };
+        };
+
+        document.addEventListener("DOMContentLoaded", connectWebSocket);
     </script>
 </body>
 </html>

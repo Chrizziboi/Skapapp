@@ -36,39 +36,46 @@
     </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const token = localStorage.getItem('token');
+    let socket;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    const reconnectDelay = 3000;
 
-        if (!token) {
-            window.location.href = "/";
-            return;
-        }
+    function connectWebSocket() {
+        if (socket) socket.close();
 
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
 
-        if (payload.role !== "admin") {
-            localStorage.removeItem('token');
-            window.location.href = "/";
-            return;
-        }
+        socket = new WebSocket(wsUrl);
 
-        fetch("/api/admin/data", {
-            headers: {"Authorization": `Bearer ${token}`}
-        })
-                .then(res => {
-                    if (!res.ok) throw new Error("Unauthorized");
-                    return res.json();
-                })
-                .then(data => {
-                    console.log("Data:", data);
-                    // Her viser du admin-data til siden
-                })
-                .catch(err => {
-                    localStorage.removeItem('token');
-                    window.location.href = "/";
-                });
-    });
+        socket.onopen = () => {
+            console.log('WebSocket connection established');
+            reconnectAttempts = 0;
+        };
 
+        socket.onmessage = (event) => {
+            const message = event.data;
+            console.log('WebSocket message received:', message);
+
+            if (message === 'update') {
+                fetchAndDisplayRoomData();
+            }
+        };
+
+        socket.onclose = (event) => {
+            console.log('WebSocket connection closed', event);
+            if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+                reconnectAttempts++;
+                console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
+                setTimeout(connectWebSocket, reconnectDelay);
+            }
+        };
+
+        socket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+    }
 
     function logout() {
         localStorage.removeItem('token');
@@ -89,17 +96,17 @@
         }
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
+    function fetchAndDisplayRoomData() {
         const roomList = document.getElementById("admin-room-list");
 
-        fetch("http://localhost:8080/locker_rooms/")
+        fetch("/locker_rooms/")
             .then(response => response.json())
             .then(async rooms => {
                 roomList.innerHTML = '';
 
                 const roomData = await Promise.all(rooms.map(async room => {
                     try {
-                        const res = await fetch(`http://localhost:8080/locker_rooms/${room.room_id}/available_lockers`);
+                        const res = await fetch(`/locker_rooms/${room.room_id}/available_lockers`);
                         const data = await res.json();
                         return {
                             name: room.name,
@@ -123,7 +130,6 @@
                         const colors = ['color-a', 'color-b', 'color-c', 'color-d'];
                         const colorClass = colors[i % colors.length];
 
-                        // Calculate percentage width safely
                         let percentWidth = 0;
                         if (room.total && room.total > 0 && room.available !== undefined) {
                             percentWidth = Math.min(Math.round((room.available / room.total) * 100), 100);
@@ -144,6 +150,47 @@
 
             })
             .catch(error => console.error("Feil ved henting av rom:", error));
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            window.location.href = "/";
+            return;
+        }
+
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.role !== "admin") {
+                localStorage.removeItem('token');
+                window.location.href = "/";
+                return;
+            }
+        } catch (e) {
+            console.error("Invalid token");
+            localStorage.removeItem('token');
+            window.location.href = "/";
+            return;
+        }
+
+        fetch("/api/admin/data", {
+            headers: {"Authorization": `Bearer ${token}`}
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Unauthorized");
+            return res.json();
+        })
+        .then(data => {
+            console.log("Bruker er autorisert.");
+            connectWebSocket();
+            fetchAndDisplayRoomData();
+        })
+        .catch(err => {
+            console.error("Uautorisert tilgang:", err);
+            localStorage.removeItem('token');
+            window.location.href = "/";
+        });
     });
 </script>
 </body>

@@ -6,7 +6,6 @@
     <title>SkapApp - Logg</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles/admin_page.css">
-    <!-- Bruk evt. /static/styles/theme.css om dere har felles tema -->
     <style>
         .logg-container {
             max-width: 1100px;
@@ -56,154 +55,189 @@
 </head>
 <body>
 
-    <!-- NAV-BAR: Kopiert fra admin_page.html, med en ekstra Logg-knapp -->
-    <div class="admin-navbar-wrapper">
-        <nav class="admin-navbar">
-            <ul class="nav-menu">
-                <li><button onclick="navigateTo('overview')">Oversikt</button></li>
-                <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
-                <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
-                <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
-                <li><button onclick="navigateTo('log')">Logg</button></li>
-                <li><button onclick="logout()">Logg ut</button></li>
-            </ul>
-        </nav>
+<div class="admin-navbar-wrapper">
+    <nav class="admin-navbar">
+        <ul class="nav-menu">
+            <li><button onclick="navigateTo('overview')">Oversikt</button></li>
+            <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
+            <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
+            <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
+            <li><button onclick="navigateTo('log')">Logg</button></li>
+            <li><button onclick="logout()">Logg ut</button></li>
+        </ul>
+    </nav>
+</div>
+
+<div class="logg-container">
+    <h1>Logg - SkapApp</h1>
+    <p>Her kan du se all skap-logg for de siste 5 årene. Velg tidsrom for å filtrere loggen.</p>
+
+    <div class="logg-filter-row">
+        <label>Fra: <input type="date" id="from-date" class="datepicker"></label>
+        <label>Til: <input type="date" id="to-date" class="datepicker"></label>
+        <button onclick="fetchLogg()">Vis logg</button>
     </div>
 
-    <div class="logg-container">
-        <h1>Logg - SkapApp</h1>
-        <p>Her kan du se all skap-logg for de siste 5 årene. Velg tidsrom for å filtrere loggen.</p>
-
-        <div class="logg-filter-row">
-            <label>Fra: <input type="date" id="from-date" class="datepicker"></label>
-            <label>Til: <input type="date" id="to-date" class="datepicker"></label>
-            <button onclick="fetchLogg()" style="padding:0.4em 1.2em; border-radius:8px; background:#4f98ca; color:white; border:none; font-weight:600; cursor:pointer;">Vis logg</button>
-        </div>
-
-        <div id="logg-table-wrapper">
-            <table class="logg-table" id="logg-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Skap ID</th>
-                        <th>Bruker ID</th>
-                        <th>Handling</th>
-                        <th>Tidspunkt</th>
-                    </tr>
-                </thead>
-                <tbody id="logg-table-body">
-                    <!-- Fylles med JS -->
-                </tbody>
-            </table>
-        </div>
+    <div id="logg-table-wrapper">
+        <table class="logg-table" id="logg-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Skap ID</th>
+                    <th>Bruker ID</th>
+                    <th>Handling</th>
+                    <th>Tidspunkt</th>
+                </tr>
+            </thead>
+            <tbody id="logg-table-body">
+                <!-- Fylles med JS -->
+            </tbody>
+        </table>
         <div id="logg-empty-message" style="display:none; margin-top:1em; color:#888;">Ingen logg funnet for valgt periode.</div>
     </div>
+</div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const token = localStorage.getItem('token');
+<script>
+    let socket;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    const reconnectDelay = 3000;
 
-            if (!token) {
-                window.location.href = "/";
+    const connectWebSocket = () => {
+        if (socket) {
+            socket.close();
+        }
+
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/updates`;
+
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = () => {
+            console.log("WebSocket connection established");
+            reconnectAttempts = 0;
+        };
+
+        socket.onmessage = (event) => {
+            const message = event.data;
+            if (message === 'update') {
+                fetchLogg();
+            }
+        };
+
+        socket.onclose = (event) => {
+            if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+                reconnectAttempts++;
+                console.log(`Trying to reconnect... (${reconnectAttempts})`);
+                setTimeout(connectWebSocket, reconnectDelay);
+            }
+        };
+
+        socket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+    };
+
+    async function fetchLogg() {
+        const from = document.getElementById("from-date").value;
+        const to = document.getElementById("to-date").value;
+
+        let url = "/locker_logs";
+        const params = [];
+        if (from) params.push(`from_date=${from}`);
+        if (to) params.push(`to_date=${to}`);
+        if (params.length) url += "?" + params.join("&");
+
+        const tableBody = document.getElementById("logg-table-body");
+        tableBody.innerHTML = "";
+        document.getElementById("logg-empty-message").style.display = "none";
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Klarte ikke hente logg fra serveren.");
+            const logs = await response.json();
+
+            if (!logs.length) {
+                document.getElementById("logg-empty-message").style.display = "block";
                 return;
             }
+            for (const entry of logs) {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${entry.id}</td>
+                    <td>${entry.locker_id ?? "-"}</td>
+                    <td>${entry.user_id ?? "-"}</td>
+                    <td>${entry.action ?? "-"}</td>
+                    <td>${formatTimestamp(entry.timestamp)}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+        } catch (err) {
+            alert("Feil ved henting av logg: " + err.message);
+        }
+    }
 
-            fetch("/api/admin/data", {
-                headers: { "Authorization": `Bearer ${token}` }
-            })
-            .then(res => {
-                if (!res.ok) throw new Error("Unauthorized");
-                return res.json();
-            })
-            .then(data => {
-                console.log("Bruker er autorisert.");
-                // her kan du laste data fra backend hvis ønskelig
-            })
-            .catch(err => {
-                console.error("Uautorisert tilgang:", err);
-                localStorage.removeItem('token');
-                window.location.href = "/";
-            });
-        });
-        function navigateTo(page) {
-            // Denne funksjonen må matche routing i din FastAPI/web-app
-            const mapping = {
-                overview: "/admin_page",
-                wardrobe_admin: "/admin_wardrobe",
-                statistics: "/admin_statistics",
-                backup: "/admin_backup",
-                log: "/admin_log"
-            };
-            window.location.href = mapping[page] || "/";
+    function formatTimestamp(ts) {
+        if (!ts) return "-";
+        try {
+            const d = new Date(ts);
+            return d.toLocaleString("no-NO");
+        } catch {
+            return ts;
+        }
+    }
+
+    function navigateTo(page) {
+        const mapping = {
+            overview: "/admin_page",
+            wardrobe_admin: "/admin_wardrobe",
+            statistics: "/admin_statistics",
+            backup: "/admin_backup",
+            log: "/admin_log"
+        };
+        window.location.href = mapping[page] || "/";
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = "/";
+    }
+
+    window.onload = () => {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            window.location.href = "/";
+            return;
         }
 
-        function logout() {
+        fetch("/api/admin/data", {
+            headers: { "Authorization": `Bearer ${token}` }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Unauthorized");
+            return res.json();
+        })
+        .then(data => {
+            console.log("Bruker er autorisert.");
+            connectWebSocket();
+        })
+        .catch(err => {
+            console.error("Uautorisert tilgang:", err);
             localStorage.removeItem('token');
             window.location.href = "/";
-        }
+        });
 
-        // === Hent logg fra backend ===
-        async function fetchLogg() {
-            const from = document.getElementById("from-date").value;
-            const to = document.getElementById("to-date").value;
+        const today = new Date();
+        const lastMonth = new Date(today);
+        lastMonth.setMonth(today.getMonth() - 1);
 
-            let url = "/locker_logs";
-            const params = [];
-            if (from) params.push(`from_date=${from}`);
-            if (to) params.push(`to_date=${to}`);
-            if (params.length) url += "?" + params.join("&");
+        document.getElementById("from-date").value = lastMonth.toISOString().split("T")[0];
+        document.getElementById("to-date").value = today.toISOString().split("T")[0];
 
-            const tableBody = document.getElementById("logg-table-body");
-            tableBody.innerHTML = "";
-            document.getElementById("logg-empty-message").style.display = "none";
+        fetchLogg();
+    };
+</script>
 
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error("Klarte ikke hente logg fra serveren.");
-                const logs = await response.json();
-
-                if (!logs.length) {
-                    document.getElementById("logg-empty-message").style.display = "block";
-                    return;
-                }
-                for (const entry of logs) {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${entry.id}</td>
-                        <td>${entry.locker_id ?? "-"}</td>
-                        <td>${entry.user_id ?? "-"}</td>
-                        <td>${entry.action ?? "-"}</td>
-                        <td>${formatTimestamp(entry.timestamp)}</td>
-                    `;
-                    tableBody.appendChild(row);
-                }
-            } catch (err) {
-                alert("Feil ved henting av logg: " + err.message);
-            }
-        }
-
-        function formatTimestamp(ts) {
-            // Forventet ISO-format: '2024-05-25T09:01:11.123Z' eller liknende
-            if (!ts) return "-";
-            try {
-                const d = new Date(ts);
-                return d.toLocaleString("no-NO");
-            } catch {
-                return ts;
-            }
-        }
-
-        // Sett default fra og til = i dag - 1 måned til i dag
-        window.onload = () => {
-            const today = new Date();
-            const lastMonth = new Date(today);
-            lastMonth.setMonth(today.getMonth() - 1);
-
-            document.getElementById("from-date").value = lastMonth.toISOString().split("T")[0];
-            document.getElementById("to-date").value = today.toISOString().split("T")[0];
-
-            fetchLogg();
-        };
-    </script>
 </body>
 </html>
