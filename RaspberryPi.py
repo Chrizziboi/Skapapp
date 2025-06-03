@@ -168,5 +168,6 @@ def reader_helper():
         siste_rfid = rfid_tag
         siste_skann_tid = nå
         Reuse_locker(rfid_tag)
+        skap_lukket_tidligere[locker_id] = False
         time.sleep(1.5)
 

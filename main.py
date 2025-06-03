@@ -515,7 +515,7 @@ def get_lockers_by_room(db: Session = Depends(get_db)):
 def get_most_opened_lockers(db: Session = Depends(get_db)):
     results = db.query(
         Locker.combi_id,
-        func.count(LockerLog.id).label("times_opened")
+        func.count(LockerLog.id).label("Ganger_åpnet")
     ).join(LockerLog, Locker.id == LockerLog.locker_id) \
         .filter(LockerLog.action == "Låst opp") \
         .group_by(Locker.combi_id) \
@@ -523,7 +523,7 @@ def get_most_opened_lockers(db: Session = Depends(get_db)):
         .limit(10) \
         .all()
 
-    return [{"combi_id": combi_id, "times_opened": count} for combi_id, count in results]
+    return [{"combi_id": combi_id, "Ganger_åpnet": count} for combi_id, count in results]
 
 
 @api.get("/statistic/recent_log_entries")
@@ -618,50 +618,8 @@ async def release_expired_loop():
             if db:
                 db.close()
 
-        await asyncio.sleep(600)  # 10 minutter
+        await asyncio.sleep(180)  # 10 minutter
 
-
-# reader = SimpleMFRC522()
-'''async def poll_rfid():
-    while True:
-        print("Venter på RFID-kort")
-        try:
-            (status, TagType) = reader.READER.MFRC522_Request(reader.READER.PICC_REQIDL)
-            if status == reader.READER.MI_OK:
-                print("Kort funnet")
-                (status, uid) = reader.READER.MFRC522_Anticoll()
-                if status == reader.READER.MI_OK:
-                    await behandle_rfid(uid)
-        except Exception as e:
-            print(f"feil: {e}")
-        await asyncio.sleep(1)'''
-
-
-async def callback_rfid(channel):
-    ''' (status, TagType) = reader.READER.MFRC522_Request(reader.READER.PICC_REQIDL)
-     if status == reader.READER.MI_OK:
-         print("Kort funnet")
-         (status, uid) = reader.READER.MFRC522_Anticoll()
-         if status == reader.READER.MI_OK:
-             print(f"RFID funnet! ID: {uid}")
-             GPIO.output(MAGNETLÅS_PIN, GPIO.HIGH)
-             await asyncio.sleep(1)
-             GPIO.output(MAGNETLÅS_PIN, GPIO.LOW)
- GPIO.cleanup()
- IRQ_PIN = 27
- GPIO.setmode(GPIO.BCM)
- #GPIO.setup(MAGNETLÅS_PIN, GPIO.OUT)
- GPIO.setup(IRQ_PIN, GPIO.IN, pull_up_down = GPIO.PUD_UP)
- #GPIO.remove_event_detect(IRQ_PIN)
- #GPIO.add_event_detect(IRQ_PIN, GPIO.FALLING, callback = callback_rfid, bouncetime = 300)
- while True:
-     print(GPIO.input(IRQ_PIN))
-     time.sleep(0.5)'''
-
-
-'''async def main():
-    await poll_rfid()
-'''
 
 if __name__ == "__main__":
     uvicorn.run(
