@@ -30,6 +30,7 @@ from pydantic import BaseModel
 from database import SessionLocal, setup_database
 from database import backup_database_to_json, restore_database_from_json
 
+from RaspberryPi import main_loop
 
 
 # Initialiser SQLite3
@@ -38,7 +39,7 @@ def run_reader_helper():
     """
     Starter RFID-leseren i en egen tråd slik at den ikke blokkerer hovedløkken.
     """
-    thread = threading.Thread(target=reader_helper, daemon=True)
+    thread = threading.Thread(target=main_loop, daemon=True)
     thread.start()
     print("[DEBUG] RFID-leser er startet i bakgrunnstråd.")
 
