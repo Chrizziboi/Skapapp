@@ -58,6 +58,7 @@ def scan_for_rfid(timeout=5, init_delay=0):
     print("[RFID] Ingen RFID registrert")
     return None
 
+
 def Register_locker(rfid_tag, locker_id):
     try:
         print(f"[API-KALL] Register_locker() for locker_id={locker_id}, rfid={rfid_tag}")
@@ -117,6 +118,8 @@ def reader_helper():
         for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
             is_closed = GPIO.input(close_pin) == GPIO.LOW
 
+            print(f"[DEBUG] Skap {locker_id} (pin {close_pin}) status: {'LUKKET' if is_closed else 'ÅPEN'} | Tidligere lukket: {skap_lukket_tidligere[locker_id]}")
+
             if is_closed:
                 if skap_lukket_tidligere[locker_id]:
                     # Skap er allerede registrert som lukket, gjør ingenting
@@ -138,7 +141,6 @@ def reader_helper():
                     siste_skann_tid = nå
                     Register_locker(rfid_tag, locker_id)
 
-                    # ⚠️ Tilbakestill først når en gyldig RFID er skannet
                     skap_lukket_tidligere[locker_id] = False
                     time.sleep(1.5)
                 else:
@@ -146,7 +148,7 @@ def reader_helper():
                     gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
                     if gpio_pin:
                         magnet_release(gpio_pin)
-                    # ⚠️ Ikke tilbakestill skap_lukket_tidligere her!
+
 
             else:
                 # Hvis skapet er fysisk åpent, men ikke har blitt behandlet enda, ikke gjør noe.
