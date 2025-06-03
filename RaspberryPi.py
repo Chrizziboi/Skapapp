@@ -172,8 +172,8 @@ def reader_helper():
 
         siste_rfid = rfid_tag
         siste_skann_tid = nå
-        for locker_id in LOCKER_GPIO_MAP:
-            Reuse_locker(rfid_tag, locker_id)
-            skap_lukket_tidligere[locker_id] = False
+
+        Reuse_locker(rfid_tag, locker_id)
+        skap_lukket_tidligere[locker_id] = False
         time.sleep(1.5)
 
