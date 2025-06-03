@@ -152,12 +152,13 @@ def reader_helper():
                     Register_locker(rfid_tag, locker_id)
                     time.sleep(1.5)
 
-                else:
-                    print(f"[TIDSKUTT] Ingen RFID – frigjør skap {locker_id}")
-                    gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
-                    if gpio_pin:
-                        magnet_release(gpio_pin)
-                        print(f"[FRIGJØRING] Skap {locker_id} åpnet etter timeout uten RFID")
+                    if not rfid_tag:
+                        print(f"[TIDSKUTT] Ingen RFID registrert for skap {locker_id} – gjør ingenting.")
+
+                        skap_lukket_tidligere[locker_id] = True  # Ikke åpne skapet igjen
+
+                        continue
+
                     else:
                         print(f"[FEIL] Fant ikke GPIO-pin for skap {locker_id}")
                     skap_lukket_tidligere[locker_id] = False
