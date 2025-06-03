@@ -158,7 +158,7 @@ def reader_helper():
                 else:
                     print(f"[TIDSKUTT] Ingen RFID registrert for skap {locker_id} – gjør ingenting.")
                     skap_lukket_tidligere[locker_id] = True  # Hindre ny registrering uten RFID
-
+                    magnet_release(gpio_pin)
 
             else:
                 if skap_lukket_tidligere[locker_id]:
