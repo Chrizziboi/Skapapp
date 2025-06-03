@@ -9,8 +9,6 @@ import json
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
-
-
 with open("config.json", "r") as config_file:
     CONFIG = json.load(config_file)
 
@@ -114,6 +112,7 @@ def Reuse_locker(rfid_tag):
             if gpio_pin:
                 print(f"[Frigjøring] Åpner skap {assigned_id}")
                 magnet_release(gpio_pin)
+            return assigned_id
         else:
             print("[RFID] Kortet har ikke tilgang til skap")
     except Exception as e:
@@ -156,7 +155,7 @@ def reader_helper():
                     time.sleep(1.5)
 
                 else:
-                    print(f"[TIDSKUTT] Ingen RFID registrert for skap {locker_id} – gjør ingenting.")
+                    print(f"[TIDSKUTT] Ingen RFID registrert for skap {locker_id}.")
                     skap_lukket_tidligere[locker_id] = True  # Hindre ny registrering uten RFID
                     magnet_release(gpio_pin)
 
@@ -178,5 +177,6 @@ def reader_helper():
         siste_rfid = rfid_tag
         siste_skann_tid = nå
         print(f"[GJENBRUK] RFID {rfid_tag} forsøker åpning av tidligere skap")
-        Reuse_locker(rfid_tag)
+        Reuse_locker_id = Reuse_locker(rfid_tag)
+        skap_lukket_tidligere[Reuse_locker_id] = False
         time.sleep(1.5)
