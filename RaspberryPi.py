@@ -126,7 +126,7 @@ def reader_helper():
                     continue
 
                 print(f"[INNGANG] Skap {locker_id} lukket – klar for ny registrering.")
-                skap_lukket_tidligere[locker_id] = True
+
 
                 # Skann for kort umiddelbart ved lukking
                 rfid_tag = scan_for_rfid(timeout=6)
@@ -140,14 +140,15 @@ def reader_helper():
                     siste_rfid = rfid_tag
                     siste_skann_tid = nå
                     Register_locker(rfid_tag, locker_id)
+                    skap_lukket_tidligere[locker_id] = True
 
-                    skap_lukket_tidligere[locker_id] = False
                     time.sleep(1.5)
                 else:
                     print("[TIDSKUTT] Ingen RFID – frigjør skap.")
                     gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
                     if gpio_pin:
                         magnet_release(gpio_pin)
+                    skap_lukket_tidligere[locker_id] = False
 
 
             else:
