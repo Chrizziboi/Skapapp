@@ -515,7 +515,7 @@ def get_lockers_by_room(db: Session = Depends(get_db)):
 def get_most_opened_lockers(db: Session = Depends(get_db)):
     results = db.query(
         Locker.combi_id,
-        func.count(LockerLog.id).label("Ganger_åpnet")
+        func.count(LockerLog.id).label("times_opened")
     ).join(LockerLog, Locker.id == LockerLog.locker_id) \
         .filter(LockerLog.action == "Låst opp") \
         .group_by(Locker.combi_id) \
@@ -523,7 +523,7 @@ def get_most_opened_lockers(db: Session = Depends(get_db)):
         .limit(10) \
         .all()
 
-    return [{"combi_id": combi_id, "Ganger_åpnet": count} for combi_id, count in results]
+    return [{"combi_id": combi_id, "times_opened": count} for combi_id, count in results]
 
 
 @api.get("/statistic/recent_log_entries")
@@ -618,7 +618,7 @@ async def release_expired_loop():
             if db:
                 db.close()
 
-        await asyncio.sleep(180)  # 10 minutter
+        await asyncio.sleep(600)  # 10 minutter
 
 
 if __name__ == "__main__":
