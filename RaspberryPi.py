@@ -4,6 +4,8 @@ import spidev
 import requests
 from mfrc522 import SimpleMFRC522
 import json
+import threading
+from collections import defaultdict
 
 # --- Konfigurasjon ---
 GPIO.setwarnings(False)
@@ -27,69 +29,94 @@ for close_pin in LOCKER_CLOSE_PIN_MAP.values():
 API_URL_REG = "http://localhost:8080/assign_after_closure/"
 API_URL_SCAN = "http://localhost:8080/scan_rfid/"
 
-# Tilstandssporing med debouncing
-skap_tilstand = {}
-for locker_id in LOCKER_CLOSE_PIN_MAP:
-    skap_tilstand[locker_id] = {
-        'siste_status': None,  # None, True (lukket), False (åpen)
-        'status_endret_tid': 0,
-        'behandlet_lukking': False,
-        'behandlet_åpning': False
-    }
+# Tilstandshåndtering med debouncing
+skap_lukket_tidligere = {locker_id: False for locker_id in LOCKER_CLOSE_PIN_MAP}
+sensor_stable_count = defaultdict(int)  # Teller for stabile avlesninger
+STABILITY_THRESHOLD = 3  # Antall like avlesninger før vi tror på endringen
 
 siste_rfid = None
 siste_skann_tid = 0
 
-# Debounce tid i sekunder
-DEBOUNCE_TID = 0.5
+# Threading locks for å unngå race conditions
+sensor_lock = threading.Lock()
+rfid_lock = threading.Lock()
 
 
 def magnet_release(pin):
-    print(f"[MAGNET] Åpner lås på GPIO pin {pin}")
-    GPIO.output(pin, GPIO.HIGH)
-    time.sleep(1)
-    GPIO.output(pin, GPIO.LOW)
-    print(f"[MAGNET] Lås på GPIO pin {pin} deaktivert")
+    """Frigjør magnetlås"""
+    try:
+        print(f"[MAGNET] Frigjør lås på pin {pin}")
+        GPIO.output(pin, GPIO.HIGH)
+        time.sleep(1)
+        GPIO.output(pin, GPIO.LOW)
+        print(f"[MAGNET] Lås på pin {pin} frigjort")
+    except Exception as e:
+        print(f"[FEIL] Kunne ikke frigjøre lås på pin {pin}: {e}")
 
 
-def les_skap_status(close_pin):
+def debounced_sensor_read(locker_id, close_pin):
     """
-    Les skap status med debouncing
+    Leser sensor med debouncing for å unngå støy
+    Returnerer True bare hvis sensor er stabil i flere avlesninger
     """
-    return GPIO.input(close_pin) == GPIO.LOW  # LOW = lukket
+    current_state = GPIO.input(close_pin) == GPIO.LOW
+
+    # Sjekk om tilstanden er endret
+    if current_state != skap_lukket_tidligere[locker_id]:
+        sensor_stable_count[locker_id] += 1
+
+        # Krev flere like avlesninger før vi tror på endringen
+        if sensor_stable_count[locker_id] >= STABILITY_THRESHOLD:
+            sensor_stable_count[locker_id] = 0
+            return current_state, True  # Stabil endring detektert
+        else:
+            return skap_lukket_tidligere[locker_id], False  # Ikke stabil ennå
+    else:
+        # Tilstanden er uendret, reset counter
+        sensor_stable_count[locker_id] = 0
+        return current_state, False  # Ingen endring
 
 
 def scan_for_rfid(timeout=5, init_delay=0):
-    time.sleep(init_delay)
-    reader = SimpleMFRC522()
-    start_time = time.time()
-    print("[RFID] Klar for skanning...")
-
-    while time.time() - start_time < timeout:
+    """Forbedret RFID-skanning med bedre feilhåndtering"""
+    with rfid_lock:  # Sikre at bare én tråd skanner om gangen
+        time.sleep(init_delay)
         try:
-            (status, TagType) = reader.READER.MFRC522_Request(reader.READER.PICC_REQIDL)
-            if status == reader.READER.MI_OK:
-                (status, uid) = reader.READER.MFRC522_Anticoll()
-                if status == reader.READER.MI_OK:
-                    rfid_tag = "".join([str(num) for num in uid])
-                    if len(rfid_tag) >= 8 and rfid_tag.isdigit():
-                        print("[RFID] Funnet:", rfid_tag)
-                        return rfid_tag
-                    else:
-                        print("[ADVARSEL] Ugyldig RFID format – ignorerer")
-        except Exception as e:
-            print(f"[RFID-FEIL] {e}")
-        time.sleep(0.1)
+            reader = SimpleMFRC522()
+            start_time = time.time()
+            print("[RFID] Klar for skanning...")
 
-    print("[RFID] Ingen RFID registrert")
-    return None
+            while time.time() - start_time < timeout:
+                try:
+                    (status, TagType) = reader.READER.MFRC522_Request(reader.READER.PICC_REQIDL)
+                    if status == reader.READER.MI_OK:
+                        (status, uid) = reader.READER.MFRC522_Anticoll()
+                        if status == reader.READER.MI_OK:
+                            rfid_tag = "".join([str(num) for num in uid])
+                            if len(rfid_tag) >= 8 and rfid_tag.isdigit():
+                                print("[RFID] Funnet:", rfid_tag)
+                                return rfid_tag
+                            else:
+                                print("[ADVARSEL] Ugyldig RFID format – ignorerer")
+                except Exception as e:
+                    print(f"[RFID-FEIL] Under skanning: {e}")
+                    time.sleep(0.1)
+                    continue
+
+                time.sleep(0.1)
+
+            print("[RFID] Ingen RFID registrert innen timeout")
+            return None
+
+        except Exception as e:
+            print(f"[RFID-FEIL] Kritisk feil: {e}")
+            return None
 
 
 def Register_locker(rfid_tag, locker_id):
-    """
-    Forsøker å koble RFID til skapet etter manuell lukking.
-    """
+    """Forbedret registrering med bedre feilhåndtering"""
     try:
+        print(f"[API] Registrerer RFID {rfid_tag} til skap {locker_id}")
         response = requests.post(
             API_URL_REG,
             params={
@@ -97,152 +124,159 @@ def Register_locker(rfid_tag, locker_id):
                 "locker_room_id": LOCKER_ROOM_ID,
                 "locker_id": locker_id
             },
-            timeout=0.5
+            timeout=2.0  # Økt timeout
         )
+
+        if response.status_code != 200:
+            print(f"[API-FEIL] HTTP {response.status_code}: {response.text}")
+            return False
+
         data = response.json()
-        if response.status_code == 200 and data.get("access_granted"):
+        if data.get("access_granted"):
             assigned_id = data.get("locker_id")
-            print(f"[TILGANG] RFID godkjent – Skap {assigned_id} låst og registrert")
+            print(f"[TILGANG] RFID godkjent – Skap {assigned_id} låst")
+            return True
         else:
             print("[RFID] Ikke godkjent – frigjør skap")
             gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
             if gpio_pin:
                 magnet_release(gpio_pin)
+            return False
+
     except Exception as e:
-        print(f"[API-FEIL]: {e}")
-        # Ved API-feil, frigjør skapet
+        print(f"[API-FEIL] Register_locker: {e}")
+        # Ved API-feil, frigjør skapet som sikkerhetstiltak
         gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
         if gpio_pin:
             magnet_release(gpio_pin)
+        return False
 
 
 def Reuse_locker(rfid_tag):
-    """
-    Gjenåpner et skap tilknyttet samme RFID hvis det er lukket igjen.
-    """
+    """Forbedret gjenbruk med bedre logging"""
     try:
+        print(f"[GJENBRUK] Prøver RFID {rfid_tag}")
         response = requests.post(
             API_URL_SCAN,
             params={
                 "rfid_tag": rfid_tag,
                 "locker_room_id": LOCKER_ROOM_ID
             },
-            timeout=0.5
+            timeout=2.0
         )
+
+        if response.status_code != 200:
+            print(f"[API-FEIL] Gjenbruk HTTP {response.status_code}")
+            return False
+
         data = response.json()
-        if response.status_code == 200 and data.get("access_granted"):
+        if data.get("access_granted"):
             assigned_id = data.get("locker_id")
             gpio_pin = LOCKER_GPIO_MAP.get(assigned_id)
             if gpio_pin:
                 print(f"[FRIGJØRING] Åpner skap {assigned_id}")
                 magnet_release(gpio_pin)
+                return True
         else:
             print("[RFID] Kortet har ikke tilgang til skap")
+            return False
+
     except Exception as e:
-        print(f"[API-FEIL]: {e}")
+        print(f"[API-FEIL] Reuse_locker: {e}")
+        return False
 
 
-def behandle_skap_lukking(locker_id):
-    """
-    Behandler når et skap blir lukket
-    """
+def handle_locker_closure(locker_id):
+    """Håndterer skaplukking i egen funksjon"""
     print(f"[LUKKING] Skap {locker_id} lukket – starter RFID-registrering")
 
-    # Vent litt for å la systemet stabilisere seg
-    time.sleep(0.2)
-
+    # Skann for RFID
     rfid_tag = scan_for_rfid(timeout=6)
 
-    nå = time.time()
-    global siste_rfid, siste_skann_tid
-
     if rfid_tag:
-        if rfid_tag == siste_rfid and nå - siste_skann_tid < 2:
-            print(f"[DUPLIKAT] RFID {rfid_tag} ignorert (for rask skanning)")
+        # Sjekk for duplikater
+        global siste_rfid, siste_skann_tid
+        nå = time.time()
+
+        if rfid_tag == siste_rfid and nå - siste_skann_tid < 3:
+            print(f"[DUPLIKAT] RFID {rfid_tag} ignorert (for rask skanning).")
             return
 
         siste_rfid = rfid_tag
         siste_skann_tid = nå
 
-        print(f"[REGISTRERING] Registrerer skap {locker_id} med RFID {rfid_tag}")
-
-        try:
-            Register_locker(rfid_tag, locker_id)
-        except Exception as e:
-            print(f"[FEIL] Register_locker feilet: {e}")
+        # Registrer skap
+        success = Register_locker(rfid_tag, locker_id)
+        if success:
+            print(f"[SUKSESS] Skap {locker_id} registrert til RFID {rfid_tag}")
+        else:
+            print(f"[FEIL] Kunne ikke registrere skap {locker_id}")
     else:
-        print(f"[AUTO-ÅPNING] Ingen RFID registrert for skap {locker_id} – åpner automatisk")
+        print(f"[TIMEOUT] Ingen RFID for skap {locker_id} – frigjør automatisk")
         gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
         if gpio_pin:
             magnet_release(gpio_pin)
-        else:
-            print(f"[FEIL] Ingen GPIO pin funnet for skap {locker_id}")
-
-
-def behandle_gjenbruk_rfid():
-    """
-    Behandler RFID-skanning for gjenbruk av eksisterende skap
-    """
-    rfid_tag = scan_for_rfid(timeout=1)
-    if not rfid_tag:
-        return
-
-    nå = time.time()
-    global siste_rfid, siste_skann_tid
-
-    if rfid_tag == siste_rfid and nå - siste_skann_tid < 2:
-        print(f"[DUPLIKAT] RFID {rfid_tag} ignorert (gjenbruk)")
-        return
-
-    siste_rfid = rfid_tag
-    siste_skann_tid = nå
-    print(f"[GJENBRUK] RFID {rfid_tag} forsøker åpning av tidligere skap")
-    Reuse_locker(rfid_tag)
 
 
 def reader_helper():
-    print("[SYSTEM] Starter RFID-løkke – overvåker lukking og kort")
+    """Hovedløkke med forbedret stabilitet"""
+    print("[SYSTEM] Starter forbedret RFID-løkke")
+
+    last_gjenbruk_check = 0
+    GJENBRUK_INTERVAL = 2.0  # Sjekk gjenbruk hvert 2. sekund
 
     while True:
         try:
-            # Sjekk alle skap for statusendringer
-            for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
-                nåværende_status = les_skap_status(close_pin)
-                tilstand = skap_tilstand[locker_id]
-                nå = time.time()
+            with sensor_lock:
+                # Sjekk alle sensorer med debouncing
+                for locker_id, close_pin in LOCKER_CLOSE_PIN_MAP.items():
+                    current_state, state_changed = debounced_sensor_read(locker_id, close_pin)
 
-                # Hvis status har endret seg
-                if tilstand['siste_status'] != nåværende_status:
-                    print(f"[DEBUG] Skap {locker_id} statusendring: {tilstand['siste_status']} -> {nåværende_status}")
-                    tilstand['siste_status'] = nåværende_status
-                    tilstand['status_endret_tid'] = nå
-                    tilstand['behandlet_lukking'] = False
-                    tilstand['behandlet_åpning'] = False
+                    if state_changed:
+                        if current_state:  # Skap lukket
+                            if not skap_lukket_tidligere[locker_id]:
+                                skap_lukket_tidligere[locker_id] = True
+                                # Håndter lukking i egen funksjon
+                                handle_locker_closure(locker_id)
+                        else:  # Skap åpnet
+                            if skap_lukket_tidligere[locker_id]:
+                                print(f"[ÅPNING] Skap {locker_id} åpnet – nullstiller status")
+                                skap_lukket_tidligere[locker_id] = False
 
-                # Hvis statusen har vært stabil i debounce-perioden
-                elif nå - tilstand['status_endret_tid'] > DEBOUNCE_TID:
+            # Sjekk gjenbruk med intervall (ikke hver gang)
+            nå = time.time()
+            if nå - last_gjenbruk_check >= GJENBRUK_INTERVAL:
+                last_gjenbruk_check = nå
 
-                    # Skap er lukket og vi har ikke behandlet denne lukkingen ennå
-                    if nåværende_status and not tilstand['behandlet_lukking']:
-                        tilstand['behandlet_lukking'] = True
-                        behandle_skap_lukking(locker_id)
+                # Kort timeout på gjenbruk-skanning
+                rfid_tag = scan_for_rfid(timeout=0.5)
+                if rfid_tag:
+                    # Sjekk for duplikater
+                    if rfid_tag != siste_rfid or nå - siste_skann_tid >= 3:
+                        siste_rfid = rfid_tag
+                        siste_skann_tid = nå
+                        print(f"[GJENBRUK] RFID {rfid_tag} prøver åpning")
+                        Reuse_locker(rfid_tag)
 
-                    # Skap er åpnet og vi har ikke behandlet denne åpningen ennå
-                    elif not nåværende_status and not tilstand['behandlet_åpning']:
-                        tilstand['behandlet_åpning'] = True
-                        print(f"[ÅPNING] Skap {locker_id} åpnet")
-
-            # Behandle RFID for gjenbruk (bare hvis ingen skap-hendelser pågår)
-            alle_stabile = all(
-                time.time() - tilstand['status_endret_tid'] > DEBOUNCE_TID
-                for tilstand in skap_tilstand.values()
-            )
-
-            if alle_stabile:
-                behandle_gjenbruk_rfid()
-
-            time.sleep(0.1)  # Kort pause for å unngå CPU-overbelastning
+            # Viktig: Gi systemet tid til å puste
+            time.sleep(0.2)  # 200ms delay mellom hver hovedløkke-iterasjon
 
         except Exception as e:
-            print(f"[HOVEDLØKKE-FEIL] {e}")
+            print(f"[KRITISK FEIL] reader_helper: {e}")
             time.sleep(1)  # Lengre pause ved feil
+
+
+# Separat funksjon for graceful shutdown
+def cleanup():
+    """Rydder opp GPIO ved avslutning"""
+    print("[CLEANUP] Rydder opp GPIO...")
+    GPIO.cleanup()
+
+
+if __name__ == "__main__":
+    try:
+        reader_helper()
+    except KeyboardInterrupt:
+        print("[AVSLUTNING] Avbryter...")
+    finally:
+        cleanup()
