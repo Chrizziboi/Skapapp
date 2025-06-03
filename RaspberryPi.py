@@ -264,19 +264,3 @@ def reader_helper():
         except Exception as e:
             print(f"[KRITISK FEIL] reader_helper: {e}")
             time.sleep(1)  # Lengre pause ved feil
-
-
-# Separat funksjon for graceful shutdown
-def cleanup():
-    """Rydder opp GPIO ved avslutning"""
-    print("[CLEANUP] Rydder opp GPIO...")
-    GPIO.cleanup()
-
-
-if __name__ == "__main__":
-    try:
-        reader_helper()
-    except KeyboardInterrupt:
-        print("[AVSLUTNING] Avbryter...")
-    finally:
-        cleanup()
