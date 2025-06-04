@@ -209,29 +209,32 @@ def reader_helper():
 
                     skap_lukket_tidligere[locker_id] = False
 
+            # --- Failsafe sjekk --- (for å sikre at skapet ikke står som "Opptatt" etter manuell åpning)
+            try:
+                response = requests.get("http://localhost:8080/lockers/RBPI/occupied", timeout=0.5)
+                occupied_ids = response.json()
 
-            # --- Failsafe sjekk ---
-                    try:
-                        response = requests.get("http://localhost:8080/lockers/RBPI/occupied", timeout=0.5)
-                        occupied_ids = response.json()
-                        if locker_id in occupied_ids:
-                            print(
-                                f"[FAILSAFE] Skap {locker_id} ble fysisk åpnet mens det fortsatt er registrert som opptatt!")
-                            try:
-                                release_response = requests.put(
-                                    "http://localhost:8080/lockers/manual_release/",
-                                    params={"locker_id": locker_id, "locker_room_id": LOCKER_ROOM_ID},
-                                    timeout=0.5
-                                )
-                                if release_response.status_code == 200 and release_response.json().get(
-                                        "access_granted"):
-                                    print(f"[FAILSAFE] Skap {locker_id} er manuelt frigjort via backend.")
-                                else:
-                                    print(f"[FAILSAFE] Backend avslo manuell frigjøring: {release_response.text}")
-                            except Exception as e:
-                                print(f"[FAILSAFE] Klarte ikke kontakte backend for manuell frigjøring: {e}")
-                    except Exception as e:
-                        print(f"[FAILSAFE] Feil ved sjekk av opptatt status: {e}")
+                if locker_id in occupied_ids:
+                    print(f"[FAILSAFE] Skap {locker_id} ble fysisk åpnet mens det fortsatt er registrert som opptatt!")
+
+                    release_response = requests.put(
+                        "http://localhost:8080/lockers/manual_release/",
+                        params={"locker_id": locker_id, "locker_room_id": LOCKER_ROOM_ID},
+                        timeout=0.5
+                    )
+
+                    if release_response.status_code == 200:
+                        response_data = release_response.json()
+                        if response_data.get("access_granted"):
+                            print(f"[FAILSAFE] Skap {locker_id} er manuelt frigjort via backend.")
+                        else:
+                            print(f"[FAILSAFE] Frigjøring ble avvist: {response_data.get('message')}")
+                    else:
+                        print(
+                            f"[FAILSAFE] Feil ved frigjøringskall: {release_response.status_code} {release_response.text}")
+
+            except Exception as e:
+                print(f"[FAILSAFE] Klarte ikke sjekke eller frigjøre skap: {e}")
 
         # --- Gjenbruk ---
         rfid_tag = scan_for_rfid(timeout=1)
