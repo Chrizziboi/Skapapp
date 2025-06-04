@@ -123,7 +123,7 @@ def manual_release_locker(locker_id):
     Frigjør (åpner) skapet med gitt locker_id etter å ha fått bekreftelse fra backend.
     """
     response = requests.put(
-        "http://localhost:8080/lockers/manual_release/",
+        "http://localhost:8080/lockers/manual_release/&locker_room_id={LOCKER_ROOM_ID}",
         params={
             "locker_id": locker_id,
             "locker_room_id": LOCKER_ROOM_ID
@@ -190,7 +190,7 @@ def reader_helper():
 
                     print(f"[STATUS] Skap {locker_id} nettopp åpnet – sjekker backendstatus")
 
-                    # 🔍 Kall backend for å sjekke om skapet fortsatt er registrert som opptatt
+                    # Kall backend for å sjekke om skapet fortsatt er registrert som opptatt
 
                     try:
 
