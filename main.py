@@ -13,14 +13,14 @@ from backend.model.LockerLog import LockerLog
 from backend.model.LockerLog import log_unlock_action, release_expired_lockers_logic
 from backend.model import Locker
 from backend.model.Statistic import *
-from backend.model.AdminUser import create_admin
+from backend.model.AdminUser import create_admin, manual_release_locker
 from backend.model.StandardUser import reserve_locker
 from backend.model.Locker import add_locker, add_note_to_locker, add_multiple_lockers
 from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
 from backend.model.AdminUser import authenticate_user
 
-from fastapi import FastAPI, Depends, Request, HTTPException
+from fastapi import FastAPI, Depends, Request, HTTPException, requests
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import UploadFile, File
@@ -30,7 +30,7 @@ from pydantic import BaseModel
 from database import SessionLocal, setup_database
 from database import backup_database_to_json, restore_database_from_json
 
-from RaspberryPi import reader_helper, poll_manual_release
+from RaspberryPi import reader_helper
 
 
 # Initialiser SQLite3
@@ -43,11 +43,11 @@ def run_reader_helper():
     thread.start()
     print("[DEBUG] RFID-leser er startet i bakgrunnstråd.")
 
-def run_manual_release_thread():
+"""def run_manual_release_thread():
 
     thread = threading.Thread(target=poll_manual_release, daemon=True)
     thread.start()
-    print("[DEBUG] starter admin utløsning.")
+    print("[DEBUG] starter admin utløsning.")"""
 
 setup_database()
 
@@ -58,7 +58,7 @@ async def lifespan(_):
     asyncio.create_task(release_expired_loop())
     # asyncio.create_task(rfid_background_listener())
     run_reader_helper()
-    run_manual_release_thread()
+    #run_manual_release_thread()
     # print("[DEBUG] release_expired_loop STARTET")
     yield
 
@@ -89,12 +89,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-# GPIO.setmode(GPIO.BCM)
-# MAGNETLÅS_PIN = 17
-# GPIO.setup(MAGNETLÅS_PIN, GPIO.OUT)
-# GPIO.output(MAGNETLÅS_PIN, GPIO.LOW)
 
 ''' FRONTPAGE '''
 
@@ -254,6 +248,12 @@ def get_occupied_lockers_endpoint(db: Session = Depends(get_db)):
 
 
 ''' POST CALLS '''
+
+@api.post("/api/manual_release")
+def admin_manual_release(req: AdminReleaseRequest):
+    print(f"[ADMIN-API] Trigger manuell frigjøring av skap {req.locker_id}")
+    locker_id = manual_release_locker(req.locker_id)
+    return {"status": "ok" if locker_id else "fail", "locker_id": req.locker_id}
 
 
 @api.post("/login")
@@ -423,10 +423,21 @@ def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Dep
 def manual_release_locker_endpoint(locker_id: int, locker_room_id: int, db: Session = Depends(get_db)):
     try:
         from backend.model.AdminUser import manual_release_locker
-        return manual_release_locker(locker_id, locker_room_id, db)
+        result = manual_release_locker(locker_id, locker_room_id, db)
+        # Hvis access_granted, kall Pi sitt REST-endepunkt:
+        if result.get("access_granted"):
+            try:
+                PI_URL = "http://<PI_IP>:8000/api/manual_release"  # Sett riktig IP!
+                r = requests.post(PI_URL, json={"locker_id": locker_id}, timeout=2)
+                if r.status_code == 200:
+                    result["pi_status"] = "OK"
+                else:
+                    result["pi_status"] = f"Feil fra Pi: {r.text}"
+            except Exception as e:
+                result["pi_status"] = f"Kunne ikke kontakte Pi: {str(e)}"
+        return result
     except Exception as e:
         return fastapi_error_handler(f"Feil ved manuell frigjøring av skap: {str(e)}", status_code=500)
-
 
 ''' DELETE CALLS '''
 
@@ -474,6 +485,7 @@ def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
         }
     except Exception as e:
         return fastapi_error_handler(f"Feil ved sletting av garderoberom: {str(e)}", status_code=500)
+
 
 
 ''' STATISTIC CALLS '''

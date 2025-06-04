@@ -27,7 +27,6 @@ for close_pin in LOCKER_CLOSE_PIN_MAP.values():
 API_URL_REG = "http://localhost:8080/assign_after_closure/"
 API_URL_SCAN = "http://localhost:8080/scan_rfid/"
 API_URL_ADM = "http://localhost:8080/lockers/manual_release/"
-API_URL_CLOCKERS = "http://localhost:8080/lockers/RBPI/occupied"
 
 skap_lukket_tidligere = {locker_id: False for locker_id in LOCKER_CLOSE_PIN_MAP}
 siste_rfid = None
@@ -41,7 +40,6 @@ def magnet_release(pin):
     GPIO.output(pin, GPIO.HIGH)
     time.sleep(1)
     GPIO.output(pin, GPIO.LOW)
-
 
 def scan_for_rfid(timeout=5, init_delay=0):
     time.sleep(init_delay)
@@ -63,7 +61,6 @@ def scan_for_rfid(timeout=5, init_delay=0):
         time.sleep(0.1)
 
     print("[RFID] Ingen RFID registrert")
-
 
 def Register_locker(rfid_tag, locker_id):
     """
@@ -95,7 +92,6 @@ def Register_locker(rfid_tag, locker_id):
     except Exception as e:
         print(f"[API-FEIL]: {e}")
 
-
 def Reuse_locker(rfid_tag):
     """
     Gjenåpner et skap tilknyttet samme RFID hvis det er lukket igjen.
@@ -122,7 +118,6 @@ def Reuse_locker(rfid_tag):
     except Exception as e:
         print(f"[API-FEIL]: {e}")
 
-
 def manual_release_locker(locker_id):
     """
     Frigjør (åpner) skapet med gitt locker_id etter å ha fått bekreftelse fra backend.
@@ -146,7 +141,6 @@ def manual_release_locker(locker_id):
     else:
         print("[Manuell frigjøring] Fikk ikke tilgang til å åpne skapet")
         return None
-
 
 def reader_helper():
     global siste_rfid, siste_skann_tid
@@ -198,7 +192,6 @@ def reader_helper():
                     print(f"[IO-STATUS] {GPIO.input(20)} - SKAP 1")
                     skap_lukket_tidligere[locker_id] = False
 
-
         # --- Gjenbruk: RFID gir tilgang til tidligere reservert skap ---
         rfid_tag = scan_for_rfid(timeout=1)
         if not rfid_tag:
@@ -216,24 +209,3 @@ def reader_helper():
         if reuse_locker_id is not None and reuse_locker_id in skap_lukket_tidligere:
             skap_lukket_tidligere[reuse_locker_id] = False
         time.sleep(1.5)
-
-
-def poll_manual_release():
-    while True:
-        try:
-            response = requests.get(API_URL_CLOCKERS, timeout=1)
-            if response.status_code == 200:
-                locker_ids = response.json()
-                for locker in locker_ids:
-                    locker_id = locker.get("locker_id")
-                    print(f"Locker fra backend: {locker}, locker_id: {locker_id}, type: {type(locker_id)}")
-                    if isinstance(locker_id, int):
-                        manual_release_locker(locker_id)
-                    else:
-                        print(f"[MANUELL] Ugyldig locker_id fra backend: {locker_id}")
-            else:
-                return None
-        except Exception as e:
-            print(f"[MANUELL] Feil ved polling: {e}")
-        time.sleep(2)
-
