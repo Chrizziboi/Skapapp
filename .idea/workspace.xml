@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y7.4[CURSORTRIP].01">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RaspberryPi.py" beforeDir="false" afterPath="$PROJECT_DIR$/RaspberryPi.py" afterDir="false" />
-    </list>
+    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y7.4[CURSORTRIP].03" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -229,20 +226,6 @@
       <workItem from="1739872136387" duration="921000" />
       <workItem from="1740045481576" duration="4077000" />
       <workItem from="1744027286264" duration="5200000" />
-    </task>
-    <task id="LOCAL−00028" summary="Y5.01.2?">
-      <option name="closed" value="true" />
-      <created>1748516676123</created>
-      <option name="number" value="LOCAL−00028" />
-      <option name="presentableId" value="LOCAL−00028" />
-      <updated>1748516676123</updated>
-    </task>
-    <task id="LOCAL−00029" summary="Y5.01.22?">
-      <option name="closed" value="true" />
-      <created>1748517006278</created>
-      <option name="number" value="LOCAL−00029" />
-      <option name="presentableId" value="LOCAL−00029" />
-      <updated>1748517006278</updated>
     </task>
     <task id="LOCAL−00030" summary="Y5.01.22.65?">
       <option name="closed" value="true" />
@@ -573,7 +556,21 @@
       <option name="presentableId" value="LOCAL−00076" />
       <updated>1748973628490</updated>
     </task>
-    <option name="localTasksCounter" value="77" />
+    <task id="LOCAL−00077" summary="Y7.4[CURSORTRIP].02">
+      <option name="closed" value="true" />
+      <created>1749025420027</created>
+      <option name="number" value="LOCAL−00077" />
+      <option name="presentableId" value="LOCAL−00077" />
+      <updated>1749025420027</updated>
+    </task>
+    <task id="LOCAL−00078" summary="Y7.4[CURSORTRIP].03">
+      <option name="closed" value="true" />
+      <created>1749025613620</created>
+      <option name="number" value="LOCAL−00078" />
+      <option name="presentableId" value="LOCAL−00078" />
+      <updated>1749025613620</updated>
+    </task>
+    <option name="localTasksCounter" value="79" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -591,8 +588,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Y7T7.02[DEBUG].04(Joakim speciale)" />
-    <MESSAGE value="Y7T7.02[DEBUG].05(Joakim speciale)" />
     <MESSAGE value="Y7T7.02[DEBUG].06(Joakim speciale)" />
     <MESSAGE value="Y7T7.02[DEBUG].07(Joakim speciale)" />
     <MESSAGE value="Y7.1" />
@@ -616,7 +611,9 @@
     <MESSAGE value="Y7.4" />
     <MESSAGE value="Y7.4[CURSORTRIP]" />
     <MESSAGE value="Y7.4[CURSORTRIP].01" />
-    <option name="LAST_COMMIT_MESSAGE" value="Y7.4[CURSORTRIP].01" />
+    <MESSAGE value="Y7.4[CURSORTRIP].02" />
+    <MESSAGE value="Y7.4[CURSORTRIP].03" />
+    <option name="LAST_COMMIT_MESSAGE" value="Y7.4[CURSORTRIP].03" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1744033091162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
