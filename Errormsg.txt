@@ -1,1 +1,1 @@
-[MANUELL] Feil ved polling: HTTPConnectionPool(host='lockers', port=80): Max retries exceeded with url: /manual_release/?locker_id=locker_id&locker_room_id=1 (Caused by NameResolutionError("<urllib3.connection.HTTPConnection object at 0xf4930230>: Failed to resolve 'lockers' ([Errno -5] No address associated with hostname)"))
+INFO:     127.0.0.1:32970 - "POST /lockers/manual_release/?locker_id=locker_id&locker_room_id=1 HTTP/1.1" 405 Method Not Allowed
