@@ -154,14 +154,11 @@ def reader_helper():
 
             # Hvis tilstanden har endret seg
             if is_closed != state_info["last_state"]:
-                # Oppdater tidspunkt for siste endring
                 state_info["last_change"] = now
                 state_info["last_state"] = is_closed
 
-            # Sjekk om tilstanden har vært stabil lenge nok
             if is_closed and not skap_lukket_tidligere[locker_id]:
                 if now - state_info["last_change"] >= DEBOUNCE_TIME:
-                    # Skap nettopp lukket – start RFID/registrering
                     print(f"[INNGANG] Skap {locker_id} nettopp lukket – starter registrering")
                     rfid_tag = scan_for_rfid(timeout=6)
                     nå = time.time()
@@ -189,10 +186,26 @@ def reader_helper():
             elif not is_closed and skap_lukket_tidligere[locker_id]:
                 if now - state_info["last_change"] >= DEBOUNCE_TIME:
                     print(f"[STATUS] Skap {locker_id} nettopp åpnet – klar for ny syklus")
-                    print(f"[IO-STATUS] {GPIO.input(20)} - SKAP 1")
                     skap_lukket_tidligere[locker_id] = False
 
-        # --- Gjenbruk: RFID gir tilgang til tidligere reservert skap ---
+                    # --- Failsafe sjekk ---
+                    try:
+                        response = requests.get("http://localhost:8080/lockers/RBPI/occupied", timeout=0.5)
+                        occupied_ids = response.json()
+                        if locker_id in occupied_ids:
+                            print(f"[FAILSAFE] Skap {locker_id} ble fysisk åpnet mens det fortsatt er registrert som opptatt!")
+                            try:
+                                requests.post(
+                                    "http://localhost:8080/log_manual_opening/",
+                                    params={"locker_id": locker_id},
+                                    timeout=0.5
+                                )
+                            except:
+                                print(f"[FAILSAFE] Klarte ikke loggføre åpning for skap {locker_id}")
+                    except Exception as e:
+                        print(f"[FAILSAFE] Feil ved sjekk av skapstatus for skap {locker_id}: {e}")
+
+        # --- Gjenbruk ---
         rfid_tag = scan_for_rfid(timeout=1)
         if not rfid_tag:
             continue
