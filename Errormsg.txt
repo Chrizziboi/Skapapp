@@ -2,5 +2,5 @@
   "access_granted": true,
   "locker_id": 1,
   "message": "Skap 1 er manuelt frigjort.",
-  "pi_status": "Kunne ikke kontakte Pi: module 'fastapi.requests' has no attribute 'post'"
+  "pi_status": "Kunne ikke kontakte Pi: HTTPConnectionPool(host='%3cpi_ip%3e', port=8000): Max retries exceeded with url: /api/manual_release (Caused by NameResolutionError(\"<urllib3.connection.HTTPConnection object at 0xf4946cb0>: Failed to resolve '%3cpi_ip%3e' ([Errno -2] Name or service not known)\"))"
 }
