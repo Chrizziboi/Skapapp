@@ -420,10 +420,10 @@ def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Dep
 
 
 @api.put("/lockers/manual_release/")
-def manual_release_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
+def manual_release_locker_endpoint(locker_id: int, locker_room_id: int, db: Session = Depends(get_db)):
     try:
         from backend.model.AdminUser import manual_release_locker
-        return manual_release_locker(locker_id, db)
+        return manual_release_locker(locker_id, locker_room_id, db)
     except Exception as e:
         return fastapi_error_handler(f"Feil ved manuell frigjøring av skap: {str(e)}", status_code=500)
 
