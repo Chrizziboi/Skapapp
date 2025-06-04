@@ -227,8 +227,10 @@ def poll_manual_release():
 
             if response.status_code == 200:
                 locker_ids = response.json()
-                for locker_id in locker_ids:
-                    manual_release_locker(locker_id)
+                for locker in locker_ids:
+                    locker_id = locker.get("locker_id")
+                    if locker_id is not None:
+                        manual_release_locker(locker_id)
                     # (valgfritt) send bekreftelse til backend at skapet er åpnet
             else:
                 return None
