@@ -1,16 +1,6 @@
-422	
-Error: Unprocessable Entity
-
 {
-  "detail": [
-    {
-      "type": "missing",
-      "loc": [
-        "query",
-        "locker_room_id"
-      ],
-      "msg": "Field required",
-      "input": null
-    }
-  ]
+  "access_granted": true,
+  "locker_id": 1,
+  "message": "Skap 1 er manuelt frigjort.",
+  "pi_status": "Kunne ikke kontakte Pi: module 'fastapi.requests' has no attribute 'post'"
 }
