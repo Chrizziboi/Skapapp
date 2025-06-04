@@ -123,6 +123,31 @@ def Reuse_locker(rfid_tag):
         print(f"[API-FEIL]: {e}")
 
 
+def manual_release_locker(locker_id):
+    """
+    Frigjør (åpner) skapet med gitt locker_id ved å aktivere magneten.
+    """
+    gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
+    response = requests.post(
+        API_URL_ADM,
+        params={
+            "locker_id"
+            "locker_room_id": LOCKER_ROOM_ID
+        },
+        timeout=0.5
+    )
+    data = response.json()
+    if response.status_code == 200 and data.get("access_granted"):
+        assigned_id = data.get("locker_id")
+        gpio_pin = LOCKER_GPIO_MAP.get(assigned_id)
+        if gpio_pin:
+            print(f"[Manuell frigjøring] Åpner skap {assigned_id}")
+            magnet_release(gpio_pin)
+        return assigned_id
+    else:
+        print("[RFID] Kortet har ikke tilgang til skap")
+
+
 def reader_helper():
     global siste_rfid, siste_skann_tid
     print("[SYSTEM] Starter RFID-løkke – overvåker lukking og kort.")
@@ -193,18 +218,7 @@ def reader_helper():
         time.sleep(1.5)
 
 
-def manual_release_locker(locker_id):
-    """
-    Frigjør (åpner) skapet med gitt locker_id ved å aktivere magneten.
-    """
-    gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
-    if gpio_pin is not None:
-        print(f"[MANUELL] Frigjør skap {locker_id} (GPIO {gpio_pin}) etter admin-forespørsel")
-        magnet_release(gpio_pin)
-        return True
-    else:
-        print(f"[MANUELL] Fant ikke gpio_pin for skap {locker_id}")
-        return False
+
 
 
 """
