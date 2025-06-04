@@ -1,1 +1,2 @@
-INFO:     127.0.0.1:32970 - "POST /lockers/manual_release/?locker_id=locker_id&locker_room_id=1 HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:38516 - "PUT /lockers/manual_release/?locker_id=locker_id&locker_room_id=1 HTTP/1.1" 422 Unprocessable Entity
+[Manuell frigjøring] Fikk ikke tilgang til å åpne skapet
