@@ -8,6 +8,7 @@ import logging
 import RPi.GPIO as GPIO
 from mfrc522 import SimpleMFRC522
 import time
+import requests
 
 from backend.model.LockerLog import LockerLog
 from backend.model.LockerLog import log_unlock_action, release_expired_lockers_logic
