@@ -56,7 +56,7 @@ def authenticate_user(input_password: str, db: Session):
             return user
     return None
 
-def manual_release_locker_endpoint(locker_id: int, locker_room_id: int, db: Session):
+def manual_release_locker(locker_id: int, locker_room_id: int, db: Session):
     """
     Endepunkt for å manuelt frigjøre et skap.
     """
