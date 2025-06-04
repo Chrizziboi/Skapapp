@@ -56,17 +56,30 @@ def authenticate_user(input_password: str, db: Session):
             return user
     return None
 
-def manual_release_locker(locker_id: int, db: Session):
-    locker = db.query(Locker).filter(Locker.id == locker_id).first()
-    if not locker:
-        raise fastapi_error_handler(f"Ingen garderobeskap med id: {locker_id}", status_code=404)
+def manual_release_locker_endpoint(locker_id: int, locker_room_id: int, db: Session):
+    """
+    Endepunkt for å manuelt frigjøre et skap.
+    """
+    try:
+        # Sjekk at skapet finnes
+        locker = db.query(Locker).filter(Locker.id == locker_id, Locker.locker_room_id == locker_room_id).first()
+        if not locker:
+            return {"access_granted": False, "message": f"Ingen garderobeskap med id: {locker_id} i rom {locker_room_id}"}
 
-    locker.status = "Ledig"
-    locker.user_id = None
-    db.commit()
-    db.refresh(locker)
+        # Sett skapet til ledig
+        locker.status = "Ledig"
+        locker.user_id = None
+        db.commit()
+        db.refresh(locker)
 
-    from backend.model.LockerLog import log_action
-    log_action(locker_id=locker.id, user_id=None, action="Manuelt frigjort", db=db)
+        # Logg handlingen (valgfritt)
+        from backend.model.LockerLog import log_action
+        log_action(locker_id=locker.id, user_id=None, action="Manuelt frigjort", db=db)
 
-    return {"message": f"Skap {locker.id} er manuelt frigjort av Admin."}
+        return {
+            "access_granted": True,
+            "locker_id": locker.id,
+            "message": f"Skap {locker.id} er manuelt frigjort av Admin."
+        }
+    except Exception as e:
+        return {"access_granted": False, "message": f"Feil ved manuell frigjøring: {str(e)}"}

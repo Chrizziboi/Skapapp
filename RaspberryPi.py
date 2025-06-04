@@ -135,6 +135,7 @@ def manual_release_locker(locker_id):
         },
         timeout=0.5
     )
+    print(f"manual_release_locker: status={response.status_code}, body={response.text}")
     data = response.json()
     if response.status_code == 200 and data.get("access_granted"):
         print(f"[Manuell frigjøring] Åpner skap {locker_id}")
