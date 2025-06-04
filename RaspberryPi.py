@@ -122,14 +122,10 @@ def manual_release_locker(locker_id):
     """
     Frigjør (åpner) skapet med gitt locker_id etter å ha fått bekreftelse fra backend.
     """
-    response = requests.put(
-        "http://localhost:8080/lockers/manual_release/&locker_room_id={LOCKER_ROOM_ID}",
-        params={
-            "locker_id": locker_id,
-            "locker_room_id": LOCKER_ROOM_ID
-        },
-        timeout=0.5
-    )
+
+    url = f"http://localhost:8080/lockers/manual_release/?locker_id={locker_id}&locker_room_id={LOCKER_ROOM_ID}"
+
+    response = requests.put(url, timeout=0.5)
 
     print(f"manual_release_locker: status={response.status_code}, body={response.text}")
     data = response.json()
