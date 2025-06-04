@@ -220,21 +220,19 @@ def reader_helper():
 def poll_manual_release():
     while True:
         try:
-            # Hent liste over skap som skal åpnes manuelt fra backend
-            response = requests.get(
-                API_URL_CLOCKERS,
-                timeout=1)
-
+            response = requests.get(API_URL_CLOCKERS, timeout=1)
             if response.status_code == 200:
                 locker_ids = response.json()
                 for locker in locker_ids:
                     locker_id = locker.get("locker_id")
-                    if locker_id is not None:
+                    print(f"Locker fra backend: {locker}, locker_id: {locker_id}, type: {type(locker_id)}")
+                    if isinstance(locker_id, int):
                         manual_release_locker(locker_id)
-                    # (valgfritt) send bekreftelse til backend at skapet er åpnet
+                    else:
+                        print(f"[MANUELL] Ugyldig locker_id fra backend: {locker_id}")
             else:
                 return None
         except Exception as e:
             print(f"[MANUELL] Feil ved polling: {e}")
-        time.sleep(2)  # Poll hvert 2. sekund
+        time.sleep(2)
 
