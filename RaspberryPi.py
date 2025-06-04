@@ -6,10 +6,40 @@ from mfrc522 import SimpleMFRC522
 import json
 import logging
 from locker_state import LockerState
+from threading import Timer
 
 # --- Konfigurasjon ---
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
+
+# Maksimal tid en magnetlås kan være aktivert (i sekunder)
+MAX_MAGNET_ACTIVATION_TIME = 1.0
+
+class MagnetWatchdog:
+    def __init__(self, pin):
+        self.pin = pin
+        self.timer = None
+
+    def start(self):
+        self.timer = Timer(MAX_MAGNET_ACTIVATION_TIME, self.force_deactivate)
+        self.timer.start()
+
+    def cancel(self):
+        if self.timer:
+            self.timer.cancel()
+            self.timer = None
+
+    def force_deactivate(self):
+        logging.error(f"WATCHDOG: Tvungen deaktivering av pin {self.pin} - var aktiv for lenge!")
+        try:
+            GPIO.output(self.pin, GPIO.LOW)
+        except:
+            pass
+
+# Opprett watchdogs for alle magnetlåser
+magnet_watchdogs = {
+    pin: MagnetWatchdog(pin) for pin in LOCKER_GPIO_MAP.values()
+}
 
 with open("config.json", "r") as config_file:
     CONFIG = json.load(config_file)
@@ -18,10 +48,11 @@ LOCKER_ROOM_ID = CONFIG.get("locker_room_id", 1)
 LOCKER_GPIO_MAP = {int(k): v for k, v in CONFIG.get("locker_gpio_map", {}).items()}
 LOCKER_CLOSE_PIN_MAP = {int(k): v for k, v in CONFIG.get("locker_close_pin_map", {}).items()}
 
-# Initialiser GPIO
+# Initialiser GPIO og sikre at alle pinner starter i LOW
 for gpio_pin in LOCKER_GPIO_MAP.values():
     GPIO.setup(gpio_pin, GPIO.OUT)
     GPIO.output(gpio_pin, GPIO.LOW)
+    logging.info(f"Initialiserer magnetlås pin {gpio_pin} til LOW")
 
 for close_pin in LOCKER_CLOSE_PIN_MAP.values():
     GPIO.setup(close_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -38,15 +69,53 @@ locker_states = {
 siste_rfid = None
 siste_skann_tid = 0
 
-
-def magnet_release(pin):
+def safe_gpio_high(pin):
+    """Sikker aktivering av GPIO pin med watchdog"""
     try:
         GPIO.output(pin, GPIO.HIGH)
-        time.sleep(1)
+        magnet_watchdogs[pin].start()
+        return True
+    except Exception as e:
+        logging.error(f"Feil ved aktivering av pin {pin}: {e}")
+        return False
+
+def safe_gpio_low(pin):
+    """Sikker deaktivering av GPIO pin"""
+    try:
         GPIO.output(pin, GPIO.LOW)
-        logging.info(f"Magnetlås på pin {pin} frigjort")
+        magnet_watchdogs[pin].cancel()
+        return True
+    except Exception as e:
+        logging.error(f"Feil ved deaktivering av pin {pin}: {e}")
+        return False
+
+def magnet_release(pin):
+    """
+    Sikker frigjøring av magnetlås med maksimal sikkerhetstid.
+    Garanterer at låsen ikke kan stå med strøm på over lengre tid.
+    """
+    try:
+        # Sikkerhetskontroll - sjekk nåværende tilstand
+        if GPIO.input(pin) == GPIO.HIGH:
+            logging.error(f"ADVARSEL: Pin {pin} var allerede HIGH ved magnet_release!")
+            safe_gpio_low(pin)
+            time.sleep(0.1)  # Kort pause for å sikre at pin er LAV
+            
+        # Normal åpningssekvens
+        if safe_gpio_high(pin):
+            time.sleep(0.5)  # Redusert fra 1 sekund til 0.5 sekund
+            safe_gpio_low(pin)
+            
+            # Dobbeltsjekk at pin er LAV
+            if GPIO.input(pin) == GPIO.HIGH:
+                logging.error(f"KRITISK: Pin {pin} forble HIGH etter magnet_release!")
+                safe_gpio_low(pin)
+                
+            logging.info(f"Magnetlås på pin {pin} frigjort")
     except Exception as e:
         logging.error(f"Feil ved frigjøring av magnetlås på pin {pin}: {e}")
+        # Sikkerhetstiltak - forsøk å sette pin LAV ved feil
+        safe_gpio_low(pin)
 
 
 def scan_for_rfid(timeout=5, init_delay=0):
@@ -137,12 +206,35 @@ def Reuse_locker(rfid_tag):
     return None
 
 
+def safety_check_pins():
+    """
+    Sjekker alle magnetlås-pinner og sikrer at ingen står på HIGH over tid.
+    """
+    for gpio_pin in LOCKER_GPIO_MAP.values():
+        try:
+            if GPIO.input(gpio_pin) == GPIO.HIGH:
+                logging.error(f"KRITISK: Fant pin {gpio_pin} i HIGH tilstand under sikkerhetssjekk!")
+                GPIO.output(gpio_pin, GPIO.LOW)
+                time.sleep(0.1)
+        except Exception as e:
+            logging.error(f"Feil under sikkerhetssjekk av pin {gpio_pin}: {e}")
+
+
 def reader_helper():
     global siste_rfid, siste_skann_tid
     logging.info("[SYSTEM] Starter RFID-løkke – overvåker lukking og kort.")
+    
+    last_safety_check = time.time()
+    SAFETY_CHECK_INTERVAL = 5  # Kjør sikkerhetssjekk hvert 5. sekund
 
     while True:
         try:
+            # Periodisk sikkerhetssjekk
+            current_time = time.time()
+            if current_time - last_safety_check >= SAFETY_CHECK_INTERVAL:
+                safety_check_pins()
+                last_safety_check = current_time
+
             for locker_id, state in locker_states.items():
                 if state.update_state():  # Kun hvis det er en validert tilstandsendring
                     if state.get_state():  # Skap er lukket
@@ -181,7 +273,13 @@ def reader_helper():
                 logging.error(f"[FEIL] Gjenbruksløkke feilet: {e}")
 
             time.sleep(0.1)  # Kort pause for å unngå CPU-overbelastning
-
+            
         except Exception as e:
             logging.error(f"[KRITISK FEIL] i hovedløkken: {e}")
+            # Ved kritisk feil, sikre at alle pinner er LAV
+            for pin in LOCKER_GPIO_MAP.values():
+                try:
+                    GPIO.output(pin, GPIO.LOW)
+                except:
+                    pass
             time.sleep(1)  # Vent litt før vi fortsetter ved kritisk feil
