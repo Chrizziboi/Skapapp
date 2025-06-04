@@ -241,6 +241,18 @@ def get_all_logs(db: Session = Depends(get_db)):
     ]
 
 
+@api.get("/lockers/occupied")
+def get_occupied_lockers_endpoint(db: Session = Depends(get_db)):
+    """
+    Endepunkt for å hente ALLE skap som er opptatt.
+    """
+    try:
+        occupied_lockers = Statistic.occupied_lockers(db)
+        return occupied_lockers
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av opptatte skap: {str(e)}", status_code=500)
+
+
 ''' POST CALLS '''
 
 
@@ -602,6 +614,17 @@ async def restore_from_backup(file: UploadFile = File(...)):
         return {"message": "Databasen er gjenopprettet fra backup."}
     except Exception as e:
         return fastapi_error_handler(f"Feil ved gjenoppretting av backup: {str(e)}", status_code=500)
+
+@api.get("/lockers/RBPI/occupied")
+def get_raspberrypi_occupied_lockers_endpoint(db: Session = Depends(get_db)):
+    """
+    Endepunkt for å hente ALLE skap som er opptatt.
+    """
+    try:
+        occupied_lockers = Statistic.raspberry_occupied_locker(db)
+        return occupied_lockers
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av opptatte skap: {str(e)}", status_code=500)
 
 
 ''' Async Functions --- background processes '''

@@ -147,6 +147,15 @@ class Statistic:
 
         return [{"user_id": uid, "rfid_tag": tag, "usage_count": count} for uid, tag, count in results]
 
+    @staticmethod
+    def raspberry_occupied_locker(db: Session):
+        lockers = db.query(Locker).filter(Locker.status == "Opptatt").all()
+        return [
+            {
+                "locker_id": locker.id
+            }
+            for locker in lockers
+        ]
 
 
 

@@ -221,7 +221,7 @@ def poll_manual_release():
     while True:
         try:
             # Hent liste over skap som skal åpnes manuelt fra backend
-            response = requests.get("http://localhost:8080/lockers/pending_release", timeout=1)
+            response = requests.get("http://localhost:8080/lockers/RBPI/occupied", timeout=10)
             if response.status_code == 200:
                 locker_ids = response.json()
                 for locker_id in locker_ids:
