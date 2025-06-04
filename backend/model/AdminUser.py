@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import Session
 from backend.Service.ErrorHandler import fastapi_error_handler
+from backend.model.Locker import Locker
 from database import Base
 from passlib.context import CryptContext
 
@@ -54,3 +55,18 @@ def authenticate_user(input_password: str, db: Session):
         if pwd_context.verify(input_password, user.password):
             return user
     return None
+
+def manual_release_locker(locker_id: int, db: Session):
+    locker = db.query(Locker).filter(Locker.id == locker_id).first()
+    if not locker:
+        raise fastapi_error_handler(f"Ingen garderobeskap med id: {locker_id}", status_code=404)
+
+    locker.status = "Ledig"
+    locker.user_id = None
+    db.commit()
+    db.refresh(locker)
+
+    from backend.model.LockerLog import log_action
+    log_action(locker_id=locker.id, action="Manuelt frigjort", db=db)
+
+    return {"message": f"Skap {locker.id} er manuelt frigjort av Admin."}

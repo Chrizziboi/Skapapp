@@ -97,22 +97,6 @@ def unlock_locker(user_id: int, db: Session):
     return {"message": f"Garderobeskap {locker.combi_id} er nå frigjort og tilgjengelig for andre brukere."}
 
 
-def manual_release_locker(user_id: int, db: Session):
-    locker = db.query(Locker).filter(Locker.user_id == user_id, Locker.status == "Opptatt").first()
-    if not locker:
-        raise fastapi_error_handler("Ingen skap funnet som er i bruk av denne brukeren.", status_code=404)
-
-    locker.status = "Ledig"
-    locker.user_id = None
-    db.commit()
-    db.refresh(locker)
-
-    from backend.model.LockerLog import log_action
-    log_action(locker_id=locker.id, user_id=user_id, action="Manuelt frigjort", db=db)
-
-    return {"message": f"Skap {locker.combi_id} er manuelt frigjort av bruker {user_id}."}
-
-
 def temporary_unlock(user_id: int, db: Session):
 
     locker = db.query(Locker).filter(Locker.user_id == user_id, Locker.status == "Opptatt").first()
