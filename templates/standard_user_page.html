@@ -4,125 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ledige Skap</title>
+    <link rel="stylesheet" href="/static/styles/core.css" />
     <link rel="stylesheet" href="/static/styles/standard_user_page.css">
 </head>
 <body>
+    <div class="header-box">
+        <h1>Garderobeoversikt</h1>
+    </div>
     <div class="container">
-        <h1>Ledige Skap i Alle Rom</h1>
-        <section class="room-list-section">
-            <div id="room-list">
-                <!-- Rom og ledige skap vil bli fylt inn dynamisk -->
-            </div>
-        </section>
+        <div id="room-list">
+            <!-- Rom-bokser blir lagt til med JS -->
+        </div>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            fetchRoomsWithLockers();
+            const roomList = document.getElementById("room-list");
 
-            function fetchRoomsWithLockers() {
-                fetch("http://localhost:8080/locker_rooms/")
-                    .then(response => response.json())
-                    .then(async rooms => {
-                        const roomList = document.getElementById("room-list");
-                        roomList.innerHTML = '';
+            fetch("http://localhost:8080/locker_rooms/overview")
+                .then(response => response.json())
+                .then(rooms => {
+                    roomList.innerHTML = '';
+                    const colors = ['color-a', 'color-b', 'color-c', 'color-d', 'color-e', 'color-f', 'color-g'];
+                    rooms
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .forEach((room, i) => {
+                            const card = document.createElement('div');
+                            const colorClass = colors[i % colors.length];
+                            card.classList.add('room-card', colorClass);
 
-                        // Lag en liste med alle rom og deres tilgjengelige skap
-                        const roomData = await Promise.all(rooms.map(async room => {
-                            try {
-                                const res = await fetch(`http://localhost:8080/locker_rooms/${room.room_id}/available_lockers`);
-                                const data = await res.json();
-                                return {
-                                    name: room.name,
-                                    available: data.available_lockers
-                                };
-                            } catch (err) {
-                                console.error("Feil ved henting:", err);
-                                return null;
-                            }
-                        }));
+                            const percent = room.total ? Math.min(Math.round((room.occupied / room.total) * 100), 100) : 0;
+                            let fillClass = 'green';
+                            if (percent > 85) fillClass = 'red';
+                            else if (percent > 60) fillClass = 'orange';
 
-                        // Fjern null (feil), sorter alfabetisk og vis
-                        roomData
-                            .filter(room => room !== null)
-                            .sort((a, b) => b.available - a.available)
-                            .forEach(room => {
-                                const li = document.createElement('li');
-                                li.classList.add('room-box');
-                                li.innerHTML = `<div class="room-name">${room.name}</div><div class="locker-count">${room.available} ledige skap</div>`;
-                                roomList.appendChild(li);
-                            });
-                        resizeBoxes();
+                            card.innerHTML = `
+                                <div class="room-card-title">${room.name}</div>
+                                <div class="room-card-status">${room.available} av ${room.total} skap ledige</div>
+                                <div class="room-progress">
+                                    <div class="room-progress-fill${fillClass ? ' ' + fillClass : ''}" style="width: ${percent}%" data-available="${room.available}" data-occupied="${room.occupied}" data-total="${room.total}"></div>
+                                </div>
+                            `;
 
-                    })
-                    .catch(error => console.error("Feil ved henting av rom:", error));
-            }
-
+                            roomList.appendChild(card);
+                        });
+                })
+                .catch(error => console.error("Feil ved henting av rom:", error));
         });
     </script>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const container = document.getElementById("room-list");
-
-      function resizeBoxes() {
-        const boxes = container.querySelectorAll(".room-box");
-        const totalBoxes = boxes.length;
-        if (totalBoxes === 0) return;
-
-        const maxWidth = window.innerWidth;
-        const maxHeight = window.innerHeight - 100;
-
-        let bestCols = 1;
-        let bestRows = totalBoxes;
-        let bestBoxSize = 0;
-
-        for (let cols = 1; cols <= totalBoxes; cols++) {
-          const rows = Math.ceil(totalBoxes / cols);
-          const boxWidth = (maxWidth - (cols + 1) * 16) / cols;
-          const boxHeight = (maxHeight - (rows + 1) * 16) / rows;
-          const size = Math.min(boxWidth, boxHeight);
-          if (size > bestBoxSize) {
-            bestBoxSize = size;
-            bestCols = cols;
-            bestRows = rows;
-          }
-        }
-
-        container.style.display = "grid";
-        container.style.gridTemplateColumns = `repeat(${bestCols}, 1fr)`;
-        container.style.gridAutoRows = `${bestBoxSize}px`;
-        container.style.justifyContent = "center";
-        container.style.gap = "16px";
-        container.style.height = `${maxHeight}px`;
-        container.style.overflow = "hidden";
-
-        boxes.forEach(box => {
-          box.style.width = "100%";
-          box.style.height = "100%";
-          const fontSize = Math.max(12, bestBoxSize * 0.08);
-          box.style.fontSize = `${fontSize}px`;
-
-          const lockerText = box.querySelector(".locker-count")?.textContent || "";
-          const countMatch = lockerText.match(/(\d+)/);
-          const available = countMatch ? parseInt(countMatch[1]) : 0;
-
-          box.classList.remove("available-high", "available-medium", "available-low", "available-none");
-
-          if (available >= 10) {
-            box.classList.add("available-high");
-          } else if (available >= 5) {
-            box.classList.add("available-medium");
-          } else if (available > 0) {
-            box.classList.add("available-low");
-          } else {
-            box.classList.add("available-none");
-          }
-        });
-      }
-
-      resizeBoxes();
-      window.addEventListener("resize", resizeBoxes);
-    });
-</script>
 </body>
 </html>

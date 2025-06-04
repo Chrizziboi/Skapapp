@@ -26,52 +26,6 @@
     flex: 1;
     min-width: 100px;
 }
-body {
-    font-family: 'Inter', sans-serif;
-    background-color: #F6F3EB;
-    color: #3D5744;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-}
-
-.admin-navbar {
-    width: fit-content;
-    margin: 20px auto 40px;
-    padding: 16px 32px;
-    background: #ffffff;
-    border-radius: 24px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-}
-
-.nav-menu {
-    display: flex;
-    gap: 20px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.nav-menu li button {
-    padding: 10px 20px;
-    background: #ffffff;
-    color: #005AA9;
-    border: 1px solid #005AA9;
-    border-radius: 50px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.nav-menu li button:hover {
-    background: #005AA9;
-    color: #ffffff;
-    transform: translateY(-2px);
-}
 
 .wardrobe-admin-layout {
     display: grid;
@@ -81,7 +35,9 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 30px;
     max-width: 1200px;
-    margin: 0 auto 60px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 60px;
     padding: 0 16px;
     align-items: start;
 }
@@ -117,12 +73,6 @@ body {
     overflow-y: auto;
 }
 
-.glassmorphic {
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
 
 .input-row,
 .dropdown-row {
@@ -133,35 +83,6 @@ body {
     margin-top: 16px;
 }
 
-input,
-select {
-    padding: 12px;
-    width: 100%;
-    max-width: 400px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 16px;
-    box-sizing: border-box;
-    margin-bottom: 12px;
-}
-
-button {
-    padding: 10px 20px;
-    background: #ffffff;
-    color: #005AA9;
-    border: 1px solid #005AA9;
-    border-radius: 50px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-button:hover {
-    background: #005AA9;
-    color: #ffffff;
-    transform: scale(1.03);
-}
 
 .room-list {
     list-style: none;
@@ -172,7 +93,7 @@ button:hover {
 .room-item {
     background: var(--room-item-color, #ffffff);
     padding: 12px;
-    border-radius: 12px;
+    border-radius: 999px;
     margin: 8px 0;
     display: flex;
     align-items: center;
@@ -196,7 +117,7 @@ button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 2000;
 }
 
 .modal.hidden {
@@ -246,7 +167,7 @@ button:hover {
     padding-top: 40px;
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(2px);
-    z-index: 1000;
+    z-index: 2000;
     transition: opacity 0.3s ease;
 }
 
@@ -266,7 +187,7 @@ button:hover {
     font-family: inherit;
     animation: slideUp 0.3s ease-out;
     text-align: center;
-    z-index: 1100;
+    z-index: 2100;
     max-height: 90vh;
     overflow-y: auto;
     padding-right: 12px;
@@ -297,9 +218,6 @@ button:hover {
 .scrollable-list::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.5);
 }
-.hidden {
-    display: none;
-}
 
 /* Removed duplicate #room-info-box block */
 
@@ -308,7 +226,7 @@ button:hover {
     inset: 0;
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(2px);
-    z-index: 500;
+    z-index: 2000;
 }
 
 /* Removed duplicate #room-info-box block */
@@ -351,7 +269,7 @@ button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1100;
+    z-index: 2000;
 }
 
 .confirmation-box {
@@ -394,10 +312,13 @@ button:hover {
     color: inherit;
 }
 
-.room-item.color-a { --room-item-color: #D3E3F1; } /* blue-ish */
-.room-item.color-b { --room-item-color: #F1D8DC; } /* pink-ish */
-.room-item.color-c { --room-item-color: #DBE4D3; } /* green-ish */
-.room-item.color-d { --room-item-color: #EFE5D9; } /* beige-ish */
+.room-item.color-a { background: #dceaf7; color: #205084; } /* Pastell blå */
+.room-item.color-b { background: #d7eee0; color: #4E8561; } /* Pastell grønn */
+.room-item.color-c { background: #f4f1fa; color: #6c558c; } /* Pastell lilla */
+.room-item.color-d { background: #fcf7e0; color: #957639; } /* Pastell gul */
+.room-item.color-e { background: #faeaea; color: #9e3539; } /* Pastell rød/rosa */
+.room-item.color-f { background: #e9f7f5; color: #3d5744; } /* Pastell grønn-blå */
+.room-item.color-g { background: #f6f3eb; color: #205084; } /* Lys beige (Sunnaas bakgrunn) */
 
 @media (max-width: 768px) {
     .wardrobe-admin-layout {
@@ -475,7 +396,7 @@ button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1100;
+    z-index: 2000;
 }
 
 #note-modal.hidden {
@@ -513,7 +434,7 @@ button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1200;
+    z-index: 2000;
 }
 
 #success-modal.hidden {
@@ -534,4 +455,25 @@ button:hover {
 /* Hide the table header row above the locker cards */
 #locker-list thead {
     display: none;
+}
+.info-section {
+    margin-top: 48px;
+    margin-bottom: 32px;
+}
+
+.input-field {
+    padding: 12px;
+    border: 1.5px solid #ccc;
+    border-radius: 999px;
+    font-size: 17px;
+    background: #fff;
+    width: 240px;
+    outline: none;
+    transition: border 0.2s;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+.input-field:focus {
+    border: 1.5px solid #005AA9;
+    background: #f7fafd;
 }

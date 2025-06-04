@@ -1,0 +1,139 @@
+
+.logg-container {
+  max-width: 1100px;
+/* margin: 30px auto; */ /* Removed vertical margin to avoid conflict with core.css */
+  margin-left: auto;
+  margin-right: auto;
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.logg-container h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.logg-container p {
+  font-size: 16px;
+  margin-bottom: 1.5rem;
+}
+
+.logg-filter-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.datepicker {
+  border-radius: 8px;
+  padding: 0.3em 0.7em;
+  border: 1px solid #aaa;
+  font-size: 1em;
+  margin-right: 0.5em;
+}
+
+
+.logg-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.logg-table th,
+.logg-table td {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0.7em 0.4em;
+  text-align: left;
+}
+
+.logg-table th {
+  background: #f6f7fa;
+  font-weight: 600;
+  color: #373B44;
+}
+
+.logg-table tr:last-child td {
+  border-bottom: none;
+}
+
+#logg-empty-message {
+  margin-top: 1em;
+  color: #888;
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .logg-container {
+    padding: 1rem;
+  }
+
+  .logg-filter-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .logg-table th,
+  .logg-table td {
+    font-size: 0.92em;
+  }
+}
+
+/* No margin or spacing rules for .info-section here, so it only uses spacing from core.css */
+
+/* ===== Bedre spacing og bredde på filterradene ===== */
+
+.logg-header-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.2rem;
+}
+
+.logg-filter-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.logg-livefilter-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.4rem;
+  width: 100%;
+}
+
+.logg-livefilter-row input[type="text"] {
+  flex: 1 1 340px;
+  min-width: 160px;
+  max-width: 540px;
+}
+
+.logg-livefilter-row select {
+  flex-shrink: 0;
+  width: 180px;
+}
+
+@media (max-width: 700px) {
+  .logg-header-row {
+    margin-bottom: 0.7rem;
+  }
+  .logg-filter-row,
+  .logg-livefilter-row {
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  .logg-livefilter-row input[type="text"] {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .logg-livefilter-row select {
+    width: 100%;
+  }
+}

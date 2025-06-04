@@ -25,6 +25,12 @@ from fastapi.responses import FileResponse
 from fastapi import Body
 from pydantic import BaseModel
 
+# Imports for CSV export endpoint
+from fastapi.responses import StreamingResponse
+import csv
+from datetime import datetime, timedelta
+from io import StringIO
+
 from database import SessionLocal, setup_database
 from database import backup_database_to_json, restore_database_from_json
 # Initialiser SQLite3
@@ -151,6 +157,7 @@ def serve_log_page(request: Request):
 ''' GET CALLS '''
 
 
+
 @api.get("/locker_rooms/")
 def get_all_rooms_endpoint(db: Session = Depends(get_db)):
     """
@@ -162,6 +169,41 @@ def get_all_rooms_endpoint(db: Session = Depends(get_db)):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av garderoberom {str(e)}", status_code=500)
 
+
+# Nytt endepunkt: Oversikt over rom med totalt og ledige skap
+@api.get("/locker_rooms/overview")
+def get_rooms_overview(db: Session = Depends(get_db)):
+    """
+    Returnerer alle rom med navn, opptatte, ledige og totalt antall skap.
+    Brukes til oversikt/progress-bar.
+    """
+    try:
+        rooms = Statistic.get_all_rooms(db)
+        overview = []
+        for room in rooms:
+            room_id = room["room_id"] if isinstance(room, dict) else room.room_id
+            name = room["name"] if isinstance(room, dict) else room.name
+
+            # Hent totalt antall skap og antall ledige skap for rommet
+            total = Statistic.total_lockers_in_room(room_id, db)["total_lockers"]
+            available_raw = Statistic.available_lockers(room_id, db)
+
+            # FIX: sørg for at available er et heltall
+            if isinstance(available_raw, dict) and "available_lockers" in available_raw:
+                available = available_raw["available_lockers"]
+            else:
+                available = available_raw
+
+            overview.append({
+                "room_id": room_id,
+                "name": name,
+                "total": total,
+                "available": available,
+                "occupied": total - available
+            })
+        return overview
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av oversikt: {str(e)}", status_code=500)
 
 @api.get("/lockers/locker_id")
 def read_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
@@ -216,17 +258,22 @@ def get_all_logs(
         # For å inkludere hele to_date-dagen kan du evt. plusse på ett døgn/tid
         query = query.filter(LockerLog.timestamp <= to_date + " 23:59:59")
     logs = query.order_by(LockerLog.timestamp.desc()).all()
-    return [
-        {
+    result = []
+    for log in logs:
+        combi_id = "-"
+        if log.locker_id:
+            locker = db.query(Locker).filter(Locker.id == log.locker_id).first()
+            if locker:
+                combi_id = locker.combi_id or "-"
+        result.append({
             "id": log.id,
-            "locker_id": log.locker_id,
+            "combi_id": combi_id,
             "user_id": log.user_id,
             "action": log.action,
             "timestamp": log.timestamp.isoformat() if log.timestamp else None,
-        }
-        for log in logs
-    ]
-  
+        })
+    return result
+
 
 ''' POST CALLS '''
 
@@ -527,18 +574,52 @@ def get_lockers_by_room(db: Session = Depends(get_db)):
 
 
 @api.get("/statistic/most_opened_lockers")
-def get_most_opened_lockers(db: Session = Depends(get_db)):
-    results = db.query(
-        Locker.combi_id,
-        func.count(LockerLog.id).label("times_opened")
-    ).join(LockerLog, Locker.id == LockerLog.locker_id)\
-     .filter(LockerLog.action == "Låst opp")\
-     .group_by(Locker.combi_id)\
-     .order_by(func.count(LockerLog.id).desc())\
-     .limit(10)\
-     .all()
+def get_most_opened_lockers(
+    period: str = "month",
+    db: Session = Depends(get_db)
+):
+    """
+    Returnerer ALLE skap, med antall åpninger og sist åpnet (ev. 'Aldri åpnet').
+    period: 'day', 'week', 'month' (default: month)
+    """
+    now = datetime.now()
+    if period == "day":
+        from_date = now - timedelta(days=1)
+    elif period == "week":
+        from_date = now - timedelta(weeks=1)
+    elif period == "month":
+        from_date = now - timedelta(days=30)
+    else:
+        from_date = None  # Da vises hele loggen
 
-    return [{"combi_id": combi_id, "times_opened": count} for combi_id, count in results]
+    # Venstre join for å få med ALLE skap
+    subq = db.query(
+        Locker.id.label("locker_id"),
+        Locker.combi_id.label("combi_id"),
+        func.count(LockerLog.id).label("times_opened"),
+        func.max(LockerLog.timestamp).label("last_opened")
+    ).outerjoin(
+        LockerLog,
+        (Locker.id == LockerLog.locker_id)
+        & (LockerLog.action == "Låst opp")
+        & ((LockerLog.timestamp >= from_date) if from_date else True)
+    ).group_by(Locker.id, Locker.combi_id).subquery()
+
+    results = db.query(
+        subq.c.combi_id,
+        subq.c.times_opened,
+        subq.c.last_opened
+    ).all()
+
+    # Returnér alle skap, med antall åpninger og sist åpnet (kan være None/"Aldri åpnet")
+    return [
+        {
+            "combi_id": combi_id,
+            "times_opened": times_opened or 0,
+            "last_opened": last_opened.isoformat() if last_opened else None
+        }
+        for combi_id, times_opened, last_opened in results
+    ]
 
 
 
@@ -557,6 +638,34 @@ def get_most_active_users(db: Session = Depends(get_db)):
         return Statistic.most_active_users(db)
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av mest aktive brukere: {str(e)}", 500)
+
+@api.get("/statistic/all_active_users_csv")
+def download_all_active_users_csv(db: Session = Depends(get_db)):
+    """
+    Endepunkt for å laste ned alle brukere og deres antall reserveringer som CSV.
+    """
+    # Hent alle brukere med deres rfid-tag og antall reserveringer (bruker samme logikk som /statistic/most_active_users)
+    results = db.query(
+        StandardUser.id,
+        StandardUser.rfid_tag,
+        func.count(LockerLog.id)
+    ).outerjoin(LockerLog, StandardUser.id == LockerLog.user_id)\
+     .group_by(StandardUser.id, StandardUser.rfid_tag)\
+     .order_by(func.count(LockerLog.id).desc()).all()
+
+    output = StringIO()
+    writer = csv.writer(output, delimiter=';')
+    writer.writerow(["Bruker-ID", "RFID-tag", "Antall reserveringer"])
+    for user_id, rfid_tag, count in results:
+        writer.writerow([user_id, rfid_tag or "-", count or 0])
+    output.seek(0)
+
+    filename = f"brukerliste_{datetime.now().strftime('%Y-%m-%d')}.csv"
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 @api.get("/statistic/available_lockers_by_room/{room_id}")
 def get_available_lockers_by_room(room_id: int, db: Session = Depends(get_db)):
@@ -595,6 +704,83 @@ def get_recent_log_entries(db: Session = Depends(get_db)):
         return Statistic.latest_log_entries(db)
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av logg: {str(e)}", 500)
+
+
+
+# Nytt endepunkt: unike brukere i perioder
+@api.get("/statistic/unique_users")
+def get_unique_users(db: Session = Depends(get_db)):
+    try:
+        from backend.model.Statistic import get_unique_users_by_period
+        return get_unique_users_by_period(db)
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av unike brukere: {str(e)}", 500)
+
+
+# CSV-export endpoint for locker activity log
+@api.get("/statistic/locker_activity_log")
+def download_locker_activity_log_csv(period: str = "day", db: Session = Depends(get_db)):
+    """
+    Endepunkt for å laste ned skap-aktivitetlogg som CSV for 1 dag, 1 uke eller 1 måned.
+    """
+    now = datetime.now()
+    if period == "day":
+        from_date = now - timedelta(days=1)
+    elif period == "week":
+        from_date = now - timedelta(weeks=1)
+    elif period == "month":
+        from_date = now - timedelta(days=30)
+    else:
+        from_date = now - timedelta(days=1)  # default 1 dag
+
+    logs = db.query(LockerLog).filter(LockerLog.timestamp >= from_date).order_by(LockerLog.timestamp.desc()).all()
+
+    output = StringIO()
+    writer = csv.writer(output, delimiter=';')
+    writer.writerow(["Bruker-ID", "Skap-ID", "Handling", "Tidspunkt"])
+    for log in logs:
+        if log.timestamp:
+            ts = log.timestamp.strftime("%d/%m/%Y %H:%M:%S")
+        else:
+            ts = ""
+        writer.writerow([log.user_id or "Ukjent", log.locker_id, log.action, ts])
+    output.seek(0)
+
+    filename = f"skap_aktivitetlogg_{period}_{now.strftime('%Y-%m-%d')}.csv"
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+@api.get("/statistic/hourly_load")
+def get_hourly_load(db: Session = Depends(get_db)):
+    """
+    Returnerer antall ganger skap har blitt åpnet (Låst opp) for hver time i døgnet de siste 30 dagene.
+    """
+    now = datetime.now()
+    from_date = now - timedelta(days=30)
+
+    # Hent alle logg-innslag siste 30 dager med action 'Låst opp'
+    logs = db.query(LockerLog).filter(
+        LockerLog.timestamp >= from_date,
+        LockerLog.action == "Låst opp"
+    ).all()
+
+    # Lag 24 tellere for hver time i døgnet
+    hourly_opens = [0] * 24
+
+    # Tell antall åpninger per time (uansett dag)
+    for log in logs:
+        if log.timestamp:
+            hour = log.timestamp.hour
+            hourly_opens[hour] += 1
+
+    # Returnér listen direkte (antall åpninger per time)
+    total_lockers = db.query(Locker).count()
+    return {
+        "hourly_avg": hourly_opens,
+        "total_lockers": total_lockers
+    }
 
         
 ''' BACKUP CALLS '''
