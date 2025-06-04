@@ -227,6 +227,8 @@ def poll_manual_release():
                 for locker_id in locker_ids:
                     manual_release_locker(locker_id)
                     # (valgfritt) send bekreftelse til backend at skapet er åpnet
+            else:
+                return None
         except Exception as e:
             print(f"[MANUELL] Feil ved polling: {e}")
         time.sleep(2)  # Poll hvert 2. sekund
