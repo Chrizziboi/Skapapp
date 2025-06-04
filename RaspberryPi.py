@@ -158,6 +158,7 @@ def reader_helper():
                 state_info["last_change"] = now
                 state_info["last_state"] = is_closed
 
+            # Skap har blitt lukket igjen
             if is_closed and not skap_lukket_tidligere[locker_id]:
                 if now - state_info["last_change"] >= DEBOUNCE_TIME:
                     print(f"[INNGANG] Skap {locker_id} nettopp lukket – starter registrering")
@@ -184,57 +185,31 @@ def reader_helper():
                             print(f"[FEIL] Fant ikke gpio_pin for skap {locker_id}")
                     skap_lukket_tidligere[locker_id] = True
 
+            # Skapet har blitt åpnet igjen – sjekk om det var manuelt
             elif not is_closed and skap_lukket_tidligere[locker_id]:
-
                 if now - state_info["last_change"] >= DEBOUNCE_TIME:
-
-                    print(f"[STATUS] Skap {locker_id} nettopp åpnet – sjekker backendstatus")
-
-                    # Kall backend for å sjekke om skapet fortsatt er registrert som opptatt
+                    print(f"[MANUELL ÅPNING] Skap {locker_id} er åpnet – sjekker status i backend...")
 
                     try:
-
-                        response = requests.get("http://localhost:8080/lockers/RBPI/occupied", timeout=1)
-
+                        response = requests.get("http://localhost:8080/lockers/RBPI/occupied", timeout=0.5)
                         occupied_ids = response.json()
 
                         if locker_id in occupied_ids:
-                            print(f"[ADVARSEL] Skap {locker_id} ble åpnet manuelt mens det var opptatt – frigjøring igangsatt")
+                            print(f"[MANUELL ÅPNING] Skap {locker_id} var registrert som opptatt – frigjør nå!")
+                            release_response = requests.put(
+                                "http://localhost:8080/lockers/manual_release/",
+                                params={"locker_id": locker_id, "locker_room_id": LOCKER_ROOM_ID},
+                                timeout=0.5
+                            )
 
-                            manual_release_locker(locker_id)
-
+                            if release_response.status_code == 200 and release_response.json().get("access_granted"):
+                                print(f"[MANUELL ÅPNING] Skap {locker_id} ble frigjort i backend.")
+                            else:
+                                print(f"[MANUELL ÅPNING] Backend avviste frigjøring: {release_response.text}")
                     except Exception as e:
-
-                        print(f"[FEIL] Kunne ikke sjekke backendstatus: {e}")
+                        print(f"[MANUELL ÅPNING] Klarte ikke kontakte backend: {e}")
 
                     skap_lukket_tidligere[locker_id] = False
-
-            # --- Failsafe sjekk --- (for å sikre at skapet ikke står som "Opptatt" etter manuell åpning)
-            try:
-                response = requests.get("http://localhost:8080/lockers/RBPI/occupied", timeout=0.5)
-                occupied_ids = response.json()
-
-                if locker_id in occupied_ids:
-                    print(f"[FAILSAFE] Skap {locker_id} ble fysisk åpnet mens det fortsatt er registrert som opptatt!")
-
-                    release_response = requests.put(
-                        "http://localhost:8080/lockers/manual_release/",
-                        params={"locker_id": locker_id, "locker_room_id": LOCKER_ROOM_ID},
-                        timeout=0.5
-                    )
-
-                    if release_response.status_code == 200:
-                        response_data = release_response.json()
-                        if response_data.get("access_granted"):
-                            print(f"[FAILSAFE] Skap {locker_id} er manuelt frigjort via backend.")
-                        else:
-                            print(f"[FAILSAFE] Frigjøring ble avvist: {response_data.get('message')}")
-                    else:
-                        print(
-                            f"[FAILSAFE] Feil ved frigjøringskall: {release_response.status_code} {release_response.text}")
-
-            except Exception as e:
-                print(f"[FAILSAFE] Klarte ikke sjekke eller frigjøre skap: {e}")
 
         # --- Gjenbruk ---
         rfid_tag = scan_for_rfid(timeout=1)
