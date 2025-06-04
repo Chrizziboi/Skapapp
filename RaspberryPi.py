@@ -125,27 +125,26 @@ def Reuse_locker(rfid_tag):
 
 def manual_release_locker(locker_id):
     """
-    Frigjør (åpner) skapet med gitt locker_id ved å aktivere magneten.
+    Frigjør (åpner) skapet med gitt locker_id etter å ha fått bekreftelse fra backend.
     """
-    gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
     response = requests.post(
         API_URL_ADM,
         params={
-            "locker_id" : gpio_pin,
+            "locker_id": locker_id,
             "locker_room_id": LOCKER_ROOM_ID
         },
         timeout=0.5
     )
     data = response.json()
     if response.status_code == 200 and data.get("access_granted"):
-        assigned_id = data.get("locker_id")
-        gpio_pin = LOCKER_GPIO_MAP.get(assigned_id)
+        print(f"[Manuell frigjøring] Åpner skap {locker_id}")
+        gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
         if gpio_pin:
-            print(f"[Manuell frigjøring] Åpner skap {assigned_id}")
             magnet_release(gpio_pin)
-        return assigned_id
+        return locker_id
     else:
-        print("[RFID] Kortet har ikke tilgang til skap")
+        print("[Manuell frigjøring] Fikk ikke tilgang til å åpne skapet")
+        return None
 
 
 def reader_helper():
