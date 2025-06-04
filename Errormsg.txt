@@ -1,2 +1,16 @@
-INFO:     127.0.0.1:38516 - "PUT /lockers/manual_release/?locker_id=locker_id&locker_room_id=1 HTTP/1.1" 422 Unprocessable Entity
-[Manuell frigjøring] Fikk ikke tilgang til å åpne skapet
+422	
+Error: Unprocessable Entity
+
+{
+  "detail": [
+    {
+      "type": "missing",
+      "loc": [
+        "query",
+        "locker_room_id"
+      ],
+      "msg": "Field required",
+      "input": null
+    }
+  ]
+}
