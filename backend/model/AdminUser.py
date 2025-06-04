@@ -67,6 +67,6 @@ def manual_release_locker(locker_id: int, db: Session):
     db.refresh(locker)
 
     from backend.model.LockerLog import log_action
-    log_action(locker_id=locker.id, action="Manuelt frigjort", db=db)
+    log_action(locker_id=locker.id, user_id=None, action="Manuelt frigjort", db=db)
 
     return {"message": f"Skap {locker.id} er manuelt frigjort av Admin."}
