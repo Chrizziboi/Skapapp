@@ -1,3 +1,7 @@
+from datetime import datetime, timedelta
+from sqlalchemy import func
+
+from backend.model.LockerLog import LockerLog as LogEntry
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from backend.model.LockerLog import LockerLog as LockerLogModel
@@ -49,12 +53,26 @@ class Statistic:
             raise fastapi_error_handler(f"Feil ved henting av ledige skap: {str(e)}", status_code=500)
 
     @staticmethod
+    def total_lockers_in_room(locker_room_id: int, db: Session):
+        """
+        Returnerer totalt antall skap i et gitt garderoberom.
+        """
+        try:
+            count = db.query(Locker).filter(
+                Locker.locker_room_id == locker_room_id
+            ).count()
+            return {"locker_room_id": locker_room_id, "total_lockers": count}
+        except Exception as e:
+            raise fastapi_error_handler(f"Feil ved henting av totalt antall skap: {str(e)}", status_code=500)
+
+    @staticmethod
     def all_lockers(db: Session):
         try:
             lockers = db.query(Locker).all()
             return [
                 {
                     "locker_id": locker.id,
+                    "combi_id": locker.combi_id,
                     "locker_room_id": locker.locker_room_id,
                     "status": locker.status,
                     "note": locker.note if locker.note else "N/A"
@@ -140,3 +158,23 @@ class Statistic:
 
 
 
+
+
+
+
+# Funksjon for å hente antall unike brukere i ulike perioder, returnerer JSON-serialiserbar dict
+def get_unique_users_by_period(db):
+    now = datetime.now()
+    periods = {
+        "day": now - timedelta(days=1),
+        "week": now - timedelta(weeks=1),
+        "month": now - timedelta(days=30),
+        "year": now - timedelta(days=365)
+    }
+    results = {}
+    for label, start_time in periods.items():
+        count = db.query(func.count(func.distinct(LogEntry.user_id)))\
+            .filter(LogEntry.timestamp >= start_time)\
+            .scalar()
+        results[label] = count
+    return results

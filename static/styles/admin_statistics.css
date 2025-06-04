@@ -1,194 +1,102 @@
-body {
-    font-family: 'Inter', sans-serif;
-    background-color: #F6F3EB;
-    color: #3D5744;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  .room-bar-bg {
+    width: 75px;
+    height: 9px;
+    background: #ececec;
+    border-radius: 7px;
+    margin-right: 8px;
+    display: inline-block;
+    vertical-align: middle;
+    overflow: hidden;
+  }
+.room-bar-fill {
+  height: 100%;
+  background: #21b864; /* Grønn */
+  border-radius: 7px;
+  transition: width 0.3s;
+}
+  .room-percent-text {
+    margin-left: 8px;
+    font-size: 0.99em;
+    font-weight: 500;
+    color: #333;
+  }
+  .room-occupancy-table th,
+  .room-occupancy-table td {
+    padding: 10px 20px;
+    text-align: center;
+  }
+  .room-occupancy-table th {
+    border-bottom: 2px solid #ffbebe;
+    background: none;
+    font-size: 1.08rem;
+    font-weight: 700;
+  }
+  .room-occupancy-table td:first-child,
+  .room-occupancy-table th:first-child {
+    text-align: left;
+  }
+/* Penere stat-tabell for skap per garderoberom */
+.stat-card-right table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 14px; /* Avstand mellom rader */
+    font-size: 1.23rem;
 }
 
-/* body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.25);
-    z-index: -1;
+.stat-card-right th,
+.stat-card-right td {
+    padding: 12px 28px;
+}
+
+.stat-card-right th {
+    background: none;
+    font-size: 1.16rem;
+    font-weight: 700;
+    border-bottom: 2px solid #63c7a6;
+    text-align: center;
+    letter-spacing: 0.02em;
+}
+
+.stat-card-right td {
+    background: none;
+    border-radius: 0;
+    font-weight: 500;
+    text-align: center;
+}
+
+.stat-card-right td:first-child,
+.stat-card-right th:first-child {
+    text-align: left;
+    padding-left: 34px;
+}
+/* Subtil linje mellom tabellrader under "Skap per garderoberom" */
+/* .stat-card-right tbody tr:not(:last-child) {
+    border-bottom: 1px solid rgba(40, 40, 40, 0.10);
 } */
 
-main {
-    padding: 20px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
+.stat-card-right tbody td {
+    border-bottom: 1px solid rgba(40, 40, 40, 0.10);
 }
 
-.dashboard-wrapper {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+.stat-card-right tbody tr:last-child td {
+    border-bottom: none;
 }
+/* Fjernet duplikater som allerede finnes i core.css – 03.06.2025 */
 
+/* === Layout & Container === */
 .container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 40px;
-    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    max-width: 1100px;
     width: 95vw;
-    background: rgba(255,255,255,0.50);
-    margin: 40px auto 40px auto;
+    background: #fff;
+    margin: 40px auto;
     padding: 30px;
     border-radius: 16px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     align-items: stretch;
 }
-
-/* Updated heading styles for statistics section */
-h1, h2 {
-    font-family: 'Inter', sans-serif;
-    color: #3D5744;
-    font-weight: 700;
-    text-align: center;
-}
-h1 {
-    font-size: 2.1rem;
-    margin-bottom: 16px;
-}
-h2 {
-    font-size: 1.5rem;
-    margin-top: 0;
-}
-
-/* Removed .summary p styling to avoid conflict with .stat-card */
-
-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    border-radius: 16px;
-    overflow: hidden;
-    background-color: #f9f9f9;
-    margin: 20px 0;
-}
-
-table, th, td {
-    border: 1px solid #ccc;
-}
-
-th {
-    background-color: #005aa9;
-    color: white;
-    font-size: 17px;
-    font-weight: 600;
-    padding: 16px 10px;
-    letter-spacing: 0.5px;
-}
-
-td {
-    padding: 16px 10px;
-    text-align: center;
-    background-color: #ffffff;
-}
-
-ul {
-    list-style-type: disc;
-    padding-left: 20px;
-    margin-bottom: 30px;
-}
-
-.navigation-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 30px;
-}
-
-.navigation-buttons button {
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #007bff;
-    border: none;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.navigation-buttons button:hover {
-    background-color: #0056b3;
-}
-
-.admin-navbar {
-    width: fit-content;
-    margin: 20px auto 40px;
-    padding: 16px 32px;
-    background: #ffffff;
-    border-radius: 24px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-}
-
-.nav-menu {
-    display: flex;
-    gap: 20px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.nav-menu li button {
-    padding: 10px 20px;
-    background: #ffffff;
-    color: #005AA9;
-    border: 1px solid #005AA9;
-    border-radius: 50px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.nav-menu li button:hover {
-    background: #005AA9;
-    color: #ffffff;
-    transform: translateY(-2px);
-}
-
-.nav-menu li button.active {
-    background: #005AA9;
-    color: #ffffff;
-    outline: 3px solid #002244;
-    box-shadow: 0 0 12px 3px rgba(0, 32, 96, 0.15);
-    transform: translateY(-2px);
-}
-
-button {
-    all: unset;
-}
-
-.stat-card {
-    min-height: 300px;
-    padding: 40px 28px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.92);
-    border-radius: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    margin: 0 auto;
-    transition: box-shadow 0.22s cubic-bezier(0.4,0,0.2,1), transform 0.22s cubic-bezier(0.4,0,0.2,1);
-}
-.stat-card--blue    { border-top: 5px solid #005AA9; }
-.stat-card--green   { border-top: 5px solid #3DB86D; }
-.stat-card--yellow  { border-top: 5px solid #FFC300; }
-.stat-card--red     { border-top: 5px solid #FF6868; }
-.stat-card--purple  { border-top: 5px solid #A97FFF; }
 
 .stats-chips {
     width: 100%;
@@ -202,6 +110,7 @@ button {
     gap: 20px;
     margin-bottom: 40px;
 }
+
 .chip {
     background: rgba(255,255,255,0.95);
     color: #3D5744;
@@ -215,14 +124,58 @@ button {
     white-space: nowrap;
 }
 
-.stat-card:hover {
-    box-shadow: 0 12px 36px rgba(0,0,0,0.20);
-    transform: translateY(-2px) scale(1.015);
+.chip span {
+  margin-left: 10px;
+  font-weight: 600;
 }
 
+/* === Stat-bokser (kort/kortfarger) === */
+.stat-card {
+    min-width: 0;
+    max-width: 100%;
+    min-height: 180px;
+    height: auto;
+    padding: 24px 18px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    text-align: center;
+    border-radius: 20px;
+    transition: box-shadow 0.22s cubic-bezier(0.4,0,0.2,1), transform 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+/* Bakgrunn og border flyttes til egne fargeklasser under */
+
+.stat-card.color-a {
+    background: #bafad8;
+    box-shadow: 0 4px 18px rgba(60, 60, 60, 0.08);
+}
+.stat-card.color-c {
+    background: #b9e2ff;
+    box-shadow: 0 8px 32px rgba(100, 150, 200, 0.11);
+}
+.stat-card.color-b {
+    background: #ffd6d6;
+    box-shadow: 0 8px 32px rgba(200, 80, 80, 0.12);
+}
+.stat-card.color-d {
+    background: #ffe7b4;
+    box-shadow: 0 8px 32px rgba(255, 215, 80, 0.09);
+}
+.stat-card.color-e {
+    background: #dbc6ff;
+    box-shadow: 0 8px 32px rgba(130, 80, 200, 0.09);
+}
+
+.stat-cards-row {
+    display: none;
+}
+
+/* === Stat-card innhold/typografi === */
 .stat-card h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1.2rem;
+    font-size: 1.19rem;
+    margin-bottom: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -235,27 +188,7 @@ button {
     vertical-align: middle;
 }
 
-
-.search-controls {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin-bottom: 20px;
-    margin-top: 10px;
-}
-.search-controls input[type="search"], .search-controls select {
-    padding: 7px 12px;
-    border: 1px solid #ddd;
-    border-radius: 16px;
-    font-size: 0.98rem;
-    background: rgba(255,255,255,0.7);
-    transition: border 0.18s;
-    box-shadow: none;
-}
-.search-controls input[type="search"]:focus, .search-controls select:focus {
-    border: 1.5px solid #005AA9;
-}
-
+/* === Tabell og Export === */
 .table-header {
   display: flex;
   justify-content: space-between;
@@ -276,49 +209,334 @@ button {
   text-shadow: 0 2px 8px rgba(0,90,169,0.10);
 }
 
+/* === Søk og filter === */
+.search-controls {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+
+/* === Locker Progressbar og pill group === */
+.locker-progressbar {
+  max-width: 460px;   /* øk denne verdien etter smak! */
+  min-width: 200px;
+  width: 100%;        /* så lang som mulig innenfor container */
+  height: 22px;
+  background: #ececec;
+  border-radius: 14px;
+  display: flex;
+  overflow: hidden;
+  margin: 0 auto 10px auto;
+  box-shadow: 0 4px 18px 0 rgba(60,60,60,0.21);
+  border: none;
+  position: relative;
+}
+
+.locker-progressbar-fill {
+  height: 100%;
+  border-radius: 50px 0 0 50px;
+  background: linear-gradient(90deg, #22a859 80%, #FF6868 80%, #FF6868 100%);
+  /* Bruker gradient for tydelig overgang, JS setter bredde på denne. */
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1), background 0.3s;
+  box-shadow: 0 2px 12px 0 rgba(34, 168, 89, 0.15), 0 2px 12px 0 rgba(255, 104, 104, 0.10);
+}
+
+.locker-progressbar-labels {
+  /* display: flex;
+  justify-content: space-between;
+  font-size: 1.08rem;
+  margin-top: 8px;
+  color: #3D5744;
+  font-weight: 500;
+  letter-spacing: 0.02em; */
+}
+
+.locker-progressbar-legend {
+  margin-top: 24px;
+  display: flex;
+  gap: 32px;              /* Øker avstanden mellom forklaringene */
+  justify-content: center;
+  align-items: center;
+  font-size: 1.04rem;
+  color: #3D5744;
+  margin-bottom: 14px;
+}
+
+
+.locker-pill-group {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin-right: 18px;     /* Mer luft mellom grupper */
+}
+.locker-pill {
+  width: 28px;
+  height: 16px;
+  display: inline-block;
+  margin-right: 9px;      /* Dette gir luft mellom pill og tekst */
+}
+.pill-available {
+  background: #21b864;
+  border-radius: 999px; /* Venstre rund, høyre flat */
+}
+.pill-occupied {
+  background: #e14a4a;
+  border-radius: 999px; /* Høyre rund, venstre flat */
+}
+.locker-progressbar-available {
+  background: #21b864;
+  height: 100%;
+  border-radius: 14px 0 0 14px;
+  box-shadow: 0 2px 10px rgba(33,184,100,0.18);
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+.locker-progressbar-occupied {
+  background: #e14a4a;
+  height: 100%;
+  border-radius: 0 14px 14px 0;
+  box-shadow: 0 2px 10px rgba(225,74,74,0.13);
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* === Badges === */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-left: 6px;
+    vertical-align: middle;
+    color: #fff;
+}
+.badge-green {
+    background-color: #3DB86D;
+}
+.badge-red {
+    background-color: #FF6868;
+}
+
+/* === Responsivitet/media queries === */
 @media (max-width: 700px) {
     .container {
-        grid-template-columns: 1fr;
+        /* No grid properties needed, keep flex layout */
+    }
+    .stat-card {
+        min-width: 80vw;
+        max-width: 100vw;
     }
     .stats-chips {
         flex-direction: column;
         align-items: stretch;
     }
+    .stat-cards-row {
+        display: none;
+    }
 }
 
 @media (min-width: 1100px) {
-    .container {
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr;
-        grid-template-rows: 1fr 1fr;
-        gap: 40px;
-    }
-    .stat-card--blue {
-        grid-column: 1 / 2;
-        grid-row: 1 / span 2;
-        height: 100%;
-    }
-    .stat-card--green {
-        grid-column: 2 / 3;
-        grid-row: 1 / 2;
-    }
-    .stat-card--yellow {
-        grid-column: 3 / 4;
-        grid-row: 1 / 2;
-    }
-    .stat-card--red {
-        grid-column: 2 / 3;
-        grid-row: 2 / 3;
-    }
-    .stat-card--purple {
-        grid-column: 3 / 4;
-        grid-row: 2 / 3;
-    }
+  .container {
+    /* No grid properties needed, keep flex layout */
+    max-width: 1200px;
+    width: 100%;
+    background: #fff;
+    margin: 40px auto;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    align-items: stretch;
+  }
+  .stat-card {
+    min-height: 230px;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  .stat-cards-row {
+    display: none;
+  }
+  /* === PIE CHART OG CANVAS === */
+  canvas#lockerPieChart {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+  }
 }
 
-@media (max-width: 1100px) {
-    .container {
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 24px;
-    }
+@media (max-width: 1099px) {
+  .container {
+    /* No grid properties needed, keep flex layout */
+    gap: 20px;
+  }
+  .stat-card { min-width: unset; }
+  .stat-cards-row {
+    display: none;
+  }
+}
+
+/* === Delt stat-card (split layout) === */
+.stat-split {
+  display: flex;
+  flex-direction: row;
+  justify-content: stretch;
+  align-items: stretch;
+  min-height: 230px;
+  width: 100%;
+  padding: 0;
+}
+
+.stat-card-left, .stat-card-right {
+  flex: 1 1 0;
+  padding: 30px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.stat-card-left {
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
+  min-width: 200px;
+  max-width: 350px;
+  background: transparent;
+}
+
+.stat-card-divider {
+  width: 4px;
+  background: #161616;
+  margin: 30px 0;
+  border-radius: 6px;
+  opacity: 0.22;
+}
+
+.stat-card-right {
+  align-items: flex-start;
+  background: transparent;
+  min-width: 0;
+  flex: 2 1 0;
+}
+
+@media (max-width: 900px) {
+  .stat-split {
+    flex-direction: column;
+  }
+  .stat-card-divider {
+    width: 80%;
+    height: 4px;
+    margin: 0 0 20px 0;
+    align-self: center;
+  }
+}
+/* === Logg-nedlasting seksjon === */
+.log-download-section {
+    margin-top: 24px;
+}
+.log-download-title {
+    font-weight: 600;
+    margin-bottom: 7px;
+}
+.log-more-info {
+    font-size: 0.97rem;
+    margin-bottom: 14px;
+    margin-top: 0;
+    color: #333;
+}
+
+.most-active-users-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  font-size: 1.13rem;
+  table-layout: fixed;
+}
+.most-active-users-table th, .most-active-users-table td {
+  padding: 10px 32px; /* mer luft! */
+  text-align: center;
+}
+.most-active-users-table th {
+  background: none;
+  font-size: 1.07rem;
+  font-weight: 700;
+  border-bottom: 2px solid #ffe7b4;
+}
+.most-active-users-table td:first-child,
+.most-active-users-table th:first-child {
+  text-align: left;
+  padding-left: 30px;
+}
+
+.most-opened-lockers-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+  font-size: 1.13rem;
+}
+.most-opened-lockers-table th, .most-opened-lockers-table td {
+  padding: 10px 20px;
+  text-align: center;
+}
+.most-opened-lockers-table th {
+  background: none;
+  font-size: 1.07rem;
+  font-weight: 700;
+  border-bottom: 2px solid #dbc6ff;
+}
+.most-opened-lockers-table td:first-child,
+.most-opened-lockers-table th:first-child {
+  text-align: left;
+  padding-left: 24px;
+}
+
+.least-used-lockers-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+  font-size: 1.13rem;
+}
+.least-used-lockers-table th, .least-used-lockers-table td {
+  padding: 10px 20px;
+  text-align: center;
+}
+.least-used-lockers-table th {
+  background: none;
+  font-size: 1.07rem;
+  font-weight: 700;
+  border-bottom: 2px solid #bafad8;
+}
+.least-used-lockers-table td:first-child,
+.least-used-lockers-table th:first-child {
+  text-align: left;
+  padding-left: 24px;
+}
+#time-based-load {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+}
+#hourly-load-chart {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 16px;
+  margin-top: 10px;
+  display: block;
+}
+#hourly-load-info {
+  margin-top: 12px;
+  color: #1b405b;
+  font-size: 1.05em;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }

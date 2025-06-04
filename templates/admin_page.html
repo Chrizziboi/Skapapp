@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SkapApp - Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles/admin_page.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/static/styles/core.css" />
+    <link rel="stylesheet" href="/static/styles/admin_page.css" />
 </head>
 <body>
-
+    <div class="navbar-blur-bg"></div>
     <div class="admin-navbar-wrapper">
         <nav class="admin-navbar">
             <ul class="nav-menu">
@@ -16,17 +17,19 @@
                 <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
                 <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
                 <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
-                <li><button onclick="navigateTo('log')">Logg</button></li>
+                <li><button onclick="navigateTo('log')">Historikk</button></li>
                 <li><button onclick="logout()">Logg ut</button></li>
             </ul>
         </nav>
     </div>
 
-    <div class="split-layout">
+    <div class="main-content">
         <div class="admin-content-column">
             <div class="info-section">
                 <h1>Velkommen til SkapApp Admin</h1>
-                <p>Her kan du administrere garderober, opprette og slette skap, og se statistikk over bruken.</p>
+                <p>
+                    Her kan du administrere garderober, opprette og slette skap, og se statistikk over bruken.
+                </p>
             </div>
             <div class="overview-box full-width">
                 <h2>Ledige Skap i Alle Rom</h2>
@@ -118,7 +121,6 @@
                         return null;
                     }
                 }));
-
                 roomData
                     .filter(room => room !== null)
                     .sort((a, b) => a.name.localeCompare(b.name))
@@ -156,9 +158,68 @@
         const token = localStorage.getItem('token');
 
         if (!token) {
+
             window.location.href = "/";
             return;
         }
+
+  
+        document.addEventListener("DOMContentLoaded", function () {
+            const roomList = document.getElementById("admin-room-list");
+
+            fetch("http://localhost:8080/locker_rooms/overview")
+                .then(response => response.json())
+                .then(rooms => {
+                    roomList.innerHTML = '';
+
+                    rooms
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .forEach((room, i) => {
+                            const wrapper = document.createElement('div');
+                            wrapper.classList.add('room-wrapper');
+
+                            const card = document.createElement('div');
+                            const colors = ['color-a', 'color-b', 'color-c', 'color-d', 'color-e', 'color-f', 'color-g'];
+                            const colorClass = colors[i % colors.length];
+                            card.classList.add('room-card', colorClass);
+
+                            // Calculate prosent opptatt (bruker occupied direkte fra API)
+                            const percent = room.total ? Math.min(Math.round((room.occupied / room.total) * 100), 100) : 0;
+                            let fillClass = 'green';
+                            if (percent > 85) fillClass = 'red';
+                            else if (percent > 60) fillClass = 'orange';
+
+                            card.innerHTML = `
+                                <div class="room-card-title">${room.name}</div>
+                                <div class="room-card-status">${room.available} av ${room.total} skap ledige</div>
+                                <div class="room-progress">
+                                    <div class="room-progress-fill${fillClass ? ' ' + fillClass : ''}" style="width: ${percent}%" data-available="${room.available}" data-occupied="${room.occupied}" data-total="${room.total}"></div>
+                                </div>
+                            `;
+
+                            wrapper.appendChild(card);
+                            roomList.appendChild(wrapper);
+                        });
+                })
+                .catch(error => console.error("Feil ved henting av rom:", error));
+        });
+        document.addEventListener("DOMContentLoaded", () => {
+            const path = window.location.pathname;
+            const btns = document.querySelectorAll(".nav-menu li button");
+            btns.forEach(btn => btn.classList.remove("active"));
+            if (path.includes("admin_page")) {
+                btns[0].classList.add("active");
+            } else if (path.includes("admin_wardrobe")) {
+                btns[1].classList.add("active");
+            } else if (path.includes("admin_statistics")) {
+                btns[2].classList.add("active");
+            } else if (path.includes("admin_backup")) {
+                btns[3].classList.add("active");
+            } else if (path.includes("admin_log")) {
+                btns[4].classList.add("active");
+            }
+        });
+  
 
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
@@ -192,6 +253,7 @@
             window.location.href = "/";
         });
     });
-</script>
+  </script>
+
 </body>
 </html>

@@ -1,103 +1,83 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkapApp - Logg</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles/admin_page.css">
-    <style>
-        .logg-container {
-            max-width: 1100px;
-            margin: 30px auto 0 auto;
-            background: #fff;
-            padding: 2rem;
-            border-radius: 18px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .logg-filter-row {
-            display: flex;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-            align-items: center;
-        }
-        .logg-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        .logg-table th, .logg-table td {
-            border-bottom: 1px solid #e0e0e0;
-            padding: 0.7em 0.4em;
-            text-align: left;
-        }
-        .logg-table th {
-            background: #f6f7fa;
-            font-weight: 600;
-            color: #373B44;
-        }
-        .logg-table tr:last-child td {
-            border-bottom: none;
-        }
-        .datepicker {
-            border-radius: 8px;
-            padding: 0.3em 0.7em;
-            border: 1px solid #aaa;
-            font-size: 1em;
-            margin-right: 0.5em;
-        }
-        @media (max-width: 700px) {
-            .logg-container { padding: 1rem; }
-            .logg-filter-row { flex-direction: column; gap: 0.5rem; }
-            .logg-table th, .logg-table td { font-size: 0.92em; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SkapApp - Logg</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles/core.css"/>
+    <link rel="stylesheet" href="/static/styles/admin_log.css"/>
 </head>
 <body>
-
-<div class="admin-navbar-wrapper">
-    <nav class="admin-navbar">
-        <ul class="nav-menu">
-            <li><button onclick="navigateTo('overview')">Oversikt</button></li>
+  <div class="navbar-blur-bg"></div>
+  <div class="admin-navbar-wrapper">
+        <nav class="admin-navbar">
+            <ul class="nav-menu">
+                <li><button onclick="navigateTo('overview')">Oversikt</button></li>
             <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
             <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
             <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
-            <li><button onclick="navigateTo('log')">Logg</button></li>
+            <li><button onclick="navigateTo('log')">Historikk</button></li>
             <li><button onclick="logout()">Logg ut</button></li>
-        </ul>
-    </nav>
-</div>
+          </ul>
+      </nav>
+  </div>
+  <div class="main-content">
+    <div class="info-section">
+      <h1>Historikk</h1>
+      <p>Her kan du se alle hendelser knyttet til garderobeskapene. Du kan filtrere loggen på tidsperiode, søke etter brukere eller skap, og velge hvilke handlinger du vil se. Bruk datovelgeren for å vise en bestemt periode, eller søk for å finne konkrete hendelser.</p>
+    </div>
 
-<div class="logg-container">
-    <h1>Logg - SkapApp</h1>
-    <p>Her kan du se all skap-logg for de siste 5 årene. Velg tidsrom for å filtrere loggen.</p>
-
-    <div class="logg-filter-row">
+    <!-- LOGG-INNHOLD -->
+    <div class="logg-container">
+      <div class="logg-header-row" style="display: flex; justify-content: flex-end;">
+        <button id="export-btn" type="button" class="btn-green">Eksporter til Excel</button>
+      </div>
+      <div class="logg-filter-row">
         <label>Fra: <input type="date" id="from-date" class="datepicker"></label>
         <label>Til: <input type="date" id="to-date" class="datepicker"></label>
-        <button onclick="fetchLogg()">Vis logg</button>
-    </div>
+        <button onclick="fetchLogg()" class="btn-blue">Vis logg</button>
+      </div>
+      <div class="logg-livefilter-row">
+        <input type="text" id="search-filter" placeholder="Søk på bruker-ID eller skap..." />
+        <div class="custom-dropdown" id="actionDropdown">
+          <div class="dropdown-selected" tabindex="0">Alle handlinger</div>
+          <div class="dropdown-list" style="display:none;">
+            <div class="dropdown-item selected" data-value="">Alle handlinger</div>
+            <div class="dropdown-item" data-value="Låst opp">Låst opp</div>
+            <div class="dropdown-item" data-value="Låst igjen">Låst igjen</div>
+          </div>
+        </div>
+      </div>
+      <div id="log-summary" style="margin-top:10px; margin-bottom:10px;">
+        <span id="total-events">Totalt: 0 hendelser</span> |
+        <span id="unique-users">0 brukere</span> |
+        <span id="unique-lockers">0 skap</span>
+      </div>
 
-    <div id="logg-table-wrapper">
+      <div id="logg-table-wrapper">
         <table class="logg-table" id="logg-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Skap ID</th>
-                    <th>Bruker ID</th>
-                    <th>Handling</th>
-                    <th>Tidspunkt</th>
-                </tr>
-            </thead>
-            <tbody id="logg-table-body">
-                <!-- Fylles med JS -->
-            </tbody>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Skap</th>
+              <th>Bruker ID</th>
+              <th>Handling</th>
+              <th>Tidspunkt</th>
+            </tr>
+          </thead>
+          <tbody id="logg-table-body">
+            <!-- Fylles med JS -->
+          </tbody>
         </table>
-        <div id="logg-empty-message" style="display:none; margin-top:1em; color:#888;">Ingen logg funnet for valgt periode.</div>
+      </div>
+      <button id="load-more-btn" class="btn-blue" style="display: none;">Last mer</button>
+      <div id="logg-empty-message">Ingen logg funnet for valgt periode.</div>
     </div>
 </div>
-
-<script>
+    <script>
+      
+   
     let socket;
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 5;
@@ -106,7 +86,224 @@
     const connectWebSocket = () => {
         if (socket) {
             socket.close();
+
         }
+        return matches;
+      });
+      renderLoggTable();
+      updateSummary();
+      setupLoadMore();
+    }
+    
+    let allLogs = [];        // Full log fra server
+    let filteredLogs = [];   // Etter filtrering
+    let pageSize = 50;       // Hvor mange rader vises først
+    let currentPage = 1;     // Side for paginering
+
+    async function fetchLogg() {
+      const from = document.getElementById("from-date").value;
+      const to = document.getElementById("to-date").value;
+
+      let url = "/locker_logs";
+      const params = [];
+      if (from) params.push(`from_date=${from}`);
+      if (to) params.push(`to_date=${to}`);
+      if (params.length) url += "?" + params.join("&");
+
+      document.getElementById("logg-empty-message").style.display = "none";
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Klarte ikke hente logg fra serveren.");
+        allLogs = await response.json();
+        currentPage = 1;
+        applyFilters();
+      } catch (err) {
+        alert("Feil ved henting av logg: " + err.message);
+      }
+    }
+
+    function applyFilters() {
+      const search = document.getElementById("search-filter").value.trim().toLowerCase();
+      const action = document.querySelector('#actionDropdown .dropdown-item.selected').dataset.value;
+
+      filteredLogs = allLogs.filter(log => {
+        let matches = true;
+        if (search) {
+          matches &&=
+            (log.combi_id?.toLowerCase().includes(search) ||
+             log.user_id?.toLowerCase().includes(search));
+        }
+        if (action) {
+          matches &&= (log.action === action);
+
+    function renderLoggTable() {
+      const tableBody = document.getElementById("logg-table-body");
+      tableBody.innerHTML = "";
+      // Paginering
+      const logsToShow = filteredLogs.slice(0, currentPage * pageSize);
+
+      if (!logsToShow.length) {
+        document.getElementById("logg-empty-message").style.display = "block";
+        return;
+      }
+      document.getElementById("logg-empty-message").style.display = "none";
+
+      for (const entry of logsToShow) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${entry.id}</td>
+          <td>${entry.combi_id ?? "-"}</td>
+          <td>${entry.user_id ?? "-"}</td>
+          <td>${entry.action ?? "-"}</td>
+          <td>${formatTimestamp(entry.timestamp)}</td>
+        `;
+        tableBody.appendChild(row);
+      }
+    }
+
+    function updateSummary() {
+      document.getElementById("total-events").textContent = `Totalt: ${filteredLogs.length} hendelser`;
+      // Unike brukere
+      const users = new Set(filteredLogs.map(log => log.user_id ?? "-"));
+      document.getElementById("unique-users").textContent = `${users.size} brukere`;
+      // Unike skap
+      const skap = new Set(filteredLogs.map(log => log.combi_id ?? "-"));
+      document.getElementById("unique-lockers").textContent = `${skap.size} skap`;
+    }
+
+    function setupLoadMore() {
+      const loadMoreBtn = document.getElementById("load-more-btn");
+      if (filteredLogs.length > currentPage * pageSize) {
+        loadMoreBtn.style.display = "inline-block";
+        loadMoreBtn.onclick = () => {
+          currentPage++;
+          renderLoggTable();
+          setupLoadMore();
+        };
+      } else {
+        loadMoreBtn.style.display = "none";
+      }
+    }
+
+    // Eksport til CSV (Excel kan åpne dette direkte)
+    function exportToExcel() {
+      let csv = "ID,Skap,Bruker ID,Handling,Tidspunkt\n";
+      for (const log of filteredLogs) {
+        csv += `"${log.id}","${log.combi_id ?? '-'}","${log.user_id ?? '-'}","${log.action ?? '-'}","${formatTimestamp(log.timestamp)}"\n`;
+      }
+      // Last ned som fil
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'skapapp_logg.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('search-filter').addEventListener('input', applyFilters);
+    // --- Custom dropdown for action-filter ---
+    const actionDropdown = document.getElementById('actionDropdown');
+    const selected = actionDropdown.querySelector('.dropdown-selected');
+    const list = actionDropdown.querySelector('.dropdown-list');
+    const items = actionDropdown.querySelectorAll('.dropdown-item');
+
+    function closeDropdown() {
+      actionDropdown.classList.remove('active');
+      list.style.display = "none";
+    }
+
+    selected.onclick = function(e) {
+      actionDropdown.classList.toggle('active');
+      list.style.display = actionDropdown.classList.contains('active') ? "block" : "none";
+      e.stopPropagation();
+    };
+    selected.onkeydown = function(e) {
+      if (e.key === "Enter" || e.key === " ") {
+        selected.click();
+        e.preventDefault();
+      }
+    };
+
+    items.forEach(function(item) {
+      item.onmouseenter = function() {
+        items.forEach(i => i.classList.remove('hovered'));
+        item.classList.add('hovered');
+      };
+      item.onmouseleave = function() {
+        item.classList.remove('hovered');
+      };
+      item.onclick = function(e) {
+        selected.textContent = item.textContent;
+        items.forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        closeDropdown();
+        applyFilters();
+        e.stopPropagation();
+      };
+    });
+
+    // Lukk dropdown hvis du klikker utenfor
+    document.addEventListener('click', closeDropdown);
+
+    function navigateTo(page) {
+        if (page === 'overview') {
+            window.location.href = "/admin_page";
+        } else if (page === 'wardrobe_admin') {
+            window.location.href = "/admin_wardrobe";
+        } else if (page === 'statistics') {
+            window.location.href = "/admin_statistics";
+        } else if (page === 'backup') {
+            window.location.href = "/admin_backup";
+        } else if (page === 'log') {
+            window.location.href = "/admin_log";
+        }
+    }
+
+    function logout() {
+        window.location.href = "/";
+    }
+
+    function formatTimestamp(ts) {
+      if (!ts) return "-";
+      try {
+        const d = new Date(ts);
+        return d.toLocaleString("no-NO");
+      } catch {
+        return ts;
+      }
+    }
+
+    window.onload = () => {
+      const today = new Date();
+      const lastMonth = new Date(today);
+      lastMonth.setMonth(today.getMonth() - 1);
+
+      document.getElementById("from-date").value = lastMonth.toISOString().split("T")[0];
+      document.getElementById("to-date").value = today.toISOString().split("T")[0];
+
+      fetchLogg();
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const path = window.location.pathname;
+        const btns = document.querySelectorAll(".nav-menu li button");
+        btns.forEach(btn => btn.classList.remove("active"));
+        if (path.includes("admin_page")) {
+            btns[0].classList.add("active");
+        } else if (path.includes("admin_wardrobe")) {
+            btns[1].classList.add("active");
+        } else if (path.includes("admin_statistics")) {
+            btns[2].classList.add("active");
+        } else if (path.includes("admin_backup")) {
+            btns[3].classList.add("active");
+        } else if (path.includes("admin_log")) {
+            btns[4].classList.add("active");
+        }
+    });
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws/updates`;
@@ -237,7 +434,7 @@
 
         fetchLogg();
     };
-</script>
-
+          
+    </script>
 </body>
 </html>
