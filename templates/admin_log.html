@@ -74,8 +74,27 @@
       <button id="load-more-btn" class="btn-blue" style="display: none;">Last mer</button>
       <div id="logg-empty-message">Ingen logg funnet for valgt periode.</div>
     </div>
-
+</div>
     <script>
+      
+   
+    let socket;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    const reconnectDelay = 3000;
+
+    const connectWebSocket = () => {
+        if (socket) {
+            socket.close();
+
+        }
+        return matches;
+      });
+      renderLoggTable();
+      updateSummary();
+      setupLoadMore();
+    }
+    
     let allLogs = [];        // Full log fra server
     let filteredLogs = [];   // Etter filtrering
     let pageSize = 50;       // Hvor mange rader vises først
@@ -117,13 +136,6 @@
         }
         if (action) {
           matches &&= (log.action === action);
-        }
-        return matches;
-      });
-      renderLoggTable();
-      updateSummary();
-      setupLoadMore();
-    }
 
     function renderLoggTable() {
       const tableBody = document.getElementById("logg-table-body");
@@ -292,7 +304,137 @@
             btns[4].classList.add("active");
         }
     });
+
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/updates`;
+
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = () => {
+            console.log("WebSocket connection established");
+            reconnectAttempts = 0;
+        };
+
+        socket.onmessage = (event) => {
+            const message = event.data;
+            if (message === 'update') {
+                fetchLogg();
+            }
+        };
+
+        socket.onclose = (event) => {
+            if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+                reconnectAttempts++;
+                console.log(`Trying to reconnect... (${reconnectAttempts})`);
+                setTimeout(connectWebSocket, reconnectDelay);
+            }
+        };
+
+        socket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+    };
+
+    async function fetchLogg() {
+        const from = document.getElementById("from-date").value;
+        const to = document.getElementById("to-date").value;
+
+        let url = "/locker_logs";
+        const params = [];
+        if (from) params.push(`from_date=${from}`);
+        if (to) params.push(`to_date=${to}`);
+        if (params.length) url += "?" + params.join("&");
+
+        const tableBody = document.getElementById("logg-table-body");
+        tableBody.innerHTML = "";
+        document.getElementById("logg-empty-message").style.display = "none";
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Klarte ikke hente logg fra serveren.");
+            const logs = await response.json();
+
+            if (!logs.length) {
+                document.getElementById("logg-empty-message").style.display = "block";
+                return;
+            }
+            for (const entry of logs) {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${entry.id}</td>
+                    <td>${entry.locker_id ?? "-"}</td>
+                    <td>${entry.user_id ?? "-"}</td>
+                    <td>${entry.action ?? "-"}</td>
+                    <td>${formatTimestamp(entry.timestamp)}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+        } catch (err) {
+            alert("Feil ved henting av logg: " + err.message);
+        }
+    }
+
+    function formatTimestamp(ts) {
+        if (!ts) return "-";
+        try {
+            const d = new Date(ts);
+            return d.toLocaleString("no-NO");
+        } catch {
+            return ts;
+        }
+    }
+
+    function navigateTo(page) {
+        const mapping = {
+            overview: "/admin_page",
+            wardrobe_admin: "/admin_wardrobe",
+            statistics: "/admin_statistics",
+            backup: "/admin_backup",
+            log: "/admin_log"
+        };
+        window.location.href = mapping[page] || "/";
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = "/";
+    }
+
+    window.onload = () => {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            window.location.href = "/";
+            return;
+        }
+
+        fetch("/api/admin/data", {
+            headers: { "Authorization": `Bearer ${token}` }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Unauthorized");
+            return res.json();
+        })
+        .then(data => {
+            console.log("Bruker er autorisert.");
+            connectWebSocket();
+        })
+        .catch(err => {
+            console.error("Uautorisert tilgang:", err);
+            localStorage.removeItem('token');
+            window.location.href = "/";
+        });
+
+        const today = new Date();
+        const lastMonth = new Date(today);
+        lastMonth.setMonth(today.getMonth() - 1);
+
+        document.getElementById("from-date").value = lastMonth.toISOString().split("T")[0];
+        document.getElementById("to-date").value = today.toISOString().split("T")[0];
+
+        fetchLogg();
+    };
+          
     </script>
-  </div>
 </body>
 </html>

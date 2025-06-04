@@ -3,6 +3,10 @@ from sqlalchemy.orm import Session
 from backend.Service.ErrorHandler import fastapi_error_handler
 from database import Base
 from passlib.context import CryptContext
+from backend.auth.auth_handler import verify_password
+from backend.websocket_broadcast import broadcast_message  # For WebSocket-meldinger
+
+
 
 # Passordkryptering
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -14,7 +18,7 @@ class AdminUser(Base):
     password = Column(String, nullable=False)  # Hashed pin/passord
     role = Column(String, nullable=True)  # "admin" eller "user"
 
-def create_admin(password: str, role: str, db: Session):
+async def create_admin(password: str, role: str, db: Session):
     """
     Oppretter en ny bruker basert på pin/passord og rolle.
     Forhindrer opprettelse dersom samme kode allerede finnes.
@@ -34,27 +38,25 @@ def create_admin(password: str, role: str, db: Session):
     db.add(new_admin)
     db.commit()
     db.refresh(new_admin)
+    await broadcast_message("update")
     return new_admin
 
 
-def delete_admin(admin_id: int, db: Session):
-    """
-    Sletter en bruker basert på ID.
-    """
+async def delete_admin(admin_id: int, db: Session):
     admin = db.query(AdminUser).filter(AdminUser.id == admin_id).first()
     if not admin:
         raise fastapi_error_handler("Bruker ikke funnet.", status_code=404)
 
     db.delete(admin)
     db.commit()
+    await broadcast_message("update")
     return {"message": f"Bruker med ID {admin_id} er slettet."}
 
-def authenticate_user(input_password: str, db: Session):
-    """
-    Autentiserer bruker kun basert på pin/passord.
-    """
+
+def authenticate_user(password: str, db):
     users = db.query(AdminUser).all()
     for user in users:
-        if pwd_context.verify(input_password, user.password):
+        if verify_password(password, user.password):
             return user
     return None
+

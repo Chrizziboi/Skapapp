@@ -38,27 +38,132 @@
         </div>
     </div>
 
-    <script>
-        function navigateTo(page) {
-            if (page === 'overview') {
-                window.location.href = "/admin_page";
-            } else if (page === 'wardrobe_admin') {
-                window.location.href = "/admin_wardrobe";
-            } else if (page === 'statistics') {
-                window.location.href = "/admin_statistics";
-            } else if (page === 'backup') {
-                window.location.href = "/admin_backup";
-            } else if (page === 'log') {
-                window.location.href = "/admin_log";
+<script>
+    let socket;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    const reconnectDelay = 3000;
+
+    function connectWebSocket() {
+        if (socket) socket.close();
+
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
+
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = () => {
+            console.log('WebSocket connection established');
+            reconnectAttempts = 0;
+        };
+
+        socket.onmessage = (event) => {
+            const message = event.data;
+            console.log('WebSocket message received:', message);
+
+            if (message === 'update') {
+                fetchAndDisplayRoomData();
             }
-        }
+        };
 
-        function logout() {
+        socket.onclose = (event) => {
+            console.log('WebSocket connection closed', event);
+            if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+                reconnectAttempts++;
+                console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
+                setTimeout(connectWebSocket, reconnectDelay);
+            }
+        };
+
+        socket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = "/";
+    }
+
+    function navigateTo(page) {
+        if (page === 'overview') {
+            window.location.href = "/admin_page";
+        } else if (page === 'wardrobe_admin') {
+            window.location.href = "/admin_wardrobe";
+        } else if (page === 'statistics') {
+            window.location.href = "/admin_statistics";
+        } else if (page === 'backup') {
+            window.location.href = "/admin_backup";
+        } else if (page === 'log') {
+            window.location.href = "/admin_log";
+        }
+    }
+
+    function fetchAndDisplayRoomData() {
+        const roomList = document.getElementById("admin-room-list");
+
+        fetch("/locker_rooms/")
+            .then(response => response.json())
+            .then(async rooms => {
+                roomList.innerHTML = '';
+
+                const roomData = await Promise.all(rooms.map(async room => {
+                    try {
+                        const res = await fetch(`/locker_rooms/${room.room_id}/available_lockers`);
+                        const data = await res.json();
+                        return {
+                            name: room.name,
+                            available: data.available_lockers,
+                            total: room.number_of_lockers
+                        };
+                    } catch (err) {
+                        console.error("Feil ved henting:", err);
+                        return null;
+                    }
+                }));
+                roomData
+                    .filter(room => room !== null)
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .forEach((room, i) => {
+                        const wrapper = document.createElement('div');
+                        wrapper.classList.add('room-wrapper');
+
+                        const card = document.createElement('div');
+                        const colors = ['color-a', 'color-b', 'color-c', 'color-d'];
+                        const colorClass = colors[i % colors.length];
+
+                        let percentWidth = 0;
+                        if (room.total && room.total > 0 && room.available !== undefined) {
+                            percentWidth = Math.min(Math.round((room.available / room.total) * 100), 100);
+                        }
+
+                        card.classList.add('room-card', colorClass);
+                        card.innerHTML = `
+                            ${room.name}<br>
+                            <span>${room.available} ledige skap</span>
+                            <div class="room-progress">
+                                <div class="room-progress-fill" style="width: ${percentWidth}%"></div>
+                            </div>
+                        `;
+
+                        wrapper.appendChild(card);
+                        roomList.appendChild(wrapper);
+                    });
+
+            })
+            .catch(error => console.error("Feil ved henting av rom:", error));
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+
             window.location.href = "/";
+            return;
         }
-    </script>
 
-    <script>
+  
         document.addEventListener("DOMContentLoaded", function () {
             const roomList = document.getElementById("admin-room-list");
 
@@ -98,9 +203,6 @@
                 })
                 .catch(error => console.error("Feil ved henting av rom:", error));
         });
-    </script>
-
-    <script>
         document.addEventListener("DOMContentLoaded", () => {
             const path = window.location.pathname;
             const btns = document.querySelectorAll(".nav-menu li button");
@@ -117,6 +219,41 @@
                 btns[4].classList.add("active");
             }
         });
-    </script>
+  
+
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.role !== "admin") {
+                localStorage.removeItem('token');
+                window.location.href = "/";
+                return;
+            }
+        } catch (e) {
+            console.error("Invalid token");
+            localStorage.removeItem('token');
+            window.location.href = "/";
+            return;
+        }
+
+        fetch("/api/admin/data", {
+            headers: {"Authorization": `Bearer ${token}`}
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Unauthorized");
+            return res.json();
+        })
+        .then(data => {
+            console.log("Bruker er autorisert.");
+            connectWebSocket();
+            fetchAndDisplayRoomData();
+        })
+        .catch(err => {
+            console.error("Uautorisert tilgang:", err);
+            localStorage.removeItem('token');
+            window.location.href = "/";
+        });
+    });
+  </script>
+
 </body>
 </html>

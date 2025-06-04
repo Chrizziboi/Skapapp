@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/static/styles/admin_backup.css">
 </head>
 <body>
-
     <div class="navbar-blur-bg"></div>
     <div class="admin-navbar-wrapper">
         <nav class="admin-navbar">
@@ -21,13 +20,13 @@
             </ul>
         </nav>
     </div>
-
     <div class="main-content">
         <div class="info-section">
           <h1>Gjenopprettelse</h1>
           <p>
             Her kan du laste ned en backup av databasen, eller gjenopprette systemet fra en eksisterende backup-fil. Dette gjør det enkelt å sikre data og gjenopprette løsningen ved behov.
           </p>
+
         </div>
 
         <div class="admin-box backup-box">
@@ -54,6 +53,7 @@
     </div>
 
     <script>
+""" EMIR
         function navigateTo(page) {
             if (page === 'overview') {
                 window.location.href = "/admin_page";
@@ -69,6 +69,79 @@
         }
 
         function logout() {
+""""
+
+        let socket;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        const reconnectDelay = 3000; // 3 sekunder
+
+        const connectWebSocket = () => {
+            if (socket) socket.close();
+
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log("WebSocket connection established.");
+                reconnectAttempts = 0;
+            };
+
+            socket.onmessage = (event) => {
+                const message = event.data;
+                console.log("WebSocket message received:", message);
+                if (message === "update") {
+                    alert("Databasen ble oppdatert – last inn siden på nytt for å se endringer.");
+                }
+            };
+
+            socket.onclose = (event) => {
+                console.warn("WebSocket connection closed", event);
+                if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    console.log(`Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})`);
+                    setTimeout(connectWebSocket, reconnectDelay);
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error("WebSocket error:", error);
+            };
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = "/";
+                return;
+            }
+
+            fetch("/api/admin/data", {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Unauthorized");
+                return res.json();
+            })
+            .then(data => {
+                console.log("Bruker er autorisert.");
+                connectWebSocket(); // Start WebSocket etter godkjent token
+            })
+            .catch(err => {
+                console.error("Uautorisert tilgang:", err);
+                localStorage.removeItem('token');
+                window.location.href = "/";
+            });
+        });
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
             window.location.href = "/";
         }
 

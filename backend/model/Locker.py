@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session, relationship
 
 from backend.Service.ErrorHandler import fastapi_error_handler
 from database import Base
+from backend.websocket_broadcast import broadcast_message  # WebSocket-varsling
 
 
 class Locker(Base):
@@ -24,7 +25,7 @@ class Locker(Base):
     locker_rooms = relationship("LockerRoom", back_populates="lockers")
 
 
-def add_locker(locker_room_id: int, db: Session):
+async def add_locker(locker_room_id: int, db: Session):
     """
     Legger til et nytt skap med unik combi_id basert på romnavn og høyeste eksisterende nummer.
     """
@@ -56,6 +57,8 @@ def add_locker(locker_room_id: int, db: Session):
     db.commit()
     db.refresh(locker)
 
+    await broadcast_message("update")
+
     return {
         "message": f"Skap {combi_id} ble opprettet.",
         "locker_id": locker.id,
@@ -65,7 +68,7 @@ def add_locker(locker_room_id: int, db: Session):
         "note": locker.note
     }
 
-def add_multiple_lockers(locker_room_id: int, quantity: int, db: Session):
+async def add_multiple_lockers(locker_room_id: int, quantity: int, db: Session):
     """
     Legger til flere nye skap med unike combi_id-er som ikke eksisterer fra før.
     """
@@ -122,13 +125,15 @@ def add_multiple_lockers(locker_room_id: int, quantity: int, db: Session):
         "status": locker.status
     } for locker in new_lockers]
 
+    await broadcast_message("update")
+
     return {
         "message": f"{quantity} garderobeskap er opprettet i rom {locker_room_id}.",
         "multiple_locker_ids": locker_details
     }
 
 
-def add_note_to_locker(locker_id: int, note: str, db: Session):
+async def add_note_to_locker(locker_id: int, note: str, db: Session):
     """
     Lar en administrator legge til eller oppdatere et notat på et spesifikt garderobeskap.
     """
@@ -141,19 +146,23 @@ def add_note_to_locker(locker_id: int, note: str, db: Session):
     db.commit()
     db.refresh(locker)  # Oppdaterer objektet etter commit
 
+    await broadcast_message("update")
+
     return locker
 
 
-def remove_locker(locker_id: int, db: Session):
+async def remove_locker(locker_id: int, db: Session):
     locker = db.query(Locker).filter(Locker.id == locker_id).first()
     if locker:
         db.delete(locker)
         db.commit()
+        await broadcast_message("update")
         return {"message": f"garderobeskap med id: {locker_id} har blitt slettet."}
     return {"error": "garderobeskap ikke funnet."}
 
 
-def remove_all_lockers_in_room(locker_room_id: int, db: Session):
+
+async def remove_all_lockers_in_room(locker_room_id: int, db: Session):
     """
     Sletter alle garderobeskap knyttet til et spesifikt garderoberom.
     """
@@ -166,6 +175,9 @@ def remove_all_lockers_in_room(locker_room_id: int, db: Session):
 
         deleted_count = db.query(Locker).filter_by(locker_room_id=locker_room_id).delete()
         db.commit()
+
+        await broadcast_message("update")
+
         return {"message": f"{deleted_count} garderobeskap slettet fra rom '{room.name}'."}
 
     except Exception as e:

@@ -264,17 +264,17 @@
             link.click();
         }
 
-        const fetchText = (url, elementId, dataKey) => {
-            fetch(url)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById(elementId).innerText = data?.[dataKey] ?? "–";
-                })
-                .catch(() => {
-                    document.getElementById(elementId).innerText = "Feil";
-                });
-        };
-
+            const fetchText = (url, elementId, dataKey) => {
+              fetch(url)
+              .then(res => res.json())
+              .then(data => {
+                  document.getElementById(elementId).innerText = data?.[dataKey] ?? "–";
+              })
+              .catch(() => {
+                  document.getElementById(elementId).innerText = "Feil";
+              });
+      };
+      
         // Minst brukte skap
         fetch("/statistic/most_opened_lockers?period=month")
           .then(res => res.json())
@@ -322,7 +322,9 @@
                 .then(data => {
                     const list = document.getElementById(targetId);
                     list.innerHTML = "";
+
                     if (!data?.length) {
+
                         list.innerHTML = "<li>Ingen data tilgjengelig.</li>";
                         return;
                     }
@@ -332,10 +334,16 @@
                         list.appendChild(li);
                     });
                 })
-                .catch(() => {
+
+                .catch(err => {
                     document.getElementById(targetId).innerHTML = "<li>Feil ved henting.</li>";
+                    console.error(err);
                 });
         };
+
+        // Function to refresh all statistics data
+        const refreshAllStatistics = () => {
+            console.log("Refreshing all statistics data...");
 
         const refreshAllStatistics = () => {
             // Hent og tegn tidsbasert belastning (snitt opptatte skap per time siste 30 dager)
@@ -382,17 +390,21 @@
                 .then(data => {
                     const tbody = document.getElementById("lockers-by-room");
                     tbody.innerHTML = "";
+
                     if (!data?.length) {
                         tbody.innerHTML = "<tr><td colspan='4'>Ingen data tilgjengelig.</td></tr>";
+
                         return;
                     }
                     data.forEach(row => {
                         const tr = document.createElement("tr");
+
                         tr.innerHTML =
                             `<td>${row.room_name || "–"}</td>` +
                             `<td>${row.locker_count ?? "–"}</td>` +
                             `<td>${row.available ?? "–"}</td>` +
                             `<td>${row.occupied ?? "–"}</td>`;
+
                         tbody.appendChild(tr);
                     });
                 });
@@ -485,8 +497,10 @@
                 .then(data => {
                     const tbody = document.getElementById("recent-logs");
                     tbody.innerHTML = "";
+
                     if (!data?.length) {
                         tbody.innerHTML = "<tr><td colspan='4'>Ingen logg funnet.</td></tr>";
+
                         return;
                     }
                     data.slice(0, 5).forEach(log => {
@@ -499,6 +513,7 @@
                         tbody.appendChild(tr);
                     });
                 });
+
             // --- Hent antall unike brukere for dag, uke, måned, år ---
             fetch('/statistic/unique_users')
               .then(response => response.json())
@@ -522,36 +537,66 @@
             const s = pad(date.getSeconds());
             return `${d}/${m}/${y} ${h}:${min}:${s}`;
         }
-
         };
 
+
+        // WebSocket connection setup
         let socket;
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
-        const reconnectDelay = 3000;
+        const reconnectDelay = 3000; // 3 seconds
 
         const connectWebSocket = () => {
-            if (socket) socket.close();
+            // Close existing socket if any
+            if (socket) {
+                socket.close();
+            }
+
+            // Create new WebSocket connection
             const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
+
             socket = new WebSocket(wsUrl);
 
-            socket.onopen = () => reconnectAttempts = 0;
-            socket.onmessage = event => {
-                if (event.data === 'update') refreshAllStatistics();
+            socket.onopen = () => {
+                console.log('WebSocket connection established');
+                reconnectAttempts = 0; // Reset reconnect attempts on successful connection
             };
-            socket.onclose = event => {
-                if (!event.wasClean && reconnectAttempts++ < maxReconnectAttempts) {
-                    setTimeout(connectWebSocket, reconnectDelay);
+
+            socket.onmessage = (event) => {
+                const message = event.data;
+                console.log('WebSocket message received:', message);
+
+                if (message === 'update') {
+                    refreshAllStatistics();
                 }
             };
-            socket.onerror = error => console.error('WebSocket error:', error);
+
+            socket.onclose = (event) => {
+                console.log('WebSocket connection closed', event);
+
+                // Attempt to reconnect if not a normal closure or if we haven't exceeded max attempts
+                if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
+                    setTimeout(connectWebSocket, reconnectDelay);
+                } else if (reconnectAttempts >= maxReconnectAttempts) {
+                    console.error('Maximum reconnection attempts reached');
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
         };
 
-        /*
         document.addEventListener("DOMContentLoaded", () => {
             const token = localStorage.getItem('token');
-            if (!token) return window.location.href = "/";
+
+            if (!token) {
+                window.location.href = "/";
+                return;
+            }
 
             fetch("/api/admin/data", {
                 headers: { "Authorization": `Bearer ${token}` }
@@ -560,20 +605,26 @@
                 if (!res.ok) throw new Error("Unauthorized");
                 return res.json();
             })
-            .then(() => connectWebSocket())
-            .catch(() => {
+            .then(data => {
+                console.log("Bruker er autorisert.");
+                // Initialize WebSocket connection after authentication
+                connectWebSocket();
+            })
+            .catch(err => {
+                console.error("Uautorisert tilgang:", err);
                 localStorage.removeItem('token');
                 window.location.href = "/";
             });
 
+            // Load initial statistics data
             refreshAllStatistics();
         });
-        */
-
+       
         document.addEventListener("DOMContentLoaded", () => {
             refreshAllStatistics();
             connectWebSocket();
             // Autentiserings-sjekk og admin-data-henting er skrudd av midlertidig for testing/design.
+
         });
 
         // document.getElementById("stats-search").addEventListener("input", function() {
@@ -598,6 +649,7 @@
         }
 
         function logout() {
+            localStorage.removeItem('token');
             window.location.href = "/";
         }
 
