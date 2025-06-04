@@ -21,7 +21,7 @@ from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
 from backend.model.AdminUser import authenticate_user
 
-from fastapi import FastAPI, Depends, HTTPException, requests
+from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import UploadFile, File
