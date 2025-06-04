@@ -4,7 +4,6 @@ import spidev
 import requests
 from mfrc522 import SimpleMFRC522
 import json
-import threading
 
 # --- Konfigurasjon ---
 GPIO.setwarnings(False)
@@ -28,6 +27,7 @@ for close_pin in LOCKER_CLOSE_PIN_MAP.values():
 API_URL_REG = "http://localhost:8080/assign_after_closure/"
 API_URL_SCAN = "http://localhost:8080/scan_rfid/"
 API_URL_ADM = "http://localhost:8080/lockers/manual_release/"
+API_URL_CLOCKERS = "http://localhost:8080/lockers/RBPI/occupied"
 
 skap_lukket_tidligere = {locker_id: False for locker_id in LOCKER_CLOSE_PIN_MAP}
 siste_rfid = None
@@ -127,7 +127,7 @@ def manual_release_locker(locker_id):
     """
     Frigjør (åpner) skapet med gitt locker_id etter å ha fått bekreftelse fra backend.
     """
-    response = requests.post(
+    response = requests.put(
         API_URL_ADM,
         params={
             "locker_id": locker_id,
@@ -221,7 +221,10 @@ def poll_manual_release():
     while True:
         try:
             # Hent liste over skap som skal åpnes manuelt fra backend
-            response = requests.get("http://localhost:8080/lockers/RBPI/occupied", timeout=10)
+            response = requests.get(
+                API_URL_CLOCKERS,
+                timeout=1)
+
             if response.status_code == 200:
                 locker_ids = response.json()
                 for locker_id in locker_ids:
