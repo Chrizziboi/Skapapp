@@ -123,13 +123,14 @@ def manual_release_locker(locker_id):
     Frigjør (åpner) skapet med gitt locker_id etter å ha fått bekreftelse fra backend.
     """
     response = requests.put(
-        API_URL_ADM,
+        "http://localhost:8080/lockers/manual_release/",
         params={
             "locker_id": locker_id,
             "locker_room_id": LOCKER_ROOM_ID
         },
         timeout=0.5
     )
+
     print(f"manual_release_locker: status={response.status_code}, body={response.text}")
     data = response.json()
     if response.status_code == 200 and data.get("access_granted"):
@@ -184,11 +185,32 @@ def reader_helper():
                     skap_lukket_tidligere[locker_id] = True
 
             elif not is_closed and skap_lukket_tidligere[locker_id]:
+
                 if now - state_info["last_change"] >= DEBOUNCE_TIME:
-                    print(f"[STATUS] Skap {locker_id} nettopp åpnet – klar for ny syklus")
+
+                    print(f"[STATUS] Skap {locker_id} nettopp åpnet – sjekker backendstatus")
+
+                    # 🔍 Kall backend for å sjekke om skapet fortsatt er registrert som opptatt
+
+                    try:
+
+                        response = requests.get("http://localhost:8080/lockers/RBPI/occupied", timeout=1)
+
+                        occupied_ids = response.json()
+
+                        if locker_id in occupied_ids:
+                            print(f"[ADVARSEL] Skap {locker_id} ble åpnet manuelt mens det var opptatt – frigjøring igangsatt")
+
+                            manual_release_locker(locker_id)
+
+                    except Exception as e:
+
+                        print(f"[FEIL] Kunne ikke sjekke backendstatus: {e}")
+
                     skap_lukket_tidligere[locker_id] = False
 
-                    # --- Failsafe sjekk ---
+
+            # --- Failsafe sjekk ---
                     try:
                         response = requests.get("http://localhost:8080/lockers/RBPI/occupied", timeout=0.5)
                         occupied_ids = response.json()
