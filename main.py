@@ -58,6 +58,7 @@ async def lifespan(_):
     asyncio.create_task(release_expired_loop())
     # asyncio.create_task(rfid_background_listener())
     run_reader_helper()
+    run_manual_release_thread()
     # print("[DEBUG] release_expired_loop STARTET")
     yield
 
