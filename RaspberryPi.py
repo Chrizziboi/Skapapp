@@ -131,7 +131,7 @@ def manual_release_locker(locker_id):
     response = requests.post(
         API_URL_ADM,
         params={
-            "locker_id"
+            "locker_id" : gpio_pin,
             "locker_room_id": LOCKER_ROOM_ID
         },
         timeout=0.5
@@ -216,6 +216,7 @@ def reader_helper():
         if reuse_locker_id is not None and reuse_locker_id in skap_lukket_tidligere:
             skap_lukket_tidligere[reuse_locker_id] = False
         time.sleep(1.5)
+
 
 
 
