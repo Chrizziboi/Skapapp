@@ -36,10 +36,7 @@ class MagnetWatchdog:
         except:
             pass
 
-# Opprett watchdogs for alle magnetlåser
-magnet_watchdogs = {
-    pin: MagnetWatchdog(pin) for pin in LOCKER_GPIO_MAP.values()
-}
+
 
 with open("config.json", "r") as config_file:
     CONFIG = json.load(config_file)
@@ -47,6 +44,11 @@ with open("config.json", "r") as config_file:
 LOCKER_ROOM_ID = CONFIG.get("locker_room_id", 1)
 LOCKER_GPIO_MAP = {int(k): v for k, v in CONFIG.get("locker_gpio_map", {}).items()}
 LOCKER_CLOSE_PIN_MAP = {int(k): v for k, v in CONFIG.get("locker_close_pin_map", {}).items()}
+
+# Opprett watchdogs for alle magnetlåser
+magnet_watchdogs = {
+    pin: MagnetWatchdog(pin) for pin in LOCKER_GPIO_MAP.values()
+}
 
 # Initialiser GPIO og sikre at alle pinner starter i LOW
 for gpio_pin in LOCKER_GPIO_MAP.values():
