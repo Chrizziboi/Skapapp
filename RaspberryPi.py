@@ -27,7 +27,7 @@ for close_pin in LOCKER_CLOSE_PIN_MAP.values():
 
 API_URL_REG = "http://localhost:8080/assign_after_closure/"
 API_URL_SCAN = "http://localhost:8080/scan_rfid/"
-API_URL_ADM = "http://lockers/manual_release/"
+API_URL_ADM = "http://localhost:8080/lockers/manual_release/"
 
 skap_lukket_tidligere = {locker_id: False for locker_id in LOCKER_CLOSE_PIN_MAP}
 siste_rfid = None
