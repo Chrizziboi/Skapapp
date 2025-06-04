@@ -249,12 +249,6 @@ def get_occupied_lockers_endpoint(db: Session = Depends(get_db)):
 
 ''' POST CALLS '''
 
-@api.post("/api/manual_release")
-def admin_manual_release(req: AdminReleaseRequest):
-    print(f"[ADMIN-API] Trigger manuell frigjøring av skap {req.locker_id}")
-    locker_id = manual_release_locker(req.locker_id)
-    return {"status": "ok" if locker_id else "fail", "locker_id": req.locker_id}
-
 
 @api.post("/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
