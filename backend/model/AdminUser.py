@@ -62,23 +62,9 @@ def manual_release_locker(locker_id: int, locker_room_id: int, db: Session):
     """
     try:
         # Sjekk at skapet finnes
-        locker = db.query(Locker).filter(
-            Locker.id == locker_id,
-            Locker.locker_room_id == locker_room_id
-        ).first()
-
+        locker = db.query(Locker).filter(Locker.id == locker_id, Locker.locker_room_id == locker_room_id).first()
         if not locker:
-            return {
-                "access_granted": False,
-                "message": f"Ingen garderobeskap med id: {locker_id} i rom {locker_room_id}"
-            }
-
-        # Hvis skapet ikke er i bruk, ikke gjør noe
-        if locker.status != "Opptatt":
-            return {
-                "access_granted": False,
-                "message": f"Skap {locker_id} er allerede ledig."
-            }
+            return {"access_granted": False, "message": f"Ingen garderobeskap med id: {locker_id} i rom {locker_room_id}"}
 
         # Sett skapet til ledig
         locker.status = "Ledig"
@@ -86,18 +72,14 @@ def manual_release_locker(locker_id: int, locker_room_id: int, db: Session):
         db.commit()
         db.refresh(locker)
 
-        # Logg handlingen
+        # Logg handlingen (valgfritt)
         from backend.model.LockerLog import log_action
         log_action(locker_id=locker.id, user_id=None, action="Manuelt frigjort", db=db)
 
         return {
             "access_granted": True,
             "locker_id": locker.id,
-            "message": f"Skap {locker.id} er manuelt frigjort."
+            "message": f"Skap {locker.id} er manuelt frigjort av Admin."
         }
-
     except Exception as e:
-        return {
-            "access_granted": False,
-            "message": f"Feil ved manuell frigjøring: {str(e)}"
-        }
+        return {"access_granted": False, "message": f"Feil ved manuell frigjøring: {str(e)}"}

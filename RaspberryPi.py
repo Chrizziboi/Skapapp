@@ -123,14 +123,13 @@ def manual_release_locker(locker_id):
     Frigjør (åpner) skapet med gitt locker_id etter å ha fått bekreftelse fra backend.
     """
     response = requests.put(
-        "http://localhost:8080/lockers/manual_release/",
+        API_URL_ADM,
         params={
             "locker_id": locker_id,
             "locker_room_id": LOCKER_ROOM_ID
         },
         timeout=0.5
     )
-
     print(f"manual_release_locker: status={response.status_code}, body={response.text}")
     data = response.json()
     if response.status_code == 200 and data.get("access_granted"):
@@ -155,12 +154,14 @@ def reader_helper():
 
             # Hvis tilstanden har endret seg
             if is_closed != state_info["last_state"]:
+                # Oppdater tidspunkt for siste endring
                 state_info["last_change"] = now
                 state_info["last_state"] = is_closed
 
-            # Skap har blitt lukket igjen
+            # Sjekk om tilstanden har vært stabil lenge nok
             if is_closed and not skap_lukket_tidligere[locker_id]:
                 if now - state_info["last_change"] >= DEBOUNCE_TIME:
+                    # Skap nettopp lukket – start RFID/registrering
                     print(f"[INNGANG] Skap {locker_id} nettopp lukket – starter registrering")
                     rfid_tag = scan_for_rfid(timeout=6)
                     nå = time.time()
@@ -185,33 +186,13 @@ def reader_helper():
                             print(f"[FEIL] Fant ikke gpio_pin for skap {locker_id}")
                     skap_lukket_tidligere[locker_id] = True
 
-            # Skapet har blitt åpnet igjen – sjekk om det var manuelt
             elif not is_closed and skap_lukket_tidligere[locker_id]:
                 if now - state_info["last_change"] >= DEBOUNCE_TIME:
-                    print(f"[MANUELL ÅPNING] Skap {locker_id} er åpnet – sjekker status i backend...")
-
-                    try:
-                        response = requests.get("http://localhost:8080/lockers/RBPI/occupied", timeout=0.5)
-                        occupied_ids = response.json()
-
-                        if locker_id in occupied_ids:
-                            print(f"[MANUELL ÅPNING] Skap {locker_id} var registrert som opptatt – frigjør nå!")
-                            release_response = requests.put(
-                                "http://localhost:8080/lockers/manual_release/",
-                                params={"locker_id": locker_id, "locker_room_id": LOCKER_ROOM_ID},
-                                timeout=0.5
-                            )
-
-                            if release_response.status_code == 200 and release_response.json().get("access_granted"):
-                                print(f"[MANUELL ÅPNING] Skap {locker_id} ble frigjort i backend.")
-                            else:
-                                print(f"[MANUELL ÅPNING] Backend avviste frigjøring: {release_response.text}")
-                    except Exception as e:
-                        print(f"[MANUELL ÅPNING] Klarte ikke kontakte backend: {e}")
-
+                    print(f"[STATUS] Skap {locker_id} nettopp åpnet – klar for ny syklus")
+                    print(f"[IO-STATUS] {GPIO.input(20)} - SKAP 1")
                     skap_lukket_tidligere[locker_id] = False
 
-        # --- Gjenbruk ---
+        # --- Gjenbruk: RFID gir tilgang til tidligere reservert skap ---
         rfid_tag = scan_for_rfid(timeout=1)
         if not rfid_tag:
             continue

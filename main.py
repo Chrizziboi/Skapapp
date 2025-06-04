@@ -8,7 +8,6 @@ import logging
 import RPi.GPIO as GPIO
 from mfrc522 import SimpleMFRC522
 import time
-import requests
 
 from backend.model.LockerLog import LockerLog
 from backend.model.LockerLog import log_unlock_action, release_expired_lockers_logic
@@ -21,7 +20,7 @@ from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
 from backend.model.AdminUser import authenticate_user
 
-from fastapi import FastAPI, Depends, Request, HTTPException
+from fastapi import FastAPI, Depends, Request, HTTPException, requests
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import UploadFile, File
@@ -416,16 +415,13 @@ def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Dep
 
 @api.put("/lockers/manual_release/")
 def manual_release_locker_endpoint(locker_id: int, locker_room_id: int, db: Session = Depends(get_db)):
-
-    locker_room_id = 1
-
     try:
         from backend.model.AdminUser import manual_release_locker
         result = manual_release_locker(locker_id, locker_room_id, db)
         # Hvis access_granted, kall Pi sitt REST-endepunkt:
         if result.get("access_granted"):
             try:
-                PI_URL = "http://localhost:8080/lockers/manual_release/"  # Sett riktig IP!
+                PI_URL = "http://<PI_IP>:8000/api/manual_release"  # Sett riktig IP!
                 r = requests.post(PI_URL, json={"locker_id": locker_id}, timeout=2)
                 if r.status_code == 200:
                     result["pi_status"] = "OK"
@@ -433,8 +429,6 @@ def manual_release_locker_endpoint(locker_id: int, locker_room_id: int, db: Sess
                     result["pi_status"] = f"Feil fra Pi: {r.text}"
             except Exception as e:
                 result["pi_status"] = f"Kunne ikke kontakte Pi: {str(e)}"
-        print(f"[DEBUG] locker_id={locker_id}, locker_room_id={locker_room_id}")  # Denne SKAL logge!
-        ...
         return result
     except Exception as e:
         return fastapi_error_handler(f"Feil ved manuell frigjøring av skap: {str(e)}", status_code=500)
