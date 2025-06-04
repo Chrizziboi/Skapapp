@@ -193,17 +193,23 @@ def reader_helper():
                         response = requests.get("http://localhost:8080/lockers/RBPI/occupied", timeout=0.5)
                         occupied_ids = response.json()
                         if locker_id in occupied_ids:
-                            print(f"[FAILSAFE] Skap {locker_id} ble fysisk åpnet mens det fortsatt er registrert som opptatt!")
+                            print(
+                                f"[FAILSAFE] Skap {locker_id} ble fysisk åpnet mens det fortsatt er registrert som opptatt!")
                             try:
-                                requests.post(
-                                    "http://localhost:8080/log_manual_opening/",
-                                    params={"locker_id": locker_id},
+                                release_response = requests.put(
+                                    "http://localhost:8080/lockers/manual_release/",
+                                    params={"locker_id": locker_id, "locker_room_id": LOCKER_ROOM_ID},
                                     timeout=0.5
                                 )
-                            except:
-                                print(f"[FAILSAFE] Klarte ikke loggføre åpning for skap {locker_id}")
+                                if release_response.status_code == 200 and release_response.json().get(
+                                        "access_granted"):
+                                    print(f"[FAILSAFE] Skap {locker_id} er manuelt frigjort via backend.")
+                                else:
+                                    print(f"[FAILSAFE] Backend avslo manuell frigjøring: {release_response.text}")
+                            except Exception as e:
+                                print(f"[FAILSAFE] Klarte ikke kontakte backend for manuell frigjøring: {e}")
                     except Exception as e:
-                        print(f"[FAILSAFE] Feil ved sjekk av skapstatus for skap {locker_id}: {e}")
+                        print(f"[FAILSAFE] Feil ved sjekk av opptatt status: {e}")
 
         # --- Gjenbruk ---
         rfid_tag = scan_for_rfid(timeout=1)
