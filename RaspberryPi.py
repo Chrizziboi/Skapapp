@@ -4,6 +4,7 @@ import spidev
 import requests
 from mfrc522 import SimpleMFRC522
 import json
+import threading
 
 # --- Konfigurasjon ---
 GPIO.setwarnings(False)
@@ -26,6 +27,7 @@ for close_pin in LOCKER_CLOSE_PIN_MAP.values():
 
 API_URL_REG = "http://localhost:8080/assign_after_closure/"
 API_URL_SCAN = "http://localhost:8080/scan_rfid/"
+API_URL_ADM = "http://lockers/manual_release/"
 
 skap_lukket_tidligere = {locker_id: False for locker_id in LOCKER_CLOSE_PIN_MAP}
 siste_rfid = None
@@ -189,3 +191,43 @@ def reader_helper():
         if reuse_locker_id is not None and reuse_locker_id in skap_lukket_tidligere:
             skap_lukket_tidligere[reuse_locker_id] = False
         time.sleep(1.5)
+
+
+def manual_release_locker(locker_id):
+    """
+    Frigjør (åpner) skapet med gitt locker_id ved å aktivere magneten.
+    """
+    gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
+    if gpio_pin is not None:
+        print(f"[MANUELL] Frigjør skap {locker_id} (GPIO {gpio_pin}) etter admin-forespørsel")
+        magnet_release(gpio_pin)
+        return True
+    else:
+        print(f"[MANUELL] Fant ikke gpio_pin for skap {locker_id}")
+        return False
+
+
+"""
+def poll_admin_release():
+    while True:
+        try:
+            response = requests.get("http://localhost:8080/lockers/pending_release", timeout=1)
+            if response.status_code == 200:
+                locker_ids = response.json()
+                for locker_id in locker_ids:
+                    gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
+                    if gpio_pin is not None:
+                        print(f"[ADMIN] Frigjør skap {locker_id} etter admin-forespørsel")
+                        magnet_release(gpio_pin)
+                        # Bekreft til backend at skapet er frigjort
+                        requests.post("http://localhost:8080/lockers/confirm_release",
+                                      params=
+                                      {"locker_id": locker_id},
+                                      timeout=1)
+        except Exception as e:
+            print(f"[ADMIN] Feil ved polling av admin release: {e}")
+        time.sleep(2)  # Poll hvert 2. sekund
+
+# Start denne i bakgrunnstråd:
+threading.Thread(target=poll_admin_release, daemon=True).start()
+"""

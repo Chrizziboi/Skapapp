@@ -401,7 +401,7 @@ def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Dep
                                      status_code=500)
 
 
-@api.put("/lockers/manual_release")
+@api.put("/lockers/manual_release/")
 def manual_release_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
     try:
         from backend.model.StandardUser import manual_release_locker

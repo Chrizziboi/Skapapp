@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y7.5[CURSOR].01">
+    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y7.6[debounce+admin_Release]">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/model/AdminUser.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/model/AdminUser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/model/StandardUser.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/model/StandardUser.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RaspberryPi.py" beforeDir="false" afterPath="$PROJECT_DIR$/RaspberryPi.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -231,13 +230,6 @@
       <workItem from="1739872136387" duration="921000" />
       <workItem from="1740045481576" duration="4077000" />
       <workItem from="1744027286264" duration="5200000" />
-    </task>
-    <task id="LOCAL−00032" summary="Y5.9?">
-      <option name="closed" value="true" />
-      <created>1748519698324</created>
-      <option name="number" value="LOCAL−00032" />
-      <option name="presentableId" value="LOCAL−00032" />
-      <updated>1748519698324</updated>
     </task>
     <task id="LOCAL−00033" summary="Y5.9.02.0498??">
       <option name="closed" value="true" />
@@ -575,7 +567,14 @@
       <option name="presentableId" value="LOCAL−00080" />
       <updated>1749027610920</updated>
     </task>
-    <option name="localTasksCounter" value="81" />
+    <task id="LOCAL−00081" summary="Y7.6[debounce+admin_Release]">
+      <option name="closed" value="true" />
+      <created>1749029684651</created>
+      <option name="number" value="LOCAL−00081" />
+      <option name="presentableId" value="LOCAL−00081" />
+      <updated>1749029684651</updated>
+    </task>
+    <option name="localTasksCounter" value="82" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -593,7 +592,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Y7.1" />
     <MESSAGE value="Y7.2" />
     <MESSAGE value="Y7.2[TEST].01" />
     <MESSAGE value="Y7.2[TEST].02" />
@@ -618,7 +616,8 @@
     <MESSAGE value="Y7.4[CURSORTRIP].03" />
     <MESSAGE value="Y7.5" />
     <MESSAGE value="Y7.5[CURSOR].01" />
-    <option name="LAST_COMMIT_MESSAGE" value="Y7.5[CURSOR].01" />
+    <MESSAGE value="Y7.6[debounce+admin_Release]" />
+    <option name="LAST_COMMIT_MESSAGE" value="Y7.6[debounce+admin_Release]" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1744033091162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
