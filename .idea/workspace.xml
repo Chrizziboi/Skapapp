@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y7.7[admin_Release]2.5" />
+    <list default="true" id="a628f536-e2b6-40a5-9bba-7f0240a3f736" name="Changes" comment="Y7.7[admin_Release]2.6.2">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -226,27 +229,6 @@
       <workItem from="1739872136387" duration="921000" />
       <workItem from="1740045481576" duration="4077000" />
       <workItem from="1744027286264" duration="5200000" />
-    </task>
-    <task id="LOCAL−00062" summary="Y7.3">
-      <option name="closed" value="true" />
-      <created>1748965712487</created>
-      <option name="number" value="LOCAL−00062" />
-      <option name="presentableId" value="LOCAL−00062" />
-      <updated>1748965712487</updated>
-    </task>
-    <task id="LOCAL−00063" summary="Y7.3[TEST].01">
-      <option name="closed" value="true" />
-      <created>1748966139674</created>
-      <option name="number" value="LOCAL−00063" />
-      <option name="presentableId" value="LOCAL−00063" />
-      <updated>1748966139674</updated>
-    </task>
-    <task id="LOCAL−00064" summary="Y7.3[TEST].02J">
-      <option name="closed" value="true" />
-      <created>1748966964796</created>
-      <option name="number" value="LOCAL−00064" />
-      <option name="presentableId" value="LOCAL−00064" />
-      <updated>1748966964796</updated>
     </task>
     <task id="LOCAL−00065" summary="Y7.3[TEST].03">
       <option name="closed" value="true" />
@@ -570,7 +552,28 @@
       <option name="presentableId" value="LOCAL−00110" />
       <updated>1749055459679</updated>
     </task>
-    <option name="localTasksCounter" value="111" />
+    <task id="LOCAL−00111" summary="Y7.7[admin_Release]2.6">
+      <option name="closed" value="true" />
+      <created>1749055785582</created>
+      <option name="number" value="LOCAL−00111" />
+      <option name="presentableId" value="LOCAL−00111" />
+      <updated>1749055785582</updated>
+    </task>
+    <task id="LOCAL−00112" summary="Y7.7[admin_Release]2.6.1">
+      <option name="closed" value="true" />
+      <created>1749055955582</created>
+      <option name="number" value="LOCAL−00112" />
+      <option name="presentableId" value="LOCAL−00112" />
+      <updated>1749055955582</updated>
+    </task>
+    <task id="LOCAL−00113" summary="Y7.7[admin_Release]2.6.2">
+      <option name="closed" value="true" />
+      <created>1749056006669</created>
+      <option name="number" value="LOCAL−00113" />
+      <option name="presentableId" value="LOCAL−00113" />
+      <updated>1749056006669</updated>
+    </task>
+    <option name="localTasksCounter" value="114" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -588,9 +591,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Y7.6[admin_Release]6" />
-    <MESSAGE value="Y7.6[admin_Release]7" />
-    <MESSAGE value="Y7.6[admin_Release]8" />
     <MESSAGE value="Y7.6[admin_Release]81" />
     <MESSAGE value="Y7.6[admin_Release]82" />
     <MESSAGE value="Y7.6[admin_Release]83" />
@@ -613,7 +613,10 @@
     <MESSAGE value="Y7.7[admin_Release]2.4.4" />
     <MESSAGE value="Y7.7[admin_Release]2.4.5" />
     <MESSAGE value="Y7.7[admin_Release]2.5" />
-    <option name="LAST_COMMIT_MESSAGE" value="Y7.7[admin_Release]2.5" />
+    <MESSAGE value="Y7.7[admin_Release]2.6" />
+    <MESSAGE value="Y7.7[admin_Release]2.6.1" />
+    <MESSAGE value="Y7.7[admin_Release]2.6.2" />
+    <option name="LAST_COMMIT_MESSAGE" value="Y7.7[admin_Release]2.6.2" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Skapapp$main.coverage" NAME="main Coverage Results" MODIFIED="1744033091162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

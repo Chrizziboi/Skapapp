@@ -425,7 +425,7 @@ def manual_release_locker_endpoint(locker_id: int, locker_room_id: int, db: Sess
         # Hvis access_granted, kall Pi sitt REST-endepunkt:
         if result.get("access_granted"):
             try:
-                PI_URL = "http://<PI_IP>:8000/api/manual_release"  # Sett riktig IP!
+                PI_URL = "http://localhost:8080/lockers/manual_release/"  # Sett riktig IP!
                 r = requests.post(PI_URL, json={"locker_id": locker_id}, timeout=2)
                 if r.status_code == 200:
                     result["pi_status"] = "OK"
