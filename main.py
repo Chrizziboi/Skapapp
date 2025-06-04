@@ -30,7 +30,7 @@ from pydantic import BaseModel
 from database import SessionLocal, setup_database
 from database import backup_database_to_json, restore_database_from_json
 
-from RaspberryPi import reader_helper
+from RaspberryPi import reader_helper, poll_manual_release
 
 
 # Initialiser SQLite3
@@ -43,6 +43,11 @@ def run_reader_helper():
     thread.start()
     print("[DEBUG] RFID-leser er startet i bakgrunnstråd.")
 
+def run_manual_release_thread():
+
+    thread = threading.Thread(target=poll_manual_release, daemon=True)
+    thread.start()
+    print("[DEBUG] starter admin utløsning.")
 
 setup_database()
 

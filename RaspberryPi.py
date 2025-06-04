@@ -217,31 +217,17 @@ def reader_helper():
         time.sleep(1.5)
 
 
-
-
-
-
-"""
-def poll_admin_release():
+def poll_manual_release():
     while True:
         try:
+            # Hent liste over skap som skal åpnes manuelt fra backend
             response = requests.get("http://localhost:8080/lockers/pending_release", timeout=1)
             if response.status_code == 200:
                 locker_ids = response.json()
                 for locker_id in locker_ids:
-                    gpio_pin = LOCKER_GPIO_MAP.get(locker_id)
-                    if gpio_pin is not None:
-                        print(f"[ADMIN] Frigjør skap {locker_id} etter admin-forespørsel")
-                        magnet_release(gpio_pin)
-                        # Bekreft til backend at skapet er frigjort
-                        requests.post("http://localhost:8080/lockers/confirm_release",
-                                      params=
-                                      {"locker_id": locker_id},
-                                      timeout=1)
+                    manual_release_locker(locker_id)
+                    # (valgfritt) send bekreftelse til backend at skapet er åpnet
         except Exception as e:
-            print(f"[ADMIN] Feil ved polling av admin release: {e}")
+            print(f"[MANUELL] Feil ved polling: {e}")
         time.sleep(2)  # Poll hvert 2. sekund
 
-# Start denne i bakgrunnstråd:
-threading.Thread(target=poll_admin_release, daemon=True).start()
-"""
