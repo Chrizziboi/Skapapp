@@ -414,7 +414,10 @@ def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Dep
 
 
 @api.put("/lockers/manual_release/")
-def manual_release_locker_endpoint(locker_id: int, locker_room_id: 1, db: Session = Depends(get_db)):
+def manual_release_locker_endpoint(locker_id: int, locker_room_id: int, db: Session = Depends(get_db)):
+
+    locker_room_id = 1
+
     try:
         from backend.model.AdminUser import manual_release_locker
         result = manual_release_locker(locker_id, locker_room_id, db)
