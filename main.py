@@ -429,6 +429,8 @@ def manual_release_locker_endpoint(locker_id: int, locker_room_id: int, db: Sess
                     result["pi_status"] = f"Feil fra Pi: {r.text}"
             except Exception as e:
                 result["pi_status"] = f"Kunne ikke kontakte Pi: {str(e)}"
+        print(f"[DEBUG] locker_id={locker_id}, locker_room_id={locker_room_id}")  # Denne SKAL logge!
+        ...
         return result
     except Exception as e:
         return fastapi_error_handler(f"Feil ved manuell frigjøring av skap: {str(e)}", status_code=500)
