@@ -102,57 +102,48 @@
     function fetchAndDisplayRoomData() {
         const roomList = document.getElementById("admin-room-list");
 
-        fetch("/locker_rooms/")
-            .then(response => response.json())
-            .then(async rooms => {
-                roomList.innerHTML = '';
+        fetch("/locker_rooms/overview")
+                .then(response => response.json())
+                .then(rooms => {
+                    roomList.innerHTML = '';
 
-                const roomData = await Promise.all(rooms.map(async room => {
-                    try {
-                        const res = await fetch(`/locker_rooms/${room.room_id}/available_lockers`);
-                        const data = await res.json();
-                        return {
-                            name: room.name,
-                            available: data.available_lockers,
-                            total: room.number_of_lockers
-                        };
-                    } catch (err) {
-                        console.error("Feil ved henting:", err);
-                        return null;
-                    }
-                }));
-                roomData
-                    .filter(room => room !== null)
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .forEach((room, i) => {
-                        const wrapper = document.createElement('div');
-                        wrapper.classList.add('room-wrapper');
+                    const colors = ['color-a', 'color-b', 'color-c', 'color-d', 'color-e', 'color-f', 'color-g'];
 
-                        const card = document.createElement('div');
-                        const colors = ['color-a', 'color-b', 'color-c', 'color-d'];
-                        const colorClass = colors[i % colors.length];
+                    rooms
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .forEach((room, i) => {
+                                const wrapper = document.createElement('div');
+                                wrapper.classList.add('room-wrapper');
 
-                        let percentWidth = 0;
-                        if (room.total && room.total > 0 && room.available !== undefined) {
-                            percentWidth = Math.min(Math.round((room.available / room.total) * 100), 100);
-                        }
+                                const card = document.createElement('div');
+                                const colorClass = colors[i % colors.length];
+                                card.classList.add('room-card', colorClass);
 
-                        card.classList.add('room-card', colorClass);
-                        card.innerHTML = `
-                            ${room.name}<br>
-                            <span>${room.available} ledige skap</span>
+                                const total = room.total ?? 0;
+                                const occupied = room.occupied ?? 0;
+                                const available = room.available ?? 0;
+
+                                const percentOccupied = total > 0 ? Math.min(Math.round((occupied / total) * 100), 100) : 0;
+                                let fillClass = 'green';
+                                if (percentOccupied > 85) fillClass = 'red';
+                                else if (percentOccupied > 60) fillClass = 'orange';
+
+                                card.innerHTML = `
+                            <div class="room-card-title">${room.name}</div>
+                            <div class="room-card-status">${available} av ${total} skap ledige</div>
                             <div class="room-progress">
-                                <div class="room-progress-fill" style="width: ${percentWidth}%"></div>
+                                <div class="room-progress-fill ${fillClass}" style="width: ${percentOccupied}%"
+                                     data-available="${available}" data-occupied="${occupied}" data-total="${total}"></div>
                             </div>
                         `;
 
-                        wrapper.appendChild(card);
-                        roomList.appendChild(wrapper);
-                    });
-
-            })
-            .catch(error => console.error("Feil ved henting av rom:", error));
+                                wrapper.appendChild(card);
+                                roomList.appendChild(wrapper);
+                            });
+                })
+                .catch(error => console.error("Feil ved henting av rom:", error));
     }
+
 
     document.addEventListener("DOMContentLoaded", () => {
         const token = localStorage.getItem('token');
@@ -253,7 +244,18 @@
             window.location.href = "/";
         });
     });
-  </script>
 
+    document.addEventListener("DOMContentLoaded", () => {
+        const path = window.location.pathname;
+        const btns = document.querySelectorAll(".nav-menu li button");
+        btns.forEach(btn => btn.classList.remove("active"));
+        if (path.includes("admin_page")) btns[0].classList.add("active");
+        else if (path.includes("admin_wardrobe")) btns[1].classList.add("active");
+        else if (path.includes("admin_statistics")) btns[2].classList.add("active");
+        else if (path.includes("admin_backup")) btns[3].classList.add("active");
+        else if (path.includes("admin_log")) btns[4].classList.add("active");
+    });
+
+  </script>
 </body>
 </html>

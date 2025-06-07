@@ -20,13 +20,13 @@
             </ul>
         </nav>
     </div>
+
     <div class="main-content">
         <div class="info-section">
           <h1>Gjenopprettelse</h1>
           <p>
             Her kan du laste ned en backup av databasen, eller gjenopprette systemet fra en eksisterende backup-fil. Dette gjør det enkelt å sikre data og gjenopprette løsningen ved behov.
           </p>
-
         </div>
 
         <div class="admin-box backup-box">
@@ -52,67 +52,33 @@
         </div>
     </div>
 
+    <div id="restore-success-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Gjenoppretting fullført</h2>
+        <p id="restore-success-message">Databasen er gjenopprettet fra backup.</p>
+        <button id="close-restore-modal" class="btn-blue close-btn">Lukk</button>
+      </div>
+    </div>
+
     <script>
-""" EMIR
         function navigateTo(page) {
-            if (page === 'overview') {
-                window.location.href = "/admin_page";
-            } else if (page === 'wardrobe_admin') {
-                window.location.href = "/admin_wardrobe";
-            } else if (page === 'statistics') {
-                window.location.href = "/admin_statistics";
-            } else if (page === 'backup') {
-                window.location.href = "/admin_backup";
-            } else if (page === 'log') {
-                window.location.href = "/admin_log";
-            }
+            const paths = {
+                overview: "/admin_page",
+                wardrobe_admin: "/admin_wardrobe",
+                statistics: "/admin_statistics",
+                backup: "/admin_backup",
+                log: "/admin_log"
+            };
+            window.location.href = paths[page] || "/";
         }
 
         function logout() {
-""""
-
-        let socket;
-        let reconnectAttempts = 0;
-        const maxReconnectAttempts = 5;
-        const reconnectDelay = 3000; // 3 sekunder
-
-        const connectWebSocket = () => {
-            if (socket) socket.close();
-
-            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
-            socket = new WebSocket(wsUrl);
-
-            socket.onopen = () => {
-                console.log("WebSocket connection established.");
-                reconnectAttempts = 0;
-            };
-
-            socket.onmessage = (event) => {
-                const message = event.data;
-                console.log("WebSocket message received:", message);
-                if (message === "update") {
-                    alert("Databasen ble oppdatert – last inn siden på nytt for å se endringer.");
-                }
-            };
-
-            socket.onclose = (event) => {
-                console.warn("WebSocket connection closed", event);
-                if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
-                    reconnectAttempts++;
-                    console.log(`Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})`);
-                    setTimeout(connectWebSocket, reconnectDelay);
-                }
-            };
-
-            socket.onerror = (error) => {
-                console.error("WebSocket error:", error);
-            };
-        };
+            localStorage.removeItem('token');
+            window.location.href = "/";
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             const token = localStorage.getItem('token');
-
             if (!token) {
                 window.location.href = "/";
                 return;
@@ -134,112 +100,109 @@
                 localStorage.removeItem('token');
                 window.location.href = "/";
             });
-        });
 
-        function goBack() {
-            window.history.back();
-        }
-
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = "/";
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
+            // Marker aktiv knapp i navbar
             const path = window.location.pathname;
             const btns = document.querySelectorAll(".nav-menu li button");
             btns.forEach(btn => btn.classList.remove("active"));
-            if (path.includes("admin_page")) {
-                btns[0].classList.add("active");
-            } else if (path.includes("admin_wardrobe")) {
-                btns[1].classList.add("active");
-            } else if (path.includes("admin_statistics")) {
-                btns[2].classList.add("active");
-            } else if (path.includes("admin_backup")) {
-                btns[3].classList.add("active");
-            } else if (path.includes("admin_log")) {
-                btns[4].classList.add("active");
+            if (path.includes("admin_page")) btns[0].classList.add("active");
+            else if (path.includes("admin_wardrobe")) btns[1].classList.add("active");
+            else if (path.includes("admin_statistics")) btns[2].classList.add("active");
+            else if (path.includes("admin_backup")) btns[3].classList.add("active");
+            else if (path.includes("admin_log")) btns[4].classList.add("active");
+        });
+
+        function connectWebSocket() {
+            let socket;
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
+
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log("WebSocket connection established.");
+            };
+
+            socket.onmessage = (event) => {
+                if (event.data === "update") {
+                    alert("Databasen ble oppdatert – last inn siden på nytt for å se endringer.");
+                }
+            };
+
+            socket.onclose = () => {
+                console.warn("WebSocket-kobling lukket.");
+            };
+
+            socket.onerror = (error) => {
+                console.error("WebSocket error:", error);
+            };
+        }
+
+        function updateFileLabel() {
+            const input = document.getElementById('backup-file');
+            const label = document.getElementById('file-chosen');
+            const fjernBtn = document.getElementById('fjern-fil-btn');
+            if (input.files && input.files[0]) {
+                label.innerHTML = '<span class="chosen-prefix">Valgt fil:</span> ' + input.files[0].name;
+                fjernBtn.style.display = 'inline-block';
+            } else {
+                label.textContent = 'Ingen fil valgt';
+                fjernBtn.style.display = 'none';
+            }
+        }
+
+        function clearFileInput() {
+            const input = document.getElementById('backup-file');
+            const label = document.getElementById('file-chosen');
+            const fjernBtn = document.getElementById('fjern-fil-btn');
+            label.classList.add('fade-out');
+            fjernBtn.classList.add('fade-out');
+            setTimeout(function () {
+                input.value = '';
+                label.classList.remove('fade-out');
+                fjernBtn.classList.remove('fade-out');
+                label.textContent = 'Ingen fil valgt';
+                fjernBtn.style.display = 'none';
+            }, 350);
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const restoreForm = document.getElementById('restoreForm');
+            const restoreSuccessModal = document.getElementById('restore-success-modal');
+            const restoreSuccessMessage = document.getElementById('restore-success-message');
+            const closeRestoreModalBtn = document.getElementById('close-restore-modal');
+
+            function showRestoreSuccessModal(message) {
+                restoreSuccessMessage.textContent = message;
+                restoreSuccessModal.classList.remove("hidden");
+            }
+
+            function closeRestoreModal() {
+                restoreSuccessModal.classList.add("hidden");
+            }
+
+            closeRestoreModalBtn.onclick = closeRestoreModal;
+
+            if (restoreForm) {
+                restoreForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const formData = new FormData(restoreForm);
+                    showRestoreSuccessModal('Gjenoppretter database… Vennligst vent mens backupen behandles.');
+
+                    fetch(restoreForm.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            showRestoreSuccessModal(data.message || 'Gjenoppretting fullført.');
+                        })
+                        .catch(error => {
+                            showRestoreSuccessModal('Det oppstod en feil: ' + error.message);
+                        });
+                });
             }
         });
     </script>
-<script>
-function updateFileLabel() {
-  const input = document.getElementById('backup-file');
-  const label = document.getElementById('file-chosen');
-  const fjernBtn = document.getElementById('fjern-fil-btn');
-  if (input.files && input.files[0]) {
-    label.innerHTML = '<span class="chosen-prefix">Valgt fil:</span> ' + input.files[0].name;
-    fjernBtn.style.display = 'inline-block';
-  } else {
-    label.textContent = 'Ingen fil valgt';
-    fjernBtn.style.display = 'none';
-  }
-}
-
-function clearFileInput() {
-  const input = document.getElementById('backup-file');
-  const label = document.getElementById('file-chosen');
-  const fjernBtn = document.getElementById('fjern-fil-btn');
-  // Legg til fade-out klasse
-  label.classList.add('fade-out');
-  fjernBtn.classList.add('fade-out');
-  setTimeout(function() {
-    input.value = '';
-    label.classList.remove('fade-out');
-    fjernBtn.classList.remove('fade-out');
-    label.textContent = 'Ingen fil valgt';
-    fjernBtn.style.display = 'none';
-  }, 350);
-}
-</script>
-
-<div id="restore-success-modal" class="modal hidden">
-  <div class="modal-content">
-    <h2>Gjenoppretting fullført</h2>
-    <p id="restore-success-message">Databasen er gjenopprettet fra backup.</p>
-    <button id="close-restore-modal" class="btn-blue close-btn">Lukk</button>
-  </div>
-</div>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const restoreForm = document.getElementById('restoreForm');
-    const restoreSuccessModal = document.getElementById('restore-success-modal');
-    const restoreSuccessMessage = document.getElementById('restore-success-message');
-    const closeRestoreModalBtn = document.getElementById('close-restore-modal');
-
-    function showRestoreSuccessModal(message) {
-        restoreSuccessMessage.textContent = message;
-        restoreSuccessModal.classList.remove("hidden");
-    }
-    function closeRestoreModal() {
-        restoreSuccessModal.classList.add("hidden");
-    }
-
-    closeRestoreModalBtn.onclick = closeRestoreModal;
-
-    if (restoreForm) {
-        restoreForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(restoreForm);
-
-            showRestoreSuccessModal('Gjenoppretter database… Vennligst vent mens backupen behandles.');
-
-            fetch(restoreForm.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                showRestoreSuccessModal(data.message || 'Gjenoppretting fullført.');
-            })
-            .catch(error => {
-                showRestoreSuccessModal('Det oppstod en feil: ' + error.message);
-            });
-        });
-    }
-});
-</script>
 </body>
 </html>

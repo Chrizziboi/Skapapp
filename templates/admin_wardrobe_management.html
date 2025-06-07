@@ -215,6 +215,7 @@
                     // If a room is selected, refresh the locker list in that room
                     if (selectedRoomId) {
                         fetchLockersInRoom(selectedRoomId);
+
                     }
                 }
             };
@@ -236,6 +237,17 @@
                 console.error('WebSocket error:', error);
             };
         };
+        function forceRefreshRoomInfo() {
+            const modal = document.getElementById("room-info-modal");
+            if (!modal.classList.contains("hidden")) {
+                modal.classList.add("hidden");
+                setTimeout(() => {
+                    const roomName = document.getElementById("info-room-name").textContent.trim();
+                    showRoomInfo({ room_id: selectedRoomId, name: roomName });
+                }, 50);
+            }
+        }
+
         function openNoteModal(lockerId, existingNote) {
             currentNoteLockerId = lockerId;
             document.getElementById("note-locker-id").textContent = lockerId;
@@ -252,25 +264,21 @@
             fetch(`/lockers/${currentNoteLockerId}/note?note=${encodeURIComponent(note)}`, {
                 method: "PUT"
             })
-            .then(response => {
-                if (!response.ok) throw new Error("Noe gikk galt med oppdatering");
-                return response.json();
-            })
-            .then(data => {
-                // Refresh the modal content directly
-                if (selectedRoomId) {
-                    const roomNameText = document.getElementById("info-room-name").textContent;
-                    const roomName = roomNameText.replace("Romnavn: ", "").trim();
-                    showRoomInfo({ room_id: selectedRoomId, name: roomName });
-                }
-                showSuccessModal("Notatet er lagret.");
-                closeNoteModal();
-            })
-            .catch(error => {
-                console.error("Feil ved oppdatering av notat:", error);
-                alert("Kunne ikke oppdatere notat.");
-            });
+                    .then(response => {
+                        if (!response.ok) throw new Error("Noe gikk galt med oppdatering");
+                        return response.json();
+                    })
+                    .then(() => {
+                        showSuccessModal("Notatet er lagret.");
+                        closeNoteModal();
+                        forceRefreshRoomInfo();  // ✅ denne linjen
+                    })
+                    .catch(error => {
+                        console.error("Feil ved oppdatering av notat:", error);
+                        alert("Kunne ikke oppdatere notat.");
+                    });
         }
+
 
         document.addEventListener("DOMContentLoaded", function () {
             fetchRooms();
@@ -470,7 +478,8 @@
             fetch("/lockers/")
                 .then(response => response.json())
                 .then(lockers => {
-                    const roomLockers = lockers.filter(l => l.locker_room_id == room.room_id);
+                    const roomIdNum = Number(room.room_id);
+                    const roomLockers = lockers.filter(l => l.locker_room_id === roomIdNum);
                     const total = roomLockers.length;
                     const available = roomLockers.filter(l => l.status === 'Ledig').length;
                     const used = total - available;
@@ -590,9 +599,10 @@
                     const lockerTable = document.getElementById("locker-table");
                     lockerTable.innerHTML = "";
 
-                    const roomLockers = data.filter(locker => locker.locker_room_id == roomId);
+                    const roomIdNum = Number(roomId);
+                    const roomLockers = data.filter(locker => locker.locker_room_id === roomIdNum);
 
-            roomLockers.forEach(locker => {
+                    roomLockers.forEach(locker => {
                 const safeNote = locker.note && locker.note !== "N/A" ? locker.note : "";
                 const noteHtml = locker.note && locker.note !== "N/A" ? locker.note : "<i>Ingen notat</i>";
                 const row = document.createElement("tr");
@@ -636,21 +646,19 @@
             });
         }
 
-        // Låser opp et skap
         function unlockLocker(lockerId, combiId) {
-            fetch(`/lockers/${lockerId}/unlock`, { method: "PUT" })
-                .then(response => {
-                    if (!response.ok) throw new Error("Kunne ikke låse opp skapet.");
-                    return response.json();
-                })
-                .then(data => {
-                    showSuccessModal(`Skap ${combiId} ble låst opp.`);
-                    fetchLockersInRoom(selectedRoomId);
-                })
-                .catch(error => {
-                    console.error("Feil ved opplåsing av skap:", error);
-                    alert("Kunne ikke låse opp skapet.");
-                });
+            fetch(`/lockers/${lockerId}/unlock`, {method: "PUT"})
+                    .then(response => {
+                        if (!response.ok) throw new Error("Kunne ikke låse opp skapet.");
+                        return response.json();
+                    })
+                    .then(() => {
+                        showSuccessModal(`Skap ${combiId} ble låst opp.`);
+                        if (selectedRoomId) {
+                            const roomName = document.getElementById("info-room-name").textContent.trim();
+                            showRoomInfo({room_id: selectedRoomId, name: roomName}); // ✅ Denne oppdaterer modalen
+                        }
+                    });
         }
 
         // ---- For sletting av enkelt skap med modal ----
@@ -708,26 +716,29 @@
         }
 
         function updateNote(lockerId) {
-            // Old inline note editing is deprecated; use openNoteModal instead.
-            // You can call openNoteModal(lockerId, existingNote) to open the new modal.
-            // For backward compatibility, keep this function as a fallback.
             const note = document.getElementById(`note-input-${lockerId}`).value;
             fetch(`/lockers/${lockerId}/note?note=${encodeURIComponent(note)}`, {
                 method: "PUT"
             })
-            .then(response => {
-                if (!response.ok) throw new Error("Noe gikk galt med oppdatering");
-                return response.json();
-            })
-            .then(data => {
-                alert("Notat lagret!");
-                fetchLockersInRoom(selectedRoomId);
-            })
-            .catch(error => {
-                console.error("Feil ved oppdatering av notat:", error);
-                alert("Kunne ikke oppdatere notat.");
-            });
+                    .then(response => {
+                        if (!response.ok) throw new Error("Noe gikk galt med oppdatering");
+                        return response.json();
+                    })
+                    .then(data => {
+                        alert("Notat lagret!");
+                        fetchLockersInRoom(selectedRoomId);
+
+                        // 🔁 Oppdater info-modal
+                        const roomNameText = document.getElementById("info-room-name").textContent;
+                        const roomName = roomNameText.replace("Romnavn: ", "").trim();
+                        showRoomInfo({room_id: selectedRoomId, name: roomName});
+                    })
+                    .catch(error => {
+                        console.error("Feil ved oppdatering av notat:", error);
+                        alert("Kunne ikke oppdatere notat.");
+                    });
         }
+
 
         function deleteAllLockers() {
             if (!selectedRoomId) {

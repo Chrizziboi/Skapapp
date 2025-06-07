@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SkapApp - Logg</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles/core.css"/>
-    <link rel="stylesheet" href="/static/styles/admin_log.css"/>
+  <link rel="stylesheet" href="/static/styles/core.css"/>
+  <link rel="stylesheet" href="/static/styles/admin_log.css"/>
 </head>
 <body>
   <div class="navbar-blur-bg"></div>
   <div class="admin-navbar-wrapper">
-        <nav class="admin-navbar">
-            <ul class="nav-menu">
-                <li><button onclick="navigateTo('overview')">Oversikt</button></li>
-            <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
-            <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
-            <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
-            <li><button onclick="navigateTo('log')">Historikk</button></li>
-            <li><button onclick="logout()">Logg ut</button></li>
-          </ul>
-      </nav>
+    <nav class="admin-navbar">
+      <ul class="nav-menu">
+        <li><button onclick="navigateTo('overview')">Oversikt</button></li>
+        <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
+        <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
+        <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
+        <li><button onclick="navigateTo('log')">Historikk</button></li>
+        <li><button onclick="logout()">Logg ut</button></li>
+      </ul>
+    </nav>
   </div>
   <div class="main-content">
     <div class="info-section">
@@ -28,7 +28,6 @@
       <p>Her kan du se alle hendelser knyttet til garderobeskapene. Du kan filtrere loggen på tidsperiode, søke etter brukere eller skap, og velge hvilke handlinger du vil se. Bruk datovelgeren for å vise en bestemt periode, eller søk for å finne konkrete hendelser.</p>
     </div>
 
-    <!-- LOGG-INNHOLD -->
     <div class="logg-container">
       <div class="logg-header-row" style="display: flex; justify-content: flex-end;">
         <button id="export-btn" type="button" class="btn-green">Eksporter til Excel</button>
@@ -66,39 +65,44 @@
               <th>Tidspunkt</th>
             </tr>
           </thead>
-          <tbody id="logg-table-body">
-            <!-- Fylles med JS -->
-          </tbody>
+          <tbody id="logg-table-body"></tbody>
         </table>
       </div>
       <button id="load-more-btn" class="btn-blue" style="display: none;">Last mer</button>
       <div id="logg-empty-message">Ingen logg funnet for valgt periode.</div>
     </div>
-</div>
-    <script>
-      
-   
-    let socket;
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 5;
-    const reconnectDelay = 3000;
-
-    const connectWebSocket = () => {
-        if (socket) {
-            socket.close();
-
-        }
-        return matches;
-      });
-      renderLoggTable();
-      updateSummary();
-      setupLoadMore();
+  </div>
+  <script>
+    const navigateTo = (page) => {
+      const routes = {
+        overview: "/admin_page",
+        wardrobe_admin: "/admin_wardrobe",
+        statistics: "/admin_statistics",
+        backup: "/admin_backup",
+        log: "/admin_log"
+      };
+      window.location.href = routes[page] || "/";
     }
-    
-    let allLogs = [];        // Full log fra server
-    let filteredLogs = [];   // Etter filtrering
-    let pageSize = 50;       // Hvor mange rader vises først
-    let currentPage = 1;     // Side for paginering
+
+    const logout = () => {
+      localStorage.removeItem('token');
+      window.location.href = "/";
+    }
+
+    const formatTimestamp = (ts) => {
+      if (!ts) return "-";
+      try {
+        const d = new Date(ts);
+        return d.toLocaleString("no-NO");
+      } catch {
+        return ts;
+      }
+    }
+
+    let allLogs = [];
+    let filteredLogs = [];
+    let pageSize = 50;
+    let currentPage = 1;
 
     async function fetchLogg() {
       const from = document.getElementById("from-date").value;
@@ -130,17 +134,22 @@
       filteredLogs = allLogs.filter(log => {
         let matches = true;
         if (search) {
-          matches &&=
-            (log.combi_id?.toLowerCase().includes(search) ||
-             log.user_id?.toLowerCase().includes(search));
+          matches &&= (log.combi_id?.toLowerCase().includes(search) || log.user_id?.toLowerCase().includes(search));
         }
         if (action) {
           matches &&= (log.action === action);
+        }
+        return matches;
+      });
+
+      renderLoggTable();
+      updateSummary();
+      setupLoadMore();
+    }
 
     function renderLoggTable() {
       const tableBody = document.getElementById("logg-table-body");
       tableBody.innerHTML = "";
-      // Paginering
       const logsToShow = filteredLogs.slice(0, currentPage * pageSize);
 
       if (!logsToShow.length) {
@@ -164,12 +173,8 @@
 
     function updateSummary() {
       document.getElementById("total-events").textContent = `Totalt: ${filteredLogs.length} hendelser`;
-      // Unike brukere
-      const users = new Set(filteredLogs.map(log => log.user_id ?? "-"));
-      document.getElementById("unique-users").textContent = `${users.size} brukere`;
-      // Unike skap
-      const skap = new Set(filteredLogs.map(log => log.combi_id ?? "-"));
-      document.getElementById("unique-lockers").textContent = `${skap.size} skap`;
+      document.getElementById("unique-users").textContent = `${new Set(filteredLogs.map(log => log.user_id ?? "-")).size} brukere`;
+      document.getElementById("unique-lockers").textContent = `${new Set(filteredLogs.map(log => log.combi_id ?? "-")).size} skap`;
     }
 
     function setupLoadMore() {
@@ -186,13 +191,56 @@
       }
     }
 
-    // Eksport til CSV (Excel kan åpne dette direkte)
+    function connectWebSocket() {
+      let socket;
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws/updates`;
+      socket = new WebSocket(wsUrl);
+
+      socket.onopen = () => console.log("WebSocket open");
+      socket.onmessage = (event) => {
+        if (event.data === 'update') fetchLogg();
+      };
+      socket.onerror = (error) => console.error("WebSocket error:", error);
+    }
+
+    window.onload = () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = "/";
+        return;
+      }
+
+      fetch("/api/admin/data", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then(data => {
+        connectWebSocket();
+        const today = new Date();
+        const lastMonth = new Date(today);
+        lastMonth.setMonth(today.getMonth() - 1);
+        document.getElementById("from-date").value = lastMonth.toISOString().split("T")[0];
+        document.getElementById("to-date").value = today.toISOString().split("T")[0];
+        fetchLogg();
+      })
+      .catch(err => {
+        localStorage.removeItem('token');
+        window.location.href = "/";
+      });
+    }
+
+    document.getElementById('search-filter').addEventListener('input', applyFilters);
+    document.getElementById('export-btn').addEventListener('click', exportToExcel);
+
     function exportToExcel() {
       let csv = "ID,Skap,Bruker ID,Handling,Tidspunkt\n";
       for (const log of filteredLogs) {
         csv += `"${log.id}","${log.combi_id ?? '-'}","${log.user_id ?? '-'}","${log.action ?? '-'}","${formatTimestamp(log.timestamp)}"\n`;
       }
-      // Last ned som fil
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -204,237 +252,46 @@
       URL.revokeObjectURL(url);
     }
 
-    document.getElementById('search-filter').addEventListener('input', applyFilters);
-    // --- Custom dropdown for action-filter ---
-    const actionDropdown = document.getElementById('actionDropdown');
-    const selected = actionDropdown.querySelector('.dropdown-selected');
-    const list = actionDropdown.querySelector('.dropdown-list');
-    const items = actionDropdown.querySelectorAll('.dropdown-item');
+    // Dropdown
+    const dropdown = document.getElementById("actionDropdown");
+    const selected = dropdown.querySelector(".dropdown-selected");
+    const list = dropdown.querySelector(".dropdown-list");
+    const items = dropdown.querySelectorAll(".dropdown-item");
 
-    function closeDropdown() {
-      actionDropdown.classList.remove('active');
-      list.style.display = "none";
-    }
-
-    selected.onclick = function(e) {
-      actionDropdown.classList.toggle('active');
-      list.style.display = actionDropdown.classList.contains('active') ? "block" : "none";
+    selected.onclick = (e) => {
+      dropdown.classList.toggle("active");
+      list.style.display = dropdown.classList.contains("active") ? "block" : "none";
       e.stopPropagation();
     };
-    selected.onkeydown = function(e) {
-      if (e.key === "Enter" || e.key === " ") {
-        selected.click();
-        e.preventDefault();
-      }
-    };
 
-    items.forEach(function(item) {
-      item.onmouseenter = function() {
-        items.forEach(i => i.classList.remove('hovered'));
-        item.classList.add('hovered');
-      };
-      item.onmouseleave = function() {
-        item.classList.remove('hovered');
-      };
-      item.onclick = function(e) {
+    items.forEach(item => {
+      item.onclick = (e) => {
         selected.textContent = item.textContent;
-        items.forEach(i => i.classList.remove('selected'));
-        item.classList.add('selected');
-        closeDropdown();
+        items.forEach(i => i.classList.remove("selected"));
+        item.classList.add("selected");
+        list.style.display = "none";
+        dropdown.classList.remove("active");
         applyFilters();
         e.stopPropagation();
       };
     });
 
-    // Lukk dropdown hvis du klikker utenfor
-    document.addEventListener('click', closeDropdown);
-
-    function navigateTo(page) {
-        if (page === 'overview') {
-            window.location.href = "/admin_page";
-        } else if (page === 'wardrobe_admin') {
-            window.location.href = "/admin_wardrobe";
-        } else if (page === 'statistics') {
-            window.location.href = "/admin_statistics";
-        } else if (page === 'backup') {
-            window.location.href = "/admin_backup";
-        } else if (page === 'log') {
-            window.location.href = "/admin_log";
-        }
-    }
-
-    function logout() {
-        window.location.href = "/";
-    }
-
-    function formatTimestamp(ts) {
-      if (!ts) return "-";
-      try {
-        const d = new Date(ts);
-        return d.toLocaleString("no-NO");
-      } catch {
-        return ts;
-      }
-    }
-
-    window.onload = () => {
-      const today = new Date();
-      const lastMonth = new Date(today);
-      lastMonth.setMonth(today.getMonth() - 1);
-
-      document.getElementById("from-date").value = lastMonth.toISOString().split("T")[0];
-      document.getElementById("to-date").value = today.toISOString().split("T")[0];
-
-      fetchLogg();
-    };
+    document.addEventListener("click", () => {
+      dropdown.classList.remove("active");
+      list.style.display = "none";
+    });
 
     document.addEventListener("DOMContentLoaded", () => {
         const path = window.location.pathname;
         const btns = document.querySelectorAll(".nav-menu li button");
         btns.forEach(btn => btn.classList.remove("active"));
-        if (path.includes("admin_page")) {
-            btns[0].classList.add("active");
-        } else if (path.includes("admin_wardrobe")) {
-            btns[1].classList.add("active");
-        } else if (path.includes("admin_statistics")) {
-            btns[2].classList.add("active");
-        } else if (path.includes("admin_backup")) {
-            btns[3].classList.add("active");
-        } else if (path.includes("admin_log")) {
-            btns[4].classList.add("active");
-        }
-    });
+        if (path.includes("admin_page")) btns[0].classList.add("active");
+        else if (path.includes("admin_wardrobe")) btns[1].classList.add("active");
+        else if (path.includes("admin_statistics")) btns[2].classList.add("active");
+        else if (path.includes("admin_backup")) btns[3].classList.add("active");
+        else if (path.includes("admin_log")) btns[4].classList.add("active");
+});
 
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws/updates`;
-
-        socket = new WebSocket(wsUrl);
-
-        socket.onopen = () => {
-            console.log("WebSocket connection established");
-            reconnectAttempts = 0;
-        };
-
-        socket.onmessage = (event) => {
-            const message = event.data;
-            if (message === 'update') {
-                fetchLogg();
-            }
-        };
-
-        socket.onclose = (event) => {
-            if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
-                reconnectAttempts++;
-                console.log(`Trying to reconnect... (${reconnectAttempts})`);
-                setTimeout(connectWebSocket, reconnectDelay);
-            }
-        };
-
-        socket.onerror = (error) => {
-            console.error("WebSocket error:", error);
-        };
-    };
-
-    async function fetchLogg() {
-        const from = document.getElementById("from-date").value;
-        const to = document.getElementById("to-date").value;
-
-        let url = "/locker_logs";
-        const params = [];
-        if (from) params.push(`from_date=${from}`);
-        if (to) params.push(`to_date=${to}`);
-        if (params.length) url += "?" + params.join("&");
-
-        const tableBody = document.getElementById("logg-table-body");
-        tableBody.innerHTML = "";
-        document.getElementById("logg-empty-message").style.display = "none";
-
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("Klarte ikke hente logg fra serveren.");
-            const logs = await response.json();
-
-            if (!logs.length) {
-                document.getElementById("logg-empty-message").style.display = "block";
-                return;
-            }
-            for (const entry of logs) {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${entry.id}</td>
-                    <td>${entry.locker_id ?? "-"}</td>
-                    <td>${entry.user_id ?? "-"}</td>
-                    <td>${entry.action ?? "-"}</td>
-                    <td>${formatTimestamp(entry.timestamp)}</td>
-                `;
-                tableBody.appendChild(row);
-            }
-        } catch (err) {
-            alert("Feil ved henting av logg: " + err.message);
-        }
-    }
-
-    function formatTimestamp(ts) {
-        if (!ts) return "-";
-        try {
-            const d = new Date(ts);
-            return d.toLocaleString("no-NO");
-        } catch {
-            return ts;
-        }
-    }
-
-    function navigateTo(page) {
-        const mapping = {
-            overview: "/admin_page",
-            wardrobe_admin: "/admin_wardrobe",
-            statistics: "/admin_statistics",
-            backup: "/admin_backup",
-            log: "/admin_log"
-        };
-        window.location.href = mapping[page] || "/";
-    }
-
-    function logout() {
-        localStorage.removeItem('token');
-        window.location.href = "/";
-    }
-
-    window.onload = () => {
-        const token = localStorage.getItem('token');
-
-        if (!token) {
-            window.location.href = "/";
-            return;
-        }
-
-        fetch("/api/admin/data", {
-            headers: { "Authorization": `Bearer ${token}` }
-        })
-        .then(res => {
-            if (!res.ok) throw new Error("Unauthorized");
-            return res.json();
-        })
-        .then(data => {
-            console.log("Bruker er autorisert.");
-            connectWebSocket();
-        })
-        .catch(err => {
-            console.error("Uautorisert tilgang:", err);
-            localStorage.removeItem('token');
-            window.location.href = "/";
-        });
-
-        const today = new Date();
-        const lastMonth = new Date(today);
-        lastMonth.setMonth(today.getMonth() - 1);
-
-        document.getElementById("from-date").value = lastMonth.toISOString().split("T")[0];
-        document.getElementById("to-date").value = today.toISOString().split("T")[0];
-
-        fetchLogg();
-    };
-          
-    </script>
+  </script>
 </body>
 </html>

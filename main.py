@@ -385,21 +385,26 @@ async def update_locker_note_endpoint(locker_id: int, note: str, db: Session = D
 @api.put("/lockers/{locker_id}/unlock")
 async def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
     """
-    Endepunkt for å låse opp et skap eksternt.
+    Endepunkt for å låse opp et skap eksternt og sette status til Ledig.
     """
     try:
         locker = db.query(Locker).filter(Locker.id == locker_id).first()
         if locker is None:
             raise fastapi_error_handler(f"Garderobeskap med id: {Locker.combi_id} ikke funnet.", status_code=404)
+
+        locker.status = "Ledig"  # ← SETT DENNE!
         db.commit()
-        db.refresh(locker)  # Sikrer at endringer reflekteres i objektet
+        db.refresh(locker)
 
         await log_unlock_action(locker_id=locker.id, user_id=locker.user_id, db=db)
 
+        # Valgfritt: broadcast oppdatering slik at websockets fanger det
+        await broadcast_message("update")
+
         return locker
     except Exception as e:
-        return fastapi_error_handler(f"Feil ved henting av garderoberom med id: {LockerRoom.id}, {str(e)}",
-                                     status_code=500)
+        return fastapi_error_handler(f"Feil ved opplåsing av skap: {str(e)}", status_code=500)
+
 
 
 @api.put("/lockers/temporary_unlock")
