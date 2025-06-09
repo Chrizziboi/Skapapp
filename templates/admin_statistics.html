@@ -3,85 +3,378 @@
 <head>
     <meta charset="UTF-8">
     <title>Statistikk</title>
+    <link rel="stylesheet" href="/static/styles/core.css" />
     <link rel="stylesheet" href="/static/styles/admin_statistics.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Statistikkoversikt</h1>
 
-        <div class="summary">
-            <p><strong>Totalt antall skap:</strong> <span id="total-lockers">...</span></p>
-            <p><strong>Ledige skap:</strong> <span id="available-lockers">...</span></p>
-            <p><strong>Opptatte skap:</strong> <span id="occupied-lockers">...</span></p>
-            <p><strong>Totalt antall brukere:</strong> <span id="total-users">...</span></p>
-        </div>
-
-        <h2>Skap per garderoberom</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Romnavn</th>
-                    <th>Totalt</th>
-                    <th>Ledige</th>
-                    <th>Opptatte</th>
-                </tr>
-            </thead>
-            <tbody id="lockers-by-room">
-                <!-- Fylles av JS -->
-            </tbody>
-        </table>
-
-        <h2>Rom med flest opptatte skap</h2>
-        <ul id="most-used-rooms"></ul>
-
-        <h2>Mest aktive brukere</h2>
-        <ul id="most-active-users"></ul>
-
-        <h2>Skap åpnet flest ganger</h2>
-        <ul id="most-opened-lockers"></ul>
-
-        <h2>Siste skapåpninger</h2>
-        <ul id="recent-locks"></ul>
-
-        <div class="navigation-buttons">
-            <button onclick="location.href='/admin_page'">← Tilbake</button>
-            <button onclick="location.href='/'">🏠 Hjem</button>
-        </div>
+    <div class="navbar-blur-bg"></div>
+    <div class="admin-navbar-wrapper">
+        <nav class="admin-navbar">
+            <ul class="nav-menu">
+                <li><button onclick="navigateTo('overview')">Oversikt</button></li>
+                <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
+                <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
+                <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
+                <li><button onclick="navigateTo('log')">Historikk</button></li>
+                <li><button onclick="logout()">Logg ut</button></li>
+            </ul>
+        </nav>
     </div>
 
+    <main>
+        <div class="main-content">
+            <div class="admin-content-column">
+                <div class="info-section">
+                    <h1>Statistikkoversikt</h1>
+                    <p>
+                        Her får du full oversikt over garderobeløsningen – antall skap, bruksstatistikk, aktive brukere
+                        og mer.
+                    </p>
+                </div>
+
+                <div class="stats-chips">
+                    <!-- Chips: fylles ut av JS -->
+                    <div class="chip"><strong>Totalt antall skap:</strong> <span id="total-lockers">–</span></div>
+                    <div class="chip"><strong>Ledige skap:</strong> <span id="available-lockers">–</span></div>
+                    <div class="chip"><strong>Opptatte skap:</strong> <span id="occupied-lockers">–</span></div>
+                    <div class="chip"><strong>Totalt antall brukere:</strong> <span id="total-users">–</span></div>
+                </div>
+                <div class="locker-progressbar-container">
+                    <div class="locker-progressbar">
+                        <div class="locker-progressbar-available" id="locker-progressbar-available"></div>
+                        <div class="locker-progressbar-occupied" id="locker-progressbar-occupied"></div>
+                    </div>
+                    <div class="locker-progressbar-legend">
+                      <span class="locker-pill-group">
+                        <span class="locker-pill pill-available"></span>
+                        Ledige skap
+                      </span>
+                      <span class="locker-pill-group">
+                        <span class="locker-pill pill-occupied"></span>
+                        Opptatte skap
+                      </span>
+                    </div>
+                </div>
+                <div class="container">
+                    <!-- 1. Skap per garderoberom -->
+                    <div class="stat-card color-a stat-split">
+                        <div class="stat-card-left">
+                            <h2>Skap per garderoberom</h2>
+                            <p>Se hvor mange skap som finnes i hvert garderoberom, hvor mange som er ledige eller opptatt, og hvilke rom som er mest brukt.</p>
+                        </div>
+                        <div class="stat-card-divider"></div>
+                        <div class="stat-card-right">
+                            <table>
+                                <thead>
+                                <tr>
+                                    <th>Romnavn</th>
+                                    <th>Totalt</th>
+                                    <th>Ledige</th>
+                                    <th>Opptatte</th>
+                                </tr>
+                                </thead>
+                                <tbody id="lockers-by-room"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- 2. Siste skapåpninger -->
+                    <div class="stat-card color-c stat-split">
+                        <div class="stat-card-left">
+                            <h2>Siste skapåpninger</h2>
+                            <p>Logg over de siste hendelsene knyttet til åpning og låsing av skap.</p>
+                            <div class="log-download-section">
+                                <div class="log-download-title">Last ned logg:</div>
+                                <div class="log-more-info">Ønsker du en lengre logg? Velg periode under!</div>
+                                <div class="log-download-btns">
+                                    <button class="btn-blue" onclick="downloadLog('day')">1 dag</button>
+                                    <button class="btn-blue" onclick="downloadLog('week')">1 uke</button>
+                                    <button class="btn-blue" onclick="downloadLog('month')">1 måned</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card-divider"></div>
+                        <div class="stat-card-right">
+                            <table>
+                                <thead>
+                                <tr>
+                                    <th>Bruker-ID</th>
+                                    <th>Skap-ID</th>
+                                    <th>Handling</th>
+                                    <th>Tidspunkt</th>
+                                </tr>
+                                </thead>
+                                <tbody id="recent-logs"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- 3. Rom med flest opptatte skap -->
+                    <div class="stat-card color-b stat-split">
+                        <div class="stat-card-left">
+                            <h2>Rom med flest opptatte skap</h2>
+                            <p>Topp 3 rom med høyest prosentvis belegg av skap akkurat nå.</p>
+                        </div>
+                        <div class="stat-card-divider"></div>
+                        <div class="stat-card-right">
+                            <table class="room-occupancy-table">
+                              <thead>
+                                <tr>
+                                  <th>Romnavn</th>
+                                  <th>Totalt</th>
+                                  <th>Ledige</th>
+                                  <th>Opptatte</th>
+                                  <th>Prosent</th>
+                                </tr>
+                              </thead>
+                              <tbody id="most-used-rooms"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- 4. Mest aktive brukere -->
+                    <div class="stat-card color-d stat-split">
+                        <div class="stat-card-left">
+                            <h2>Mest aktive brukere</h2>
+                            <p>Brukere som har brukt garderobeløsningen mest.</p>
+                            <div class="log-download-section">
+                              <div class="log-download-title">Last ned brukerliste:</div>
+                              <div class="log-more-info">Ønsker du å eksportere alle brukere og reserveringer?</div>
+                              <div class="log-download-btns">
+                                <button class="btn-blue" onclick="downloadAllUsers()">Last ned brukere (CSV)</button>
+                              </div>
+                            </div>
+                        </div>
+                        <div class="stat-card-divider"></div>
+                        <div class="stat-card-right">
+                            <table class="most-active-users-table" style="width:100%;table-layout:fixed;">                              <thead>
+                                <tr>
+                                  <th>Bruker</th>
+                                  <th>Antall reserveringer</th>
+                                </tr>
+                              </thead>
+                              <tbody id="most-active-users"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- 5. Skap åpnet flest ganger -->
+                    <div class="stat-card color-e stat-split">
+                        <div class="stat-card-left">
+                            <h2>Skap åpnet flest ganger</h2>
+                            <p>Se hvilke skap som har blitt åpnet flest ganger i periodene (1 dag, 1 uke, 1 måned).</p>
+                        </div>
+                        <div class="stat-card-divider"></div>
+                        <div class="stat-card-right">
+                            <table class="most-opened-lockers-table">
+                                <thead>
+                                <tr>
+                                    <th>1 dag</th>
+                                    <th>Åpninger</th>
+                                    <th>1 uke</th>
+                                    <th>Åpninger</th>
+                                    <th>1 måned</th>
+                                    <th>Åpninger</th>
+                                </tr>
+                                </thead>
+                                <tbody id="most-opened-lockers"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- ==== Utvidet statistikk / PLASSHOLDERE START ==== -->
+                    <!-- a. Minst brukte skap -->
+                    <div class="stat-card color-a stat-split">
+                        <div class="stat-card-left">
+                            <h2>Minst brukte skap</h2>
+                            <p>Her ser du de 5 skapene som har vært brukt minst den siste tiden.</p>
+                        </div>
+                        <div class="stat-card-divider"></div>
+                        <div class="stat-card-right">
+                            <table class="least-used-lockers-table">
+                              <thead>
+                                <tr>
+                                  <th>Skap</th>
+                                  <th>Antall åpninger</th>
+                                  <th>Sist åpnet</th>
+                                </tr>
+                              </thead>
+                              <tbody id="least-used-lockers"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- b. Tidsbasert belastning -->
+                    <div class="stat-card color-c stat-split">
+                        <div class="stat-card-left">
+                            <h2>Tidsbasert belastning</h2>
+                            <p>
+                              Se hvordan skapsbelastningen varierer gjennom døgnet/uken.<br />
+                              Basert på siste 30 dager.<br />
+                              X-akse: Klokkeslett.<br />
+                              Y-akse: Antall åpninger.
+                            </p>
+                        </div>
+                        <div class="stat-card-divider"></div>
+                        <div class="stat-card-right">
+                            <div id="time-based-load">
+                                <canvas id="hourly-load-chart" width="1200" height="400" style="height: 280px; display: block;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- d. Unike brukere -->
+                    <div class="stat-card color-b stat-split">
+                      <div class="stat-card-left">
+                        <h2>Unike brukere</h2>
+                        <p>Antall forskjellige brukere som har brukt skapene i ulike perioder</p>
+                      </div>
+                      <div class="stat-card-divider"></div>
+                      <div class="stat-card-right">
+                        <table class="stat-table">
+                          <thead>
+                            <tr>
+                              <th>Siste 1 dag</th>
+                              <th>Siste 1 uke</th>
+                              <th>Siste 1 måned</th>
+                              <th>Siste 1 år</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr id="unique-users-row">
+                              <td id="unique-day">–</td>
+                              <td id="unique-week">–</td>
+                              <td id="unique-month">–</td>
+                              <td id="unique-year">–</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <!-- ==== Utvidet statistikk / PLASSHOLDERE SLUTT ==== -->
+                </div>
+    </main>
+
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const fetchText = (url, targetId, key) => {
-                fetch(url)
-                    .then(res => res.json())
-                    .then(data => document.getElementById(targetId).innerText = data[key])
-                    .catch(err => {
-                        document.getElementById(targetId).innerText = "Feil";
-                        console.error(err);
-                    });
-            };
+        function exportTableToCSV(filename) {
+            const table = document.querySelector('.stat-card--blue table');
+            let csv = [];
+            for (let row of table.rows) {
+                let cols = Array.from(row.cells).map(cell => cell.innerText);
+                csv.push(cols.join(','));
+            }
+            const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        }
 
-            const fetchList = (url, targetId, formatFn) => {
-                fetch(url)
-                    .then(res => res.json())
-                    .then(data => {
-                        const list = document.getElementById(targetId);
-                        list.innerHTML = "";
-                        data.forEach(item => {
-                            const li = document.createElement("li");
-                            li.innerText = formatFn(item);
-                            list.appendChild(li);
-                        });
-                    })
-                    .catch(err => {
-                        document.getElementById(targetId).innerHTML = "<li>Feil ved henting.</li>";
-                        console.error(err);
-                    });
-            };
+        const fetchText = (url, elementId, dataKey) => {
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById(elementId).innerText = data?.[dataKey] ?? "–";
+                })
+                .catch(() => {
+                    document.getElementById(elementId).innerText = "Feil";
+                });
+        };
 
+        // Minst brukte skap
+        fetch("/statistic/most_opened_lockers?period=month")
+          .then(res => res.json())
+          .then(data => {
+            // Sorter stigende for minst brukte
+            const sorted = data
+              .sort((a, b) => (a.times_opened ?? 0) - (b.times_opened ?? 0))
+              .slice(0, 5);
+
+            const tbody = document.getElementById("least-used-lockers");
+            tbody.innerHTML = "";
+            if (!sorted.length) {
+              tbody.innerHTML = "<tr><td colspan='3'>Ingen skap funnet.</td></tr>";
+              return;
+            }
+            sorted.forEach(entry => {
+              tbody.innerHTML += `
+                <tr>
+                  <td>${entry.combi_id || entry.locker_id || "–"}</td>
+                  <td>${entry.times_opened ?? 0}</td>
+                  <td>${formatLeastUsedDate(entry.last_opened)}</td>
+                </tr>
+              `;
+            });
+          });
+
+        function formatLeastUsedDate(dateStr) {
+          if (!dateStr) return "Aldri åpnet";
+          const date = new Date(dateStr);
+          const now = new Date();
+          const diff = now - date;
+          const diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+          if (diffDays === 0) {
+            return date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          } else if (diffDays === 1) {
+            return "1 dag siden";
+          } else {
+            return `${diffDays} dager siden`;
+          }
+        }
+
+        const fetchList = (url, targetId, formatFn) => {
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById(targetId);
+                    list.innerHTML = "";
+                    if (!data?.length) {
+                        list.innerHTML = "<li>Ingen data tilgjengelig.</li>";
+                        return;
+                    }
+                    data.forEach(item => {
+                        const li = document.createElement("li");
+                        li.innerText = formatFn(item);
+                        list.appendChild(li);
+                    });
+                })
+                .catch(() => {
+                    document.getElementById(targetId).innerHTML = "<li>Feil ved henting.</li>";
+                });
+        };
+
+        const refreshAllStatistics = () => {
+            // Hent og tegn tidsbasert belastning (snitt opptatte skap per time siste 30 dager)
+            fetch("/statistic/hourly_load")
+                .then(res => res.json())
+                .then(data => {
+                    console.log("hourly_load data:", data);
+                    if (!data || !Array.isArray(data.hourly_avg) || data.hourly_avg.length !== 24) {
+                      throw new Error("Ugyldig data for hourly_avg");
+                    }
+                    // Store total_lockers globally for chart scaling
+                    window.totalLockers = data.total_lockers;
+                    renderHourlyLoadChart(data.hourly_avg);
+                    const info = document.getElementById("hourly-load-info");
+                    if (info && data.total_lockers) {
+                        info.innerText = `Basert på siste 30 dager (${data.total_lockers} skap totalt).`;
+                    }
+                })
+                .catch(() => {
+                    const info = document.getElementById("hourly-load-info");
+                    if (info) info.innerText = "Feil ved henting av data.";
+                });
             fetchText("/statistic/total_lockers", "total-lockers", "total_lockers");
-            fetchText("/statistic/available_lockers", "available-lockers", "available_lockers");
-            fetchText("/statistic/occupied_lockers", "occupied-lockers", "occupied_lockers");
+
+            let available = 0;
+            fetch("/statistic/available_lockers")
+                .then(res => res.json())
+                .then(data => {
+                    available = data.available_lockers ?? 0;
+                    document.getElementById("available-lockers").innerText = available;
+                    return fetch("/statistic/occupied_lockers");
+                })
+                .then(res => res.json())
+                .then(data2 => {
+                    const occupied = data2.occupied_lockers ?? 0;
+                    document.getElementById("occupied-lockers").innerText = occupied;
+                    renderLockerPieChart(available, occupied);
+                });
+
             fetchText("/statistic/total_users", "total-users", "total_users");
 
             fetch("/statistic/lockers_by_room")
@@ -89,40 +382,391 @@
                 .then(data => {
                     const tbody = document.getElementById("lockers-by-room");
                     tbody.innerHTML = "";
+                    if (!data?.length) {
+                        tbody.innerHTML = "<tr><td colspan='4'>Ingen data tilgjengelig.</td></tr>";
+                        return;
+                    }
                     data.forEach(row => {
                         const tr = document.createElement("tr");
-                        tr.innerHTML = `
-                            <td>${row.room_name}</td>
-                            <td>${row.locker_count}</td>
-                            <td>${row.available !== undefined ? row.available : "-"}</td>
-                            <td>${row.occupied !== undefined ? row.occupied : "-"}</td>
-                        `;
+                        tr.innerHTML =
+                            `<td>${row.room_name || "–"}</td>` +
+                            `<td>${row.locker_count ?? "–"}</td>` +
+                            `<td>${row.available ?? "–"}</td>` +
+                            `<td>${row.occupied ?? "–"}</td>`;
                         tbody.appendChild(tr);
                     });
                 });
 
-            fetchList("/statistic/most_used_rooms", "most-used-rooms", room =>
-                `${room.room_name} – ${room.occupied_count} opptatte skap`
-            );
+            fetch("/statistic/lockers_by_room")
+              .then(res => res.json())
+              .then(data => {
+                const tbody = document.getElementById("most-used-rooms");
+                tbody.innerHTML = "";
+                if (!data?.length) {
+                  tbody.innerHTML = "<tr><td colspan='5'>Ingen data tilgjengelig.</td></tr>";
+                  return;
+                }
+                // Finn prosent, sorter og ta topp 3
+                const roomsSorted = data
+                  .map(row => {
+                    const total = row.locker_count ?? 0;
+                    const occ = row.occupied ?? 0;
+                    const avail = row.available ?? 0;
+                    const percent = total > 0 ? occ / total : 0;
+                    return {...row, total, occ, percent, avail};
+                  })
+                  .sort((a, b) => b.percent - a.percent)
+                  .slice(0, 3);
 
-            fetchList("/statistic/most_active_users", "most-active-users", user =>
-                `${user.username} – ${user.locker_count} reserveringer`
-            );
+                roomsSorted.forEach(room => {
+                  const percentNum = room.total > 0 ? Math.round(room.occ / room.total * 100) : 0;
+                  tbody.innerHTML += `
+                    <tr>
+                      <td>${room.room_name || "–"}</td>
+                      <td>${room.total}</td>
+                      <td>${room.avail}</td>
+                      <td>${room.occ}</td>
+                      <td>
+                        <div class="room-bar-bg">
+                          <div class="room-bar-fill" style="width:${percentNum}%;"></div>
+                        </div>
+                        <span class="room-percent-text">${percentNum}%</span>
+                      </td>
+                    </tr>
+                  `;
+                });
+              });
+            fetch("/statistic/most_active_users")
+              .then(res => res.json())
+              .then(data => {
+                const tbody = document.getElementById("most-active-users");
+                tbody.innerHTML = "";
+                if (!data?.length) {
+                  tbody.innerHTML = "<tr><td colspan='2'>Ingen data tilgjengelig.</td></tr>";
+                  return;
+                }
+                // Sorter på antall reserveringer, vis topp 5
+                const top5 = data
+                  .sort((a, b) => (b.locker_count ?? 0) - (a.locker_count ?? 0))
+                  .slice(0, 5);
+                top5.forEach(user => {
+                  tbody.innerHTML += `
+                    <tr>
+                      <td>${user.username || user.user_id || "–"}</td>
+                      <td>${user.locker_count ?? "–"}</td>
+                    </tr>
+                  `;
+                });
+              });
 
-            fetchList("/statistic/recent_log_entries", "recent-locks", log =>
-                `${log.timestamp} – Skap ${log.combi_id}` + (log.username ? ` av ${log.username}` : "")
-            );
+            Promise.all([
+                fetch("/statistic/most_opened_lockers?period=day").then(res => res.json()),
+                fetch("/statistic/most_opened_lockers?period=week").then(res => res.json()),
+                fetch("/statistic/most_opened_lockers?period=month").then(res => res.json()),
+            ]).then(([day, week, month]) => {
+                const tbody = document.getElementById("most-opened-lockers");
+                tbody.innerHTML = "";
+                for (let i = 0; i < 5; i++) {
+                    tbody.innerHTML += `
+                  <tr>
+                    <td>${day[i]?.combi_id || "–"}</td>
+                    <td>${day[i]?.times_opened ?? "–"}</td>
+                    <td>${week[i]?.combi_id || "–"}</td>
+                    <td>${week[i]?.times_opened ?? "–"}</td>
+                    <td>${month[i]?.combi_id || "–"}</td>
+                    <td>${month[i]?.times_opened ?? "–"}</td>
+                  </tr>
+                `;
+                }
+            });
+
+            fetch("/statistic/recent_log_entries")
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById("recent-logs");
+                    tbody.innerHTML = "";
+                    if (!data?.length) {
+                        tbody.innerHTML = "<tr><td colspan='4'>Ingen logg funnet.</td></tr>";
+                        return;
+                    }
+                    data.slice(0, 5).forEach(log => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML =
+                            `<td>${log.user_id ?? "Ukjent"}</td>` +
+                            `<td>${log.locker_id}</td>` +
+                            `<td>${log.action}</td>` +
+                            `<td>${formatNorwegianDateTime(log.timestamp)}</td>`;
+                        tbody.appendChild(tr);
+                    });
+                });
+            // --- Hent antall unike brukere for dag, uke, måned, år ---
+            fetch('/statistic/unique_users')
+              .then(response => response.json())
+              .then(data => {
+                document.getElementById('unique-day').textContent = data.day;
+                document.getElementById('unique-week').textContent = data.week;
+                document.getElementById('unique-month').textContent = data.month;
+                document.getElementById('unique-year').textContent = data.year;
+              })
+              .catch(error => {
+                console.error('Feil ved henting av unike brukere:', error);
+              });
+        function formatNorwegianDateTime(dateString) {
+            const date = new Date(dateString);
+            const pad = n => n.toString().padStart(2, '0');
+            const d = pad(date.getDate());
+            const m = pad(date.getMonth() + 1);
+            const y = date.getFullYear();
+            const h = pad(date.getHours());
+            const min = pad(date.getMinutes());
+            const s = pad(date.getSeconds());
+            return `${d}/${m}/${y} ${h}:${min}:${s}`;
+        }
+
+        };
+
+        let socket;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        const reconnectDelay = 3000;
+
+        const connectWebSocket = () => {
+            if (socket) socket.close();
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => reconnectAttempts = 0;
+            socket.onmessage = event => {
+                if (event.data === 'update') refreshAllStatistics();
+            };
+            socket.onclose = event => {
+                if (!event.wasClean && reconnectAttempts++ < maxReconnectAttempts) {
+                    setTimeout(connectWebSocket, reconnectDelay);
+                }
+            };
+            socket.onerror = error => console.error('WebSocket error:', error);
+        };
 
 
-            fetchList("/statistic/most_opened_lockers", "most-opened-lockers", entry =>
-                `Skap ${entry.combi_id} – åpnet ${entry.times_opened} ganger`
-            );
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem('token');
+            if (!token) return window.location.href = "/";
+
+            fetch("/api/admin/data", {
+                headers: {"Authorization": `Bearer ${token}`}
+            })
+                    .then(res => {
+                        if (!res.ok) throw new Error("Unauthorized");
+                        return res.json();
+                    })
+                    .then(() => connectWebSocket())
+                    .catch(() => {
+                        localStorage.removeItem('token');
+                        window.location.href = "/";
+                    });
+
+            refreshAllStatistics();
+
+            // === Marker aktiv knapp i navbar ===
+            const path = window.location.pathname;
+            const btns = document.querySelectorAll(".nav-menu li button");
+            btns.forEach(btn => btn.classList.remove("active"));
+            if (path.includes("admin_page")) btns[0].classList.add("active");
+            else if (path.includes("admin_wardrobe")) btns[1].classList.add("active");
+            else if (path.includes("admin_statistics")) btns[2].classList.add("active");
+            else if (path.includes("admin_backup")) btns[3].classList.add("active");
+            else if (path.includes("admin_log")) btns[4].classList.add("active");
+        });
 
 
-            fetchList("/statistic/recent_log_entries", "recent-locks", log =>
-                `${log.timestamp} – Skap ${log.combi_id}` + (log.username ? ` av ${log.username}` : "")
-            );
+        document.getElementById("stats-search").addEventListener("input", function() {
+             const search = this.value.trim().toLowerCase();
+             document.querySelectorAll('.stat-card--blue tbody tr').forEach(row => {
+                 row.style.display = row.innerText.toLowerCase().includes(search) ? "" : "none";
+             });
+         });
+
+        function navigateTo(page) {
+            if (page === 'overview') {
+                window.location.href = "/admin_page";
+            } else if (page === 'wardrobe_admin') {
+                window.location.href = "/admin_wardrobe";
+            } else if (page === 'statistics') {
+                window.location.href = "/admin_statistics";
+            } else if (page === 'backup') {
+                window.location.href = "/admin_backup";
+            } else if (page === 'log') {
+                window.location.href = "/admin_log";
+            }
+        }
+
+        function logout() {
+            window.location.href = "/";
+        }
+
+        function renderLockerPieChart(available, occupied) {
+            const total = available + occupied;
+            const availDiv = document.getElementById('locker-progressbar-available');
+            const occDiv = document.getElementById('locker-progressbar-occupied');
+            if (!availDiv || !occDiv) return;
+
+            // Finn prosentandel
+            const availablePercent = total ? (available / total * 100) : 0;
+            const occupiedPercent = total ? (occupied / total * 100) : 0;
+
+            availDiv.style.width = availablePercent + "%";
+            occDiv.style.width = occupiedPercent + "%";
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const path = window.location.pathname;
+            const btns = document.querySelectorAll(".nav-menu li button");
+            btns.forEach(btn => btn.classList.remove("active"));
+            if (path.includes("admin_page")) {
+                btns[0].classList.add("active");
+            } else if (path.includes("admin_wardrobe")) {
+                btns[1].classList.add("active");
+            } else if (path.includes("admin_statistics")) {
+                btns[2].classList.add("active");
+            } else if (path.includes("admin_backup")) {
+                btns[3].classList.add("active");
+            } else if (path.includes("admin_log")) {
+                btns[4].classList.add("active");
+            }
         });
     </script>
+    <script>
+    function downloadLog(period) {
+        let url = `/statistic/locker_activity_log?period=${period}`;
+        window.open(url, '_blank');
+    }
+    function downloadAllUsers() {
+        window.open('/statistic/all_active_users_csv', '_blank');
+    }
+    </script>
+    <script>
+        function renderHourlyLoadChart(hourlyAvg) {
+            // Defensive check: Array, 24 elementer, kun tall
+            if (!Array.isArray(hourlyAvg) || hourlyAvg.length !== 24 || hourlyAvg.some(x => typeof x !== "number" || isNaN(x))) {
+                const info = document.getElementById("hourly-load-info");
+                if (info) info.innerText = "Feil: Mangler eller ugyldig data for 24 timer!";
+                return;
+            }
+            const canvas = document.getElementById("hourly-load-chart");
+            if (!canvas || !canvas.getContext) {
+                const info = document.getElementById("hourly-load-info");
+                if (info) info.innerText = "Feil: Kan ikke tegne diagram (canvas mangler).";
+                return;
+            }
+
+            // --- CRISP CANVAS ---
+            const dpr = window.devicePixelRatio || 1;
+            const displayWidth = canvas.clientWidth || 1200;
+            const displayHeight = canvas.clientHeight || 400;
+            if (canvas.width !== displayWidth * dpr || canvas.height !== displayHeight * dpr) {
+                canvas.width = displayWidth * dpr;
+                canvas.height = displayHeight * dpr;
+            }
+            const ctx = canvas.getContext("2d");
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, displayWidth, displayHeight);
+            // --- SLUTT CRISP ---
+
+            // Dynamiske dimensjoner
+            const chartWidth = displayWidth - 80;   // padding
+            const chartHeight = displayHeight - 70;  // padding + plass til labels
+            const originX = 50;
+            const originY = displayHeight - 40;
+            const barGap = 4;
+            const barWidth = chartWidth / 24 - barGap;
+
+            // Use global totalLockers if available for maxY
+            const maxY = (typeof window.totalLockers === "number" && window.totalLockers > 0)
+                ? window.totalLockers
+                : Math.max(...hourlyAvg, 1);
+
+            // Akser
+            ctx.save();
+            ctx.strokeStyle = "#d0d0d0";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(originX, originY - chartHeight);
+            ctx.lineTo(originX, originY);
+            ctx.lineTo(originX + chartWidth, originY);
+            ctx.stroke();
+            ctx.restore();
+
+            // Y-akse tall og grid (5 gridlines: 0, 1/4, 1/2, 3/4, max)
+            ctx.save();
+            ctx.fillStyle = "#444";
+            ctx.font = "14px Inter, sans-serif";
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            ctx.strokeStyle = "#eee";
+            for (let i = 0; i <= 4; i++) {
+                const frac = i / 4;
+                const y = originY - chartHeight * frac;
+                const val = Math.round(maxY * frac);
+                ctx.fillText(val, originX - 10, y);
+                ctx.beginPath();
+                ctx.moveTo(originX, y);
+                ctx.lineTo(originX + chartWidth, y);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // X-akse labels (klokkeslett 0-23)
+            ctx.save();
+            ctx.fillStyle = "#666";
+            ctx.font = "13px Inter, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+            let xLabelStep = 1;
+            if (barWidth < 16) xLabelStep = 2;
+            if (barWidth < 9) xLabelStep = 3;
+            for (let i = 0; i < 24; i += xLabelStep) {
+                const x = originX + i * (chartWidth / 24) + barWidth / 2;
+                ctx.fillText(i.toString(), x, originY + 8);
+            }
+            ctx.restore();
+
+            // Bar chart (søylene) – rundede topper
+            for (let i = 0; i < 24; i++) {
+                const value = hourlyAvg[i];
+                const x = originX + i * (chartWidth / 24) + barGap / 2;
+                const y = originY - (value / maxY) * chartHeight;
+                const height = (value / maxY) * chartHeight;
+
+                ctx.save();
+                ctx.fillStyle = "#3761c8";
+                let radius = Math.min(barWidth * 0.4, height / 2);
+                if (radius < 2) radius = 2;
+                if (height < 2) radius = 0;
+                const barLeft = x;
+                const barRight = x + barWidth;
+                const barBottom = originY;
+                const barTop = y;
+                ctx.beginPath();
+                if (radius > 0) {
+                    ctx.moveTo(barLeft, barBottom);
+                    ctx.lineTo(barLeft, barTop + radius);
+                    ctx.arcTo(barLeft, barTop, barLeft + radius, barTop, radius);
+                    ctx.lineTo(barRight - radius, barTop);
+                    ctx.arcTo(barRight, barTop, barRight, barTop + radius, radius);
+                    ctx.lineTo(barRight, barBottom);
+                } else {
+                    ctx.moveTo(barLeft, barBottom);
+                    ctx.lineTo(barLeft, barTop);
+                    ctx.lineTo(barRight, barTop);
+                    ctx.lineTo(barRight, barBottom);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+    </script>
 </body>
-</html>

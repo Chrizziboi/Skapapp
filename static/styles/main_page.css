@@ -1,56 +1,267 @@
+/* -- BAKGRUNN OG GRUNNLEGGENDE BODY-STIL -- */
+/* Setter et bilde som bakgrunn, dekker hele skjermen, ingen margin/padding, fonten Inter */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    background: url("/static/Sunnaas_building.webp") no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
     margin: 0;
+    padding: 0;
+    /* Skal være spesifikk for startsiden! */
 }
 
-.login-container {
-    background-color: white;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    width: 300px;
+/* -- HEADERBAR (TOPP-LINJE) -- */
+/* Plasserer et "header"-område helt øverst, strekker seg over hele bredden,
+   bruker flex for å fordele elementer mellom venstre, høyre og midten.
+   Pointer-events: none gjør at klikk ikke går til baren, men til barn-elementene (f.eks. knapper) */
+.header-bar {
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: absolute;
+    top: 32px;
+    left: 0;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* -- INFO PANEL/KNAPP -- */
+/* Plasserer infoboksen absolutt øverst til venstre, med avrundede hjørner og skygge.
+   display: flex for å sentrere innholdet vertikalt og horisontalt. */
+.info-panel-box {
+    position: absolute;
+    left: 15px;
+    top: 16px;
+    background: rgba(255,255,255,0.98);
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    padding: 8px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+}
+
+/* Stil for selve info-knappen. Rund, blå, feit tekst, skygge, liten animasjon på hover. */
+.info-panel-btn {
+    background: #0077cc;
+    color: white;
+    font-weight: 800;
+    padding: 10px 32px;
+    font-size: 18px;
+    border-radius: 999px;
+    border: none;
+    text-decoration: none;
+    transition: background 0.22s, box-shadow 0.22s;
+    box-shadow: 0 4px 12px rgba(0,119,204,0.13), 0 1.5px 2px rgba(0,0,0,0.09);
+    letter-spacing: 0.03em;
+    display: block;
+    white-space: nowrap;
+    min-width: 120px;
     text-align: center;
 }
-
-.login-container h1 {
-    margin-bottom: 24px;
-    font-size: 24px;
-    color: #333;
+.info-panel-btn:hover {
+    background: #005fa3;
+    box-shadow: 0 8px 22px rgba(0,119,204,0.18);
 }
 
-.login-container input {
+/* -- LOGO-BOX -- */
+/* Plasserer logoen i midten, med hvit bakgrunn og avrundede hjørner, samt skygge.
+   Bruker flex for å sentrere logoen inni boksen. */
+.logo-box {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 18px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+    padding: 8px 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    min-width: unset;
+    min-height: 54px;
+}
+/* Stil på selve logo-bildet, høyde, bredde, runde hjørner, ingen bakgrunnsfarge */
+.logo-img {
+    height: 80px;
+    width: auto;
+    max-width: 95%;
+    border-radius: 16px;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    object-fit: contain;
+    display: block;
+}
+
+/* -- Sentrerte hovedbokser -- */
+/* Hovedinnholdet i midten av skjermen, sentrert både vertikalt og horisontalt */
+.main-content {
+    min-height: 100vh;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Boksene i midten ligger ved siden av hverandre, med mellomrom */
+.center-boxes {
+    display: flex;
+    gap: 56px;
+    align-items: stretch;
+    justify-content: center;
+    width: 960px;
+    margin-top: 85px;
+}
+
+/* -- Selve boksene (venstre/høyre) -- */
+/* Hvit bakgrunn, runde hjørner, skygge, padding og minimumshøyde */
+.welcome-box,
+.login-box {
+    background: rgba(255,255,255,0.98);
+    border-radius: 30px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    border: 2px solid #e3ecf1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 420px;
+    margin-bottom: 0;
+    padding: 50px 42px;
+    box-sizing: border-box;
+}
+
+/* Venstre boks (info) er litt større, tekst midtstilt */
+.welcome-box {
+    flex: 3 1 0%;
+    text-align: center;
+    min-width: 330px;
+    font-size: 19px;
+}
+/* Høyre boks (logg inn) litt mindre */
+.login-box {
+    flex: 2 1 0%;
+    text-align: center;
+    min-width: 260px;
+}
+
+/* -- Tittel og tekst inne i boksene -- */
+.welcome-box h1,
+.login-box h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 18px;
+    color: #203344;
+    letter-spacing: 0.012em;
+}
+.welcome-box p {
+    font-size: 17px;
+    color: #333;
+    line-height: 1.6;
+    text-shadow: 0 2px 4px rgba(255,255,255,0.11);
+}
+
+/* -- Input og knapp i logg inn-boksen -- */
+.login-box input,
+.login-box button {
     width: 100%;
+    box-sizing: border-box;
+}
+.login-box input {
     padding: 12px;
-    margin: 8px 0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    margin: 12px 0 17px 0;
+    border: 1.3px solid #cbe2ef;
+    border-radius: 10px;
     font-size: 16px;
 }
-
-.login-container button {
-    width: 100%;
-    padding: 12px;
-    background-color: #0077cc;
+.login-box button {
+    padding: 13px 0;
+    margin: 12px 0;
+    background: linear-gradient(to right, #0077cc, #005fa3);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 40px;
     font-size: 16px;
+    font-weight: 700;
     cursor: pointer;
-    margin-top: 12px;
-    transition: background-color 0.3s ease;
+    box-shadow: 0 6px 15px rgba(0, 119, 204, 0.13);
+    transition: background 0.21s, transform 0.18s;
+    letter-spacing: 0.04em;
+}
+.login-box button:hover {
+    background: linear-gradient(to right, #005fa3, #0077cc);
+    transform: translateY(-2px) scale(1.025);
 }
 
-.login-container button:hover {
-    background-color: #005fa3;
-}
-
+/* Feilmelding under knappen/input */
 .error-message {
-    color: red;
-    margin-top: 10px;
-    font-size: 14px;
+    color: #d52b1e;
+    margin-top: 12px;
+    font-size: 15px;
+}
+
+/* -- MOBIL/RESPONSIV -- */
+/* Justerer størrelser, avstander og retning når skjermen er mindre enn 1200px eller 950px */
+@media (max-width: 1200px) {
+    .center-boxes {
+        width: 99vw;
+        gap: 22px;
+    }
+    .welcome-box,
+    .login-box {
+        min-width: 200px;
+        max-width: 96vw;
+        padding: 22px 5vw;
+    }
+    .logo-box {
+        padding: 12px 5vw;
+        min-width: 220px;
+        max-width: 94vw;
+    }
+}
+@media (max-width: 950px) {
+    .header-bar {
+        flex-direction: column;
+        align-items: stretch;
+        top: 16px;
+        gap: 8px;
+    }
+    .info-panel-box, .logo-box {
+        position: static;
+        margin: 0 auto;
+        left: unset;
+        transform: none;
+        min-width: 180px;
+        max-width: 280px;
+    }
+    .logo-box {
+        margin-top: 8px;
+        padding: 7px 10vw;
+        min-width: 160px;
+        max-width: 80vw;
+    }
+    .main-content {
+        margin-top: 50px;
+    }
+    .center-boxes {
+        flex-direction: column;
+        gap: 18px;
+        width: 95vw;
+        margin-top: 45px;
+    }
+    .welcome-box,
+    .login-box {
+        width: 95vw;
+        max-width: 440px;
+        min-width: 200px;
+        margin: 0 auto;
+        padding: 24px 5vw;
+    }
+    .logo-large {
+        height: 48px;
+    }
 }

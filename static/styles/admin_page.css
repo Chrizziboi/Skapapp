@@ -1,42 +1,49 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
-    margin: 0;
-    padding: 0;
+.split-layout {
+    display: flex;
+    gap: 80px;
+    align-items: flex-start;
+    justify-content: center;
+    margin-top: 100px;
+    padding-bottom: 80px;
 }
 
-.container {
-    max-width: 600px;
-    margin: 100px auto;
-    background-color: white;
-    padding: 30px;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+.admin-content-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-h1 {
-    margin-bottom: 10px;
+.room-status-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
 }
 
-.actions button,
-.nav-buttons button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    margin: 5px;
-    border-radius: 6px;
-    cursor: pointer;
+.note-input {
+    width: 100%;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 6px;
     font-size: 14px;
-    transition: background-color 0.3s;
+    box-sizing: border-box;
 }
 
-.actions button:hover,
-.nav-buttons button:hover {
-    background-color: #0056b3;
+.note-save-button {
+    margin-top: 6px;
+    padding: 6px 12px;
+    border-radius: 50px;
+    background: #005AA9;
+    color: #fff;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease;
 }
 
-.nav-buttons {
-    margin-top: 20px;
+.note-save-button:hover {
+    background: #003F7D;
 }

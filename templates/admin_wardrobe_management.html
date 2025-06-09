@@ -4,66 +4,307 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Garderobe Administrasjon</title>
+    <link rel="stylesheet" href="/static/styles/core.css">
     <link rel="stylesheet" href="/static/styles/admin_rooms.css">
 </head>
 <body>
 
-    <div class="container">
-        <h1>Garderobe Administrasjon</h1>
-
-        <div class="top-nav">
-            <button onclick="goBack()">← Tilbake</button>
-            <button onclick="goHome()">🏠 Hjem</button>
-        </div>
-        <!-- Room Management (Fixed) -->
-        <div class="section" id="room-management">
-            <h2>Garderoberom håndtering</h2>
-            <input type="text" id="roomName" placeholder="Skriv inn romnavn">
-            <button onclick="createRoom()">Opprett garderoberom</button>
-
-            <h3>Eksisterende garderoberom</h3>
-            <ul id="room-list"></ul>
-        </div>
-
-        <!-- Locker Management (Expands) -->
-        <div class="section" id="locker-section">
-            <h2>Antall garderobeskap i garderoberom</h2>
-            <h3 id="selected-room-name">Ingen garderoberom valgt</h3>
-            <button id="create-locker-btn" onclick="createLocker()" disabled>Opprett garderobeskap</button>
-
-              <div class="multiple-lockers">
-                <input type="number" id="lockerQuantity" min="1" placeholder="Skriv inn antall skap">
-                <button id="create-multiple-lockers-btn" onclick="createMultipleLockers()" disabled>Opprett flere garderobeskap</button>
-                  <button id="delete-all-lockers-btn" onclick="deleteAllLockers()" disabled>Slett alle skap i rommet</button>
-              </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Skap ID</th>
-                        <th>Status</th>
-                        <th>Notat</th>
-                        <th>Handlinger</th>
-                    </tr>
-                </thead>
-                <tbody id="locker-table"></tbody>
-            </table>
+    <!-- Admin Navbar -->
+    <div class="navbar-blur-bg"></div>
+    <div class="admin-navbar-wrapper">
+        <div class="admin-navbar">
+            <ul class="nav-menu">
+                <li><button onclick="navigateTo('overview')">Oversikt</button></li>
+                <li><button onclick="navigateTo('wardrobe_admin')">Garderobe admin</button></li>
+                <li><button onclick="navigateTo('statistics')">Statistikk</button></li>
+                <li><button onclick="navigateTo('backup')">Gjenopprettelse</button></li>
+                <li><button onclick="navigateTo('log')">Historikk</button></li>
+                <li><button onclick="logout()">Logg ut</button></li>
+            </ul>
         </div>
     </div>
-    <script>
-        function goHome() {
-            window.location.href = "/";
-        }
-        function goBack() {
-            window.history.back();
-        }
-    </script>
 
+    <div class="info-section">
+      <h1>Garderobeadministrasjon</h1>
+      <p>Her kan du opprette, slette eller tilbakestille garderobeskap. Få oversikt over hvilke skap som er ledige, og administrer alt fra ett sted.</p>
+    </div>
+
+    <main>
+        <div class="wardrobe-admin-layout">
+            <section class="card card-left glassmorphic">
+                <h2>Opprett garderoberom</h2>
+                <div class="input-row">
+                    <input type="text" id="roomName" placeholder="Skriv inn romnavn" class="input-field">
+                    <button class="btn-blue" onclick="createRoom()">Opprett</button>
+                </div>
+            </section>
+
+            <section class="card card-bottom glassmorphic">
+                <h2>Legg til garderobeskap</h2>
+                <div class="dropdown-row">
+                    <label for="roomDropdown">Velg rom:</label>
+                    <div class="custom-dropdown" id="roomDropdown">
+                        <div class="dropdown-selected" id="dropdownSelected" tabindex="0">Velg rom</div>
+                        <div class="dropdown-list" style="display:none;" id="dropdownList">
+                            <!-- Rommene blir lagt inn med JS -->
+                        </div>
+                        <input type="hidden" name="room" id="dropdownValue" value="">
+                    </div>
+                </div>
+                <div class="dropdown-row">
+                    <label for="locker-quantity">Antall skap:</label>
+                    <input type="number" id="locker-quantity" min="1" placeholder="Antall" class="input-field">
+                    <button class="btn-blue" id="add-lockers-btn">Legg til</button>
+                </div>
+            </section>
+
+            <section class="card card-right glassmorphic">
+                <h2>Garderoberom</h2>
+                <div class="scrollable-list">
+                    <ul id="room-list" class="room-list"></ul>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Overlay for info box -->
+    <div id="info-overlay" class="overlay hidden"></div>
+
+    <!-- Modals Section -->
+    <section id="modals">
+        <!-- Room Info Modal -->
+        <div id="room-info-modal" class="modal hidden">
+            <section id="room-info-box" class="card glassmorphic">
+                <button id="close-info-box">×</button>
+                <h2 id="info-room-name" style="font-size: 26px; font-weight: 700;"></h2>
+                <p id="info-room-id" style="margin-bottom: 12px;"></p>
+                <p id="info-locker-details" style="margin-bottom: 12px;"></p>
+                <button class="btn-red" onclick="deleteRoom(selectedRoomId)">Slett rom</button>
+                <h3>Skapoversikt</h3>
+                <table id="locker-list" style="width: 100%; margin-top: 16px; border-spacing: 0 8px;">
+                    <tbody></tbody>
+                </table>
+            </section>
+        </div>
+
+        <!-- Bekreft sletting modal -->
+        <div id="confirm-delete-modal" class="modal hidden">
+          <div class="modal-content">
+            <p>Er du sikker på at du vil slette dette rommet?</p>
+            <div class="modal-buttons">
+              <button id="cancel-delete" class="btn-blue">Avbryt</button>
+              <button id="confirm-delete" class="btn-red">Slett</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Success modal -->
+        <div id="success-modal" class="modal hidden">
+          <div class="modal-content">
+            <p id="success-message">Handling utført!</p>
+            <div class="modal-buttons">
+              <button class="btn-blue" onclick="closeSuccessModal()">OK</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Room created modal -->
+        <div id="room-created-modal" class="modal hidden">
+          <div class="modal-content">
+            <p>Rommet har blitt opprettet!</p>
+            <div class="modal-buttons">
+              <button class="btn-blue" onclick="document.getElementById('room-created-modal').classList.add('hidden')">OK</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lockers created modal -->
+        <div id="lockers-created-modal" class="modal hidden">
+          <div class="modal-content">
+            <p>Skap er lagt til rommet!</p>
+            <div class="modal-buttons">
+              <button class="btn-blue" onclick="document.getElementById('lockers-created-modal').classList.add('hidden')">OK</button>
+            </div>
+          </div>
+        </div>
+        <!-- Note Modal -->
+        <div id="note-modal" class="modal hidden">
+          <div class="modal-content">
+            <h3>Notat for skap <span id="note-locker-id"></span></h3>
+            <textarea id="note-textarea" rows="4" placeholder="Skriv inn notat her..."></textarea>
+            <div class="modal-buttons">
+              <button class="btn-blue" onclick="closeNoteModal()">Avbryt</button>
+              <button class="btn-blue" onclick="saveNote()">Lagre</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ingen rom valgt modal -->
+        <div id="no-room-selected-modal" class="modal hidden">
+          <div class="modal-content">
+            <h2>Mangler romvalg</h2>
+            <p>Du må velge et garderoberom før du kan legge til skap.</p>
+            <button class="btn-blue" onclick="closeNoRoomSelectedModal()">Lukk</button>
+          </div>
+        </div>
+
+        <!-- Ugyldig antall skap modal -->
+        <div id="invalid-locker-amount-modal" class="modal hidden">
+          <div class="modal-content">
+            <h2>Ugyldig antall skap</h2>
+            <p>Oppgi et gyldig antall skap før du legger til.</p>
+            <button class="btn-blue" onclick="closeInvalidLockerAmountModal()">Lukk</button>
+          </div>
+        </div>
+    </section>
+
+    <!-- Error modal for feilmelding (f.eks. rom eksisterer fra før) -->
+    <div id="error-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Feil ved oppretting</h2>
+        <p id="error-message">Garderoberommet finnes allerede.</p>
+        <button class="btn-blue" onclick="closeErrorModal()">Lukk</button>
+      </div>
+    </div>
+
+    <!-- Empty room name modal -->
+    <div id="empty-roomname-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Mangler romnavn</h2>
+        <p>Du må skrive inn et navn på garderoberommet før du kan opprette det.</p>
+        <button class="btn-blue" onclick="closeEmptyRoomNameModal()">Lukk</button>
+      </div>
+    </div>
+
+    <!-- Scripts -->
     <script>
         let selectedRoomId = null;
+        let currentNoteLockerId = null;
+
+        // WebSocket connection setup
+        let socket;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        const reconnectDelay = 3000; // 3 seconds
+
+        const connectWebSocket = () => {
+            // Close existing socket if any
+            if (socket) {
+                socket.close();
+            }
+
+            // Create new WebSocket connection
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
+
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log('WebSocket connection established');
+                reconnectAttempts = 0; // Reset reconnect attempts on successful connection
+            };
+
+            socket.onmessage = (event) => {
+                const message = event.data;
+                console.log('WebSocket message received:', message);
+
+                if (message === 'update') {
+                    // Refresh the list of locker rooms
+                    fetchRooms();
+
+                    // If a room is selected, refresh the locker list in that room
+                    if (selectedRoomId) {
+                        fetchLockersInRoom(selectedRoomId);
+
+                    }
+                }
+            };
+
+            socket.onclose = (event) => {
+                console.log('WebSocket connection closed', event);
+
+                // Attempt to reconnect if not a normal closure or if we haven't exceeded max attempts
+                if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
+                    setTimeout(connectWebSocket, reconnectDelay);
+                } else if (reconnectAttempts >= maxReconnectAttempts) {
+                    console.error('Maximum reconnection attempts reached');
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        };
+        function forceRefreshRoomInfo() {
+            const modal = document.getElementById("room-info-modal");
+            if (!modal.classList.contains("hidden")) {
+                modal.classList.add("hidden");
+                setTimeout(() => {
+                    const roomName = document.getElementById("info-room-name").textContent.trim();
+                    showRoomInfo({ room_id: selectedRoomId, name: roomName });
+                }, 50);
+            }
+        }
+
+        function openNoteModal(lockerId, existingNote) {
+            currentNoteLockerId = lockerId;
+            document.getElementById("note-locker-id").textContent = lockerId;
+            document.getElementById("note-textarea").value = existingNote || "";
+            document.getElementById("note-modal").classList.remove("hidden");
+        }
+
+        function closeNoteModal() {
+            document.getElementById("note-modal").classList.add("hidden");
+        }
+
+        function saveNote() {
+            const note = document.getElementById("note-textarea").value;
+            fetch(`/lockers/${currentNoteLockerId}/note?note=${encodeURIComponent(note)}`, {
+                method: "PUT"
+            })
+                    .then(response => {
+                        if (!response.ok) throw new Error("Noe gikk galt med oppdatering");
+                        return response.json();
+                    })
+                    .then(() => {
+                        showSuccessModal("Notatet er lagret.");
+                        closeNoteModal();
+                        forceRefreshRoomInfo();  // ✅ denne linjen
+                    })
+                    .catch(error => {
+                        console.error("Feil ved oppdatering av notat:", error);
+                        alert("Kunne ikke oppdatere notat.");
+                    });
+        }
+
+
         document.addEventListener("DOMContentLoaded", function () {
             fetchRooms();
             fetchLockersInRoom();
+
+            document.getElementById("add-lockers-btn").addEventListener("click", createMultipleLockers);
+
+            // Oppdater selectedRoomId når brukeren velger et rom fra dropdown
+            document.getElementById("room-dropdown").addEventListener("change", function () {
+                selectedRoomId = this.value;
+            });
+
+            // Skjul info-boksen som standard
+            document.getElementById("room-info-modal").classList.add("hidden");
+
+            // Lukk info-boksen når man klikker på ×
+            document.getElementById("close-info-box").addEventListener("click", () => {
+                document.getElementById("room-info-modal").classList.add("hidden");
+            });
+
+            // ESC for å lukke info-boks
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") {
+                    document.getElementById("room-info-modal").classList.add("hidden");
+                }
+            });
         });
 
         // Henter alle garderoberom
@@ -74,25 +315,89 @@
                     const roomList = document.getElementById("room-list");
                     roomList.innerHTML = "";
 
-                    data.forEach(room => {
+                    // Custom dropdown: clear list
+                    const dropdownList = document.getElementById("dropdownList");
+                    if (dropdownList) {
+                        dropdownList.innerHTML = "";
+                    }
+                    // Also reset selected and value
+                    const dropdownSelected = document.getElementById("dropdownSelected");
+                    const dropdownValue = document.getElementById("dropdownValue");
+                    if (dropdownSelected && dropdownValue) {
+                        dropdownSelected.textContent = "Velg rom";
+                        dropdownValue.value = "";
+                        selectedRoomId = null;
+                    }
+
+                    // Rotating through 7 color classes: color-a to color-g
+                    const colorClasses = ['color-a', 'color-b', 'color-c', 'color-d', 'color-e', 'color-f', 'color-g'];
+                    data.forEach((room, idx) => {
                         let listItem = document.createElement("li");
                         listItem.textContent = `${room.name} (ID: ${room.room_id})`;
                         listItem.classList.add("room-item");
+                        // Assign a rotating color class (by index in list, not room_id)
+                        const colorClass = colorClasses[idx % colorClasses.length];
+                        listItem.classList.add(colorClass);
                         listItem.onclick = () => selectRoom(room.room_id, room.name);
 
-                        let deleteButton = document.createElement("button");
-                        deleteButton.textContent = "Slett";
-                        deleteButton.onclick = (event) => {
+                        // Info button with new class
+                        let infoButton = document.createElement("button");
+                        infoButton.textContent = "Innstillinger";
+                        infoButton.className = "btn-blue btn-small";
+                        infoButton.onclick = (event) => {
                             event.stopPropagation();
-                            deleteRoom(room.room_id);
+                            showRoomInfo(room);
                         };
-
-                        listItem.appendChild(deleteButton);
+                        listItem.appendChild(infoButton);
                         roomList.appendChild(listItem);
                     });
+
+                    // Populate custom dropdown
+                    if (dropdownList) {
+                        data.forEach(room => {
+                            const item = document.createElement('div');
+                            item.className = 'dropdown-item';
+                            item.textContent = `${room.name} (ID: ${room.room_id})`;
+                            item.dataset.id = room.room_id;
+                            item.addEventListener('click', function () {
+                                document.getElementById('dropdownSelected').textContent = this.textContent;
+                                document.getElementById('dropdownValue').value = this.dataset.id;
+                                dropdownList.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
+                                this.classList.add('selected');
+                                dropdownList.style.display = "none";
+                                document.getElementById('roomDropdown').classList.remove('active');
+                                selectedRoomId = this.dataset.id;
+                            });
+                            dropdownList.appendChild(item);
+                        });
+                    }
                 })
                 .catch(error => console.error("Error fetching rooms:", error));
         }
+
+        // --- Custom dropdown for room-dropdown ---
+        const roomDropdown = document.getElementById('roomDropdown');
+        const roomSelected = document.getElementById('dropdownSelected');
+        const roomListDropdown = document.getElementById('dropdownList');
+
+        roomSelected.onclick = function(e) {
+          roomDropdown.classList.toggle('active');
+          roomListDropdown.style.display = roomDropdown.classList.contains('active') ? "block" : "none";
+          e.stopPropagation();
+        };
+        roomSelected.onkeydown = function(e) {
+          if (e.key === "Enter" || e.key === " ") {
+            roomSelected.click();
+            e.preventDefault();
+          }
+        };
+
+        document.addEventListener('click', function(e) {
+          if (!roomDropdown.contains(e.target)) {
+            roomDropdown.classList.remove('active');
+            roomListDropdown.style.display = "none";
+          }
+        });
 
         // Velger et rom og viser skapene i det
         function selectRoom(roomId, roomName) {
@@ -109,7 +414,7 @@
         function createRoom() {
             const roomName = document.getElementById("roomName").value.trim();
             if (!roomName) {
-                alert("Please enter a room name.");
+                showEmptyRoomNameModal();
                 return;
             }
 
@@ -121,37 +426,38 @@
                     return response.json();
                 })
                 .then(data => {
-                    alert(data.message);
+                    document.getElementById("room-created-modal").classList.remove("hidden");
                     fetchRooms();
                 })
                 .catch(error => {
                     console.error("Error creating room:", error);
-                    alert("Failed to create room: " + error.message);
+                    showErrorModal("Garderoberom med dette navnet finnes allerede. Prøv et annet navn.");
                 });
 
             document.getElementById("roomName").value = "";
         }
 
         function createMultipleLockers() {
-            if (!selectedRoomId) {
-                alert("Vennligst velg et rom før du oppretter flere skap.");
+            // Get selected room from custom dropdown value
+            const roomId = document.getElementById("dropdownValue").value;
+            if (!roomId) {
+                showNoRoomSelectedModal();
                 return;
             }
 
-            const quantity = document.getElementById("lockerQuantity").value;
-
+            const quantity = document.getElementById("locker-quantity").value;
             if (quantity < 1) {
-                alert("Oppgi et gyldig antall skap.");
+                showInvalidLockerAmountModal();
                 return;
             }
 
-            fetch(`http://localhost:8080/lockers/multiple_lockers?locker_room_id=${selectedRoomId}&quantity=${quantity}`, {
+            fetch(`http://localhost:8080/lockers/multiple_lockers?locker_room_id=${roomId}&quantity=${quantity}`, {
                 method: "POST"
             })
             .then(response => response.json())
             .then(data => {
-                alert(data.message || "Skap opprettet.");
-                fetchLockersInRoom(selectedRoomId);
+                document.getElementById("lockers-created-modal").classList.remove("hidden");
+                fetchLockersInRoom(roomId);
             })
             .catch(error => {
                 console.error("Feil ved oppretting av flere skap:", error);
@@ -160,22 +466,129 @@
 
 
 
-        // Sletter et garderoberom
-        function deleteRoom(roomId) {
-            fetch(`/locker_rooms/${roomId}`, { method: "DELETE" })
+        // Viser informasjon om et garderoberom
+        function showRoomInfo(room) {
+            // Set selectedRoomId when showing info
+            selectedRoomId = room.room_id;
+            const infoModal = document.getElementById("room-info-modal");
+            const infoBox = document.getElementById("room-info-box");
+            document.getElementById("info-room-name").textContent = `${room.name}`;
+            document.getElementById("info-room-id").textContent = `Rom-ID: ${room.room_id}`;
+
+            fetch("/lockers/")
                 .then(response => response.json())
-                .then(() => {
-                    alert("Rom slettet!");
-                    fetchRooms();
-                    if (roomId === selectedRoomId) {
-                        selectedRoomId = null;
-                        document.getElementById("selected-room-name").textContent = "Ingen rom valgt!";
-                        document.getElementById("create-locker-btn").disabled = true;
-                        document.getElementById("locker-table").innerHTML = "";
-                        document.getElementById("delete-all-lockers-btn").disabled = true;
+                .then(lockers => {
+                    const roomIdNum = Number(room.room_id);
+                    const roomLockers = lockers.filter(l => l.locker_room_id === roomIdNum);
+                    const total = roomLockers.length;
+                    const available = roomLockers.filter(l => l.status === 'Ledig').length;
+                    const used = total - available;
+                    document.getElementById("info-locker-details").textContent =
+                        `Totalt skap: ${total} – Ledige: ${available}, I bruk: ${used}`;
+
+                    // Populate input with current name
+                    if (document.getElementById("edit-room-name")) {
+                        document.getElementById("edit-room-name").value = room.name;
                     }
-                })
-                .catch(error => console.error("Error deleting room:", error));
+
+            // Populate locker list with card-style display
+            const lockerList = document.querySelector("#locker-list tbody");
+            if (lockerList) {
+                lockerList.innerHTML = "";
+                roomLockers.forEach(locker => {
+                    const safeNote = locker.note && locker.note !== "N/A" ? locker.note : "";
+                    const noteHtml = locker.note && locker.note !== "N/A"
+                        ? `<strong>Notat:</strong> ${locker.note.replaceAll("<", "&lt;").replaceAll(">", "&gt;")}`
+                        : `<strong>Notat:</strong> <i>Ingen notat</i>`;
+                    const row = document.createElement("tr");
+                    const td = document.createElement("td");
+                    td.colSpan = 4;
+                    td.innerHTML = `
+                        <div class="locker-card">
+                            <p><strong>ID:</strong> ${locker.combi_id}</p>
+                            <p><strong>Status:</strong> ${locker.status}</p>
+                            <p class="note-preview">${noteHtml}</p>
+                            <div class="locker-card-buttons">
+                                <button class="btn-blue" onclick="openNoteModal(${locker.locker_id}, \`${safeNote}\`)">Notat</button>
+                                <button class="btn-green" onclick="unlockLocker(${locker.locker_id}, '${locker.combi_id}')">Lås opp</button>
+                                <button class="btn-red" onclick="removeLocker(${locker.locker_id}, '${locker.combi_id}')">Slett</button>
+                            </div>
+                        </div>
+                    `;
+                    row.appendChild(td);
+                    lockerList.appendChild(row);
+                });
+            }
+                });
+            infoModal.classList.remove("hidden");
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = "/";
+                return;
+            }
+
+            fetch("/api/admin/data", {
+                headers: {"Authorization": `Bearer ${token}`}
+            })
+                    .then(res => {
+                        if (!res.ok) throw new Error("Unauthorized");
+                        return res.json();
+                    })
+                    .then(data => {
+                        console.log("Bruker er autorisert.");
+                        // Initialize WebSocket connection after authentication
+                        connectWebSocket();
+                    })
+                    .catch(err => {
+                        console.error("Uautorisert tilgang:", err);
+                        localStorage.removeItem('token');
+                        window.location.href = "/";
+                    });
+        });
+
+        // Sletter et garderoberom med modal-bekreftelse
+        function deleteRoom(roomId) {
+            const modal = document.getElementById("confirm-delete-modal");
+            const confirmBtn = document.getElementById("confirm-delete");
+            const cancelBtn = document.getElementById("cancel-delete");
+
+            modal.classList.remove("hidden");
+
+            const onConfirm = () => {
+                fetch(`/locker_rooms/${roomId}`, { method: "DELETE" })
+                    .then(response => response.json())
+                    .then(() => {
+                        showSuccessModal("Rommet har blitt slettet.");
+                        fetchRooms();
+                        document.getElementById("room-info-modal").classList.add("hidden");
+                        if (roomId === selectedRoomId) {
+                            selectedRoomId = null;
+                            document.getElementById("selected-room-name").textContent = "Ingen rom valgt!";
+                            document.getElementById("create-locker-btn").disabled = true;
+                            document.getElementById("locker-table").innerHTML = "";
+                            document.getElementById("delete-all-lockers-btn").disabled = true;
+                        }
+                    })
+                    .catch(error => console.error("Error deleting room:", error))
+                    .finally(() => {
+                        modal.classList.add("hidden");
+                        confirmBtn.removeEventListener("click", onConfirm);
+                        cancelBtn.removeEventListener("click", onCancel);
+                    });
+            };
+
+            const onCancel = () => {
+                modal.classList.add("hidden");
+                confirmBtn.removeEventListener("click", onConfirm);
+                cancelBtn.removeEventListener("click", onCancel);
+            };
+
+            confirmBtn.addEventListener("click", onConfirm);
+            cancelBtn.addEventListener("click", onCancel);
         }
 
         // Henter skap i et spesifikt rom
@@ -186,28 +599,29 @@
                     const lockerTable = document.getElementById("locker-table");
                     lockerTable.innerHTML = "";
 
-                    const roomLockers = data.filter(locker => locker.locker_room_id == roomId);
+                    const roomIdNum = Number(roomId);
+                    const roomLockers = data.filter(locker => locker.locker_room_id === roomIdNum);
 
                     roomLockers.forEach(locker => {
-                        let row = `<tr>
-                            <td>${locker.combi_id}</td>
-                            <td>${locker.status}</td>
-                            <td>
-                                  <input
-                                    type="text"
-                                    id="note-input-${locker.locker_id}"
-                                    value="${locker.note !== "N/A" ? locker.note : ""}"
-                                    placeholder="Skriv notat..."
-                                  />
-                                  <button onclick="updateNote(${locker.locker_id})">Lagre</button>
-                            </td>
-                            <td>
-                                <button onclick="unlockLocker(${locker.locker_id})">Lås opp</button>
-                                <button onclick="removeLocker(${locker.locker_id})">Slett</button>
-                            </td>
-                        </tr>`;
-                        lockerTable.innerHTML += row;
-                    });
+                const safeNote = locker.note && locker.note !== "N/A" ? locker.note : "";
+                const noteHtml = locker.note && locker.note !== "N/A" ? locker.note : "<i>Ingen notat</i>";
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                  <td>${locker.combi_id}</td>
+                  <td>${locker.status}</td>
+                  <td>
+                    <p id="note-text-${locker.locker_id}" style="margin: 4px 0;">${noteHtml}</p>
+                    <button class="btn-blue" onclick="openNoteModal(${locker.locker_id}, safeNote)">Notat</button>
+                  </td>
+                  <td>
+                    <button class="btn-green" onclick="unlockLocker(${locker.locker_id}, '${locker.combi_id}')">Lås opp</button>
+                    <button class="btn-red" onclick="removeLocker(${locker.locker_id})">Slett</button>
+                  </td>
+                `;
+
+                lockerTable.appendChild(row);
+            });
                 })
                 .catch(error => console.error("Error fetching lockers:", error));
         }
@@ -232,26 +646,73 @@
             });
         }
 
-        // Låser opp et skap
-        function unlockLocker(lockerId) {
-            fetch(`/lockers/${lockerId}/unlock`, { method: "PUT" })
-                .then(response => response.json())
-                .then(data => {
-                    alert(`Locker ${lockerId} unlocked.`);
-                    fetchLockersInRoom(selectedRoomId);
-                })
-                .catch(error => console.error("Error unlocking locker:", error));
+        function unlockLocker(lockerId, combiId) {
+            fetch(`/lockers/${lockerId}/unlock`, {method: "PUT"})
+                    .then(response => {
+                        if (!response.ok) throw new Error("Kunne ikke låse opp skapet.");
+                        return response.json();
+                    })
+                    .then(() => {
+                        showSuccessModal(`Skap ${combiId} ble låst opp.`);
+                        if (selectedRoomId) {
+                            const roomName = document.getElementById("info-room-name").textContent.trim();
+                            showRoomInfo({room_id: selectedRoomId, name: roomName}); // ✅ Denne oppdaterer modalen
+                        }
+                    });
         }
 
-        // Sletter et skap
-        function removeLocker(lockerId) {
-            fetch(`http://localhost:8080/lockers/${lockerId}`, { method: "DELETE" })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    fetchLockersInRoom(selectedRoomId);
-                })
-                .catch(error => console.error("Error deleting locker:", error));
+        // ---- For sletting av enkelt skap med modal ----
+        let lockerToDeleteId = null;
+        let lockerToDeleteName = "";
+
+        function removeLocker(lockerId, lockerName) {
+            // Åpne bekreftelsesmodal
+            lockerToDeleteId = lockerId;
+            lockerToDeleteName = lockerName;
+            document.getElementById('delete-locker-name').textContent = lockerName;
+            document.getElementById('confirm-delete-locker-modal').classList.remove('hidden');
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Avbryt sletting
+            const cancelBtn = document.getElementById("cancel-delete-locker");
+            if (cancelBtn) {
+                cancelBtn.onclick = function() {
+                    document.getElementById("confirm-delete-locker-modal").classList.add('hidden');
+                    lockerToDeleteId = null;
+                };
+            }
+
+            // Bekreft sletting
+            const confirmBtn = document.getElementById("confirm-delete-locker");
+            if (confirmBtn) {
+                confirmBtn.onclick = function() {
+                    actuallyDeleteLocker(lockerToDeleteId, lockerToDeleteName);
+                    document.getElementById("confirm-delete-locker-modal").classList.add('hidden');
+                };
+            }
+        });
+
+        function actuallyDeleteLocker(lockerId, lockerName) {
+            fetch(`http://localhost:8080/lockers/${lockerId}`, {
+                method: "DELETE"
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('deleted-locker-name').textContent = lockerName;
+                document.getElementById('locker-deleted-modal').classList.remove('hidden');
+                // Refresh room info/modal hvis åpen
+                if (selectedRoomId) {
+                    const roomNameText = document.getElementById("info-room-name").textContent;
+                    const roomName = roomNameText.replace("Romnavn: ", "").trim();
+                    showRoomInfo({ room_id: selectedRoomId, name: roomName });
+                }
+            })
+            .catch(error => console.error("Error deleting locker:", error));
+        }
+
+        function closeLockerDeletedModal() {
+            document.getElementById('locker-deleted-modal').classList.add('hidden');
         }
 
         function updateNote(lockerId) {
@@ -259,19 +720,26 @@
             fetch(`/lockers/${lockerId}/note?note=${encodeURIComponent(note)}`, {
                 method: "PUT"
             })
-            .then(response => {
-                if (!response.ok) throw new Error("Noe gikk galt med oppdatering");
-                return response.json();
-            })
-            .then(data => {
-                alert("Notat lagret!");
-                fetchLockersInRoom(selectedRoomId);
-            })
-            .catch(error => {
-                console.error("Feil ved oppdatering av notat:", error);
-                alert("Kunne ikke oppdatere notat.");
-            });
+                    .then(response => {
+                        if (!response.ok) throw new Error("Noe gikk galt med oppdatering");
+                        return response.json();
+                    })
+                    .then(data => {
+                        alert("Notat lagret!");
+                        fetchLockersInRoom(selectedRoomId);
+
+                        // 🔁 Oppdater info-modal
+                        const roomNameText = document.getElementById("info-room-name").textContent;
+                        const roomName = roomNameText.replace("Romnavn: ", "").trim();
+                        showRoomInfo({room_id: selectedRoomId, name: roomName});
+                    })
+                    .catch(error => {
+                        console.error("Feil ved oppdatering av notat:", error);
+                        alert("Kunne ikke oppdatere notat.");
+                    });
         }
+
+
         function deleteAllLockers() {
             if (!selectedRoomId) {
                 alert("Vennligst velg et rom først.");
@@ -295,7 +763,170 @@
             });
         }
 
+        // Oppdaterer garderoberomnavn med PUT-request
+        function updateRoomName() {
+            const newName = document.getElementById("edit-room-name").value.trim();
+            if (!selectedRoomId) {
+                alert("Ingen rom valgt.");
+                return;
+            }
+            if (!newName) {
+                alert("Vennligst skriv inn nytt navn.");
+                return;
+            }
+
+            fetch(`/locker_rooms/${selectedRoomId}?new_name=${encodeURIComponent(newName)}`, {
+                method: "PUT"
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.detail); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.message || "Navn oppdatert!");
+                fetchRooms();
+                document.getElementById("edit-room-name").value = "";
+                showRoomInfo({ room_id: selectedRoomId, name: newName });
+            })
+            .catch(error => {
+                console.error("Feil ved oppdatering av romnavn:", error);
+                alert("Kunne ikke oppdatere romnavnet.");
+            });
+        }
+
+        function navigateTo(page) {
+            if (page === 'overview') {
+                window.location.href = "/admin_page";
+            } else if (page === 'wardrobe_admin') {
+                window.location.href = "/admin_wardrobe";
+            } else if (page === 'statistics') {
+                window.location.href = "/admin_statistics";
+            } else if (page === 'backup') {
+                window.location.href = "/admin_backup";
+            } else if (page === 'log') {
+                window.location.href = "/admin_log";
+            }
+        }
+
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = "/";
+        }
+    // Success modal functions
+    function showSuccessModal(message) {
+        const modal = document.getElementById("success-modal");
+        const msg = document.getElementById("success-message");
+        msg.textContent = message;
+        modal.classList.remove("hidden");
+    }
+
+    function closeSuccessModal() {
+        document.getElementById("success-modal").classList.add("hidden");
+    }
+
+    // Error modal functions
+    function showErrorModal(message) {
+        document.getElementById('error-message').innerText = message;
+        document.getElementById('error-modal').classList.remove('hidden');
+    }
+    function closeErrorModal() {
+        document.getElementById('error-modal').classList.add('hidden');
+    }
+
+    // Empty room name modal functions
+    function showEmptyRoomNameModal() {
+        document.getElementById("empty-roomname-modal").classList.remove("hidden");
+    }
+    function closeEmptyRoomNameModal() {
+        document.getElementById("empty-roomname-modal").classList.add("hidden");
+    }
+function showNoRoomSelectedModal() {
+    document.getElementById('no-room-selected-modal').classList.remove('hidden');
+}
+function closeNoRoomSelectedModal() {
+    document.getElementById('no-room-selected-modal').classList.add('hidden');
+}
+function showInvalidLockerAmountModal() {
+    document.getElementById('invalid-locker-amount-modal').classList.remove('hidden');
+}
+function closeInvalidLockerAmountModal() {
+    document.getElementById('invalid-locker-amount-modal').classList.add('hidden');
+}
     </script>
 
+<script>
+    // Marker aktiv knapp i navbaren avhengig av path
+    document.addEventListener("DOMContentLoaded", () => {
+        const path = window.location.pathname;
+        const btns = document.querySelectorAll(".nav-menu li button");
+        btns.forEach(btn => btn.classList.remove("active"));
+        if (path.includes("admin_page")) {
+            btns[0].classList.add("active");
+        } else if (path.includes("admin_wardrobe")) {
+            btns[1].classList.add("active");
+        } else if (path.includes("admin_statistics")) {
+            btns[2].classList.add("active");
+        } else if (path.includes("admin_backup")) {
+            btns[3].classList.add("active");
+        } else if (path.includes("admin_log")) {
+            btns[4].classList.add("active");
+        }
+    });
+</script>
+
+<script>
+  // Lukk modal når du klikker på krysset eller utenfor modal-innholdet
+  document.addEventListener('DOMContentLoaded', function () {
+    // For room-info-modal
+    const roomInfoModal = document.getElementById('room-info-modal');
+    const roomInfoBox = document.getElementById('room-info-box');
+    const closeRoomInfoBtn = document.getElementById('close-info-box');
+    if (closeRoomInfoBtn && roomInfoModal) {
+      closeRoomInfoBtn.addEventListener('click', function () {
+        roomInfoModal.classList.add('hidden');
+      });
+      // Klikk utenfor modal-innholdet
+      roomInfoModal.addEventListener('mousedown', function (event) {
+        if (event.target === roomInfoModal) {
+          roomInfoModal.classList.add('hidden');
+        }
+      });
+    }
+    // Gjør det samme for andre modaler om ønskelig
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+      modal.addEventListener('mousedown', function (event) {
+        // Finn modal-content child
+        let content = modal.querySelector('.modal-content, .card');
+        if (event.target === modal && content) {
+          modal.classList.add('hidden');
+        }
+      });
+    });
+  });
+</script>
 </body>
+<!-- Bekreft sletting av skap-modal -->
+<div id="confirm-delete-locker-modal" class="modal hidden">
+  <div class="modal-content">
+    <h2>Er du sikker?</h2>
+    <p>Er du sikker på at du vil slette skap <span id="delete-locker-name"></span>?</p>
+    <div class="modal-buttons">
+      <button class="btn-blue" id="cancel-delete-locker">Avbryt</button>
+      <button class="btn-red" id="confirm-delete-locker">Slett</button>
+    </div>
+  </div>
+</div>
+
+<!-- Skap slettet success-modal -->
+<div id="locker-deleted-modal" class="modal hidden">
+  <div class="modal-content">
+    <h2>Skap slettet</h2>
+    <p>Skap <span id="deleted-locker-name"></span> har blitt slettet.</p>
+    <button class="btn-blue" onclick="closeLockerDeletedModal()">OK</button>
+  </div>
+</div>
 </html>

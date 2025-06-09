@@ -1,38 +1,268 @@
+/* Header-boks for tittel */
+.header-box {
+  width: 100vw;             /* Matcher container */
+  max-width: 2300px;
+  margin: 24px auto 10px auto;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 12px 36px rgba(60, 60, 60, 0.18);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 110px;
+}
+
+.header-box h1 {
+  color: #222;
+  font-size: 40px;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+  width: 100%;
+}
+/* Tilpasset for infoskjermer - sentrert og optimalisert for 1920x1080 */
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #F6F3EB;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
 }
 
 .container {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    width: 80%;
-    max-width: 600px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 32px 48px;
+  box-sizing: border-box;
+  width: 100vw;
+  max-width: 1920px;       /* Maks bredde for store skjermer */
+  height: 85vh;
+  max-height: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  box-shadow: 0 12px 36px rgba(60, 60, 60, 0.18);
+  overflow: hidden;
 }
 
-h1 {
-    color: #333;
-    font-size: 24px;
+/* 1 kort - maks bredde og sentrert */
+#room-list:has(.room-card:nth-child(1):nth-last-child(1)) {
+  grid-template-columns: 1fr;
+  justify-content: center;
+  gap: 0;
+}
+#room-list:has(.room-card:nth-child(1):nth-last-child(1)) .room-card {
+  width: 100%;
+  height: 70vh;
+  max-width: 1200px;
+  min-width: 400px;
+  margin: 0 auto;
 }
 
+/* 2 kort - 50/50, sentrert */
+#room-list:has(.room-card:nth-child(2):nth-last-child(1)) {
+  grid-template-columns: 1fr 1fr;
+  justify-content: center;
+  gap: 32px;
+}
+#room-list:has(.room-card:nth-child(2):nth-last-child(1)) .room-card {
+  width: 100%;
+  height: 70vh;
+  max-width: 900px;
+  min-width: 350px;
+  margin: 0 auto;
+}
+
+/* 3 kort - 1/3 hver, sentrert */
+#room-list:has(.room-card:nth-child(3):nth-last-child(1)) {
+  grid-template-columns: 1fr 1fr 1fr;
+  justify-content: center;
+  gap: 32px;
+}
+#room-list:has(.room-card:nth-child(3):nth-last-child(1)) .room-card {
+  width: 100%;
+  height: 70vh;
+  max-width: 750px;
+  min-width: 300px;
+  margin: 0 auto;
+}
+
+/* 4 kort - 1/4 hver, sentrert */
+#room-list:has(.room-card:nth-child(4):nth-last-child(1)) {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  justify-content: center;
+  gap: 32px;
+}
+#room-list:has(.room-card:nth-child(4):nth-last-child(1)) .room-card {
+  width: 100%;
+  height: 70vh;
+  max-width: 600px;
+  min-width: 250px;
+  margin: 0 auto;
+}
+
+/* 5-25 rom: alltid 5 kolonner, auto antall rader, tilpasser størrelsen til hvite boksen uten scroll */
 #room-list {
-    list-style: none;
-    padding: 0;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  gap: 32px;
+  padding: 32px;
+  box-sizing: border-box;
+  grid-template-columns: repeat(5, 1fr);   /* 5 kolonner alltid */
+  /* Rader: så mange som trengs, men lar grid automatisk fordele høyde */
+  grid-auto-rows: minmax(120px, 1fr);
+  align-items: stretch;
+  justify-items: stretch;
+  justify-content: center;
+  align-content: stretch;
+  /* Ingen scroll */
+  overflow: visible;
 }
 
-#room-list li {
-    background: white;
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
+
+/* 5-25 rom: dynamisk skalering for tekst og padding */
+.room-card {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #e9f1fa;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(60, 60, 60, 0.14);
+  border: 3px solid #8899B8;
+  box-sizing: border-box;
+  transition: box-shadow 0.18s, border-color 0.2s;
+  overflow: hidden;
+  /* Gi ekstra topp/bunn-padding (f.eks. 38px topp/bunn, 12px sider) */
+  padding: clamp(24px, 5vw, 38px) clamp(8px, 2vw, 24px);
+  font-size: clamp(11px, 1vw, 18px);
+}
+
+.room-card-title {
+  font-size: clamp(13px, 1.4vw, 26px);
+  font-weight: 900;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.room-card-status {
+  font-size: clamp(10px, 1vw, 18px);
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.room-name {
+  font-size: 2vw;
+  font-weight: 900;
+  margin-bottom: 18px;
+  text-transform: uppercase;
+}
+
+.locker-count {
+  font-size: 1.2vw;
+  font-weight: 700;
+  margin-bottom: 26px;
+}
+.room-box.available-high {
+  background-color: #51cf66; /* vivid green */
+}
+
+.room-box.available-medium {
+  background-color: #ffe066; /* vivid yellow */
+}
+
+.room-box.available-low {
+  background-color: #ffa94d; /* vivid orange */
+}
+
+.room-box.available-none {
+  background-color: #ff6b6b; /* vivid red */
+}
+
+/* body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  z-index: -1;
+} */
+
+
+/* Sikrer at .room-card alltid fyller hele cellen */
+/*
+.room-card, .room-card-title, .room-card-status for 1-4 kort beholdes som før.
+Tidligere statiske font-size og dublerte regler for 5–25 rom er fjernet til fordel for clamp().
+*/
+
+/* Progress bar style for room-card, pushed further down for more space for text */
+.room-progress {
+  width: 100%;
+  background: #e6e6e6;
+  border-radius: 12px;
+  height: 24px;
+  overflow: hidden;
+  position: relative;
+  margin-top: 26px;
+  border: 2px solid #b0b6be;
+  box-shadow: 0 2px 7px rgba(100, 100, 100, 0.07);
+}
+
+.room-progress-fill {
+  height: 100%;
+  border-radius: 12px;
+  background-color: #34c759;
+  width: 0;
+  transition: width 0.3s, background-color 0.3s;
+}
+.room-progress-fill.orange {
+  background-color: #FFA500;
+}
+.room-progress-fill.red {
+  background-color: #E3342F;
+}
+.room-progress-label {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+/* If there are very few cards, scale text up for visibility */
+#room-list:has(.room-card:nth-child(1):nth-last-child(1)) .room-card,
+#room-list:has(.room-card:nth-child(2):nth-last-child(1)) .room-card {
+  font-size: 2.6vw;
+}
+#room-list:has(.room-card:nth-child(1):nth-last-child(1)) .room-card-title,
+#room-list:has(.room-card:nth-child(2):nth-last-child(1)) .room-card-title {
+  font-size: 3.7vw;
+}
+#room-list:has(.room-card:nth-child(1):nth-last-child(1)) .room-card-status,
+#room-list:has(.room-card:nth-child(2):nth-last-child(1)) .room-card-status {
+  font-size: 2.8vw;
 }
