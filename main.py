@@ -8,29 +8,44 @@ import logging
 import RPi.GPIO as GPIO
 from mfrc522 import SimpleMFRC522
 import time
+#RiV2 imports
+from backend.model.AdminUser import create_admin, manual_release_locker
+from RaspberryPi import reader_helper
 
+#Main Imports
 from backend.model.LockerLog import LockerLog
 from backend.model.LockerLog import log_unlock_action, release_expired_lockers_logic
 from backend.model import Locker
 from backend.model.Statistic import *
-from backend.model.AdminUser import create_admin, manual_release_locker
+from backend.model.AdminUser import *
 from backend.model.StandardUser import reserve_locker
 from backend.model.Locker import add_locker, add_note_to_locker, add_multiple_lockers
 from backend.model.LockerRoom import create_locker_room, delete_locker_room
 from backend.Service.ErrorHandler import fastapi_error_handler
 from backend.model.AdminUser import authenticate_user
+from backend.model.StandardUser import get_user_by_rfid_tag, create_standard_user
+from backend.auth.auth_handler import create_access_token, decode_access_token, verify_password
+from backend.auth.auth_schema import Token, UserLogin
+from backend.websocket_broadcast import api as websocket_api
 
-from fastapi import FastAPI, Depends, Request, HTTPException, requests
+from fastapi import FastAPI, Depends, Request, HTTPException, Query
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
+from fastapi import Body
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from pydantic import BaseModel
+
+# Imports for CSV export endpoint
+from fastapi.responses import StreamingResponse
+import csv
+from datetime import datetime, timedelta
+from io import StringIO
 
 from database import SessionLocal, setup_database
 from database import backup_database_to_json, restore_database_from_json
 
-from RaspberryPi import reader_helper
 
 
 # Initialiser SQLite3
@@ -43,11 +58,6 @@ def run_reader_helper():
     thread.start()
     print("[DEBUG] RFID-leser er startet i bakgrunnstråd.")
 
-"""def run_manual_release_thread():
-
-    thread = threading.Thread(target=poll_manual_release, daemon=True)
-    thread.start()
-    print("[DEBUG] starter admin utløsning.")"""
 
 setup_database()
 
@@ -79,12 +89,15 @@ templates = Jinja2Templates(directory="templates")
 # Oppsett for logging av feil
 logging.basicConfig(level=logging.ERROR, format="%(asctime)s - %(levelname)s - %(message)s")
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+api.include_router(websocket_api)
+
 
 # Dependency for databaseøkter
-def get_db():
+async def get_db():
     db = SessionLocal()
     # print("[DEBUG] Kjører release_expired_lockers_logic...")
-    released = release_expired_lockers_logic(db)
+    released = await release_expired_lockers_logic(db)
     try:
         yield db
     finally:
@@ -129,6 +142,12 @@ def serve_standard_user_page_endpoint(request: Request):
         return fastapi_error_handler(f"Feil ved henting av brukersiden. {str(e)}", status_code=500)
 
 
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    payload = decode_access_token(token)
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    return payload
+
 @api.get("/admin_page")
 def serve_admin_page_endpoint(request: Request):
     """
@@ -155,6 +174,12 @@ def serve_statistics_page(request: Request):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av statistikk-siden. {str(e)}", status_code=500)
 
+@api.get("/admin_log")
+def serve_log_page(request: Request):
+    try:
+        return templates.TemplateResponse("admin_log.html", {"request": request})
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av logger.{str(e)}" , status_code=500)
 
 @api.get("/admin_backup")
 def serve_backup_page(request: Request):
@@ -181,6 +206,41 @@ def get_all_rooms_endpoint(db: Session = Depends(get_db)):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved henting av garderoberom {str(e)}", status_code=500)
 
+
+# Nytt endepunkt: Oversikt over rom med totalt og ledige skap
+@api.get("/locker_rooms/overview")
+def get_rooms_overview(db: Session = Depends(get_db)):
+    """
+    Returnerer alle rom med navn, opptatte, ledige og totalt antall skap.
+    Brukes til oversikt/progress-bar.
+    """
+    try:
+        rooms = Statistic.get_all_rooms(db)
+        overview = []
+        for room in rooms:
+            room_id = room["room_id"] if isinstance(room, dict) else room.room_id
+            name = room["name"] if isinstance(room, dict) else room.name
+
+            # Hent totalt antall skap og antall ledige skap for rommet
+            total = Statistic.total_lockers_in_room(room_id, db)["total_lockers"]
+            available_raw = Statistic.available_lockers(room_id, db)
+
+            # FIX: sørg for at available er et heltall
+            if isinstance(available_raw, dict) and "available_lockers" in available_raw:
+                available = available_raw["available_lockers"]
+            else:
+                available = available_raw
+
+            overview.append({
+                "room_id": room_id,
+                "name": name,
+                "total": total,
+                "available": available,
+                "occupied": total - available
+            })
+        return overview
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av oversikt: {str(e)}", status_code=500)
 
 @api.get("/lockers/locker_id")
 def read_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
@@ -222,17 +282,35 @@ def get_all_lockers_endpoint(db: Session = Depends(get_db)):
 
 
 @api.get("/locker_logs")
-def get_all_logs(db: Session = Depends(get_db)):
-    logs = db.query(LockerLog).all()
-    return [
-        {
-            "locker_id": log.locker_id,
-            "user_id": log.user_id,
-            "action": log.action,
-            "timestamp": log.timestamp
-        }
-        for log in logs
-    ]
+def get_all_logs(
+    from_date: str = Query(None, description="Fra dato, f.eks. 2022-01-01"),
+    to_date: str = Query(None, description="Til dato, f.eks. 2024-12-31"),
+    db: Session = Depends(get_db)):
+    try:
+        query = db.query(LockerLog)
+        # Filtrer på dato hvis spesifisert
+        if from_date:
+            query = query.filter(LockerLog.timestamp >= from_date)
+        if to_date:
+            # For å inkludere hele to_date-dagen kan du evt. plusse på ett døgn/tid
+            query = query.filter(LockerLog.timestamp <= to_date + " 23:59:59")
+        logs = query.order_by(LockerLog.timestamp.desc()).all()
+        result = []
+        for log in logs:
+            combi_id = "-"
+            if log.locker_id:
+                locker = db.query(Locker).filter(Locker.id == log.locker_id).first()
+                if locker:
+                    combi_id = locker.combi_id or "-"
+            result.append({
+                "id": log.id,
+                "combi_id": combi_id,
+                "user_id": log.user_id,
+                "action": log.action,
+                "timestamp": log.timestamp.isoformat() if log.timestamp else None,})
+        return result
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av logger. {str(e)}", status_code=500)
 
 
 @api.get("/lockers/occupied")
@@ -247,31 +325,41 @@ def get_occupied_lockers_endpoint(db: Session = Depends(get_db)):
         return fastapi_error_handler(f"Feil ved henting av opptatte skap: {str(e)}", status_code=500)
 
 
+@api.get("/api/admin/data")
+async def get_admin_data(current_user: dict = Depends(get_current_user)):
+    try:
+        if current_user.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Not authorized")
+        return {"data": "secure admin data"}
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av admin_data. {str(e)}", status_code=500)
+
+
 ''' POST CALLS '''
 
 
-@api.post("/login")
-def login(request: LoginRequest, db: Session = Depends(get_db)):
-    """
-    Logger inn en bruker basert på pin/passord.
-    """
-    user = authenticate_user(request.password, db)
-    if not user:
-        raise HTTPException(status_code=401, detail="Ugyldig kode")
+@api.post("/login", response_model=Token)
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: SessionLocal = Depends(get_db)):
+    try:
+        user = authenticate_user(form_data.password, db)  # Merk kun bruk av password
+        if not user:
+            raise HTTPException(status_code=401, detail="Incorrect password")
 
-    return {
-        "message": "Innlogging vellykket",
-        "role": user.role
-    }
+        token_data = {"sub": str(user.id), "role": user.role}
+        access_token = create_access_token(token_data)
+        return {"access_token": access_token, "token_type": "bearer"}
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved innlogging. {str(e)}", status_code=500)
 
 
 @api.post("/locker_rooms/{name}")
-def create_room_endpoint(name: str, db: Session = Depends(get_db)):
+async def create_room_endpoint(name: str, db: Session = Depends(get_db)):
     """
     Endepunkt for å opprette et nytt garderoberom.
     """
     try:
-        locker_room = create_locker_room(name, db)
+        locker_room = await create_locker_room(name, db)
+        await broadcast_message("update")
         return locker_room
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av nytt garderoberom med id: {LockerRoom.id}: {str(e)}",
@@ -279,24 +367,23 @@ def create_room_endpoint(name: str, db: Session = Depends(get_db)):
 
 
 @api.post("/lockers/")
-def create_locker_endpoint(locker_room_id: int, db: Session = Depends(get_db)):
-    """
-    Endepunkt for å opprette et nytt autogenerert garderobeskap i et garderoberom.
-    """
+async def create_locker_endpoint(locker_room_id: int, db: Session = Depends(get_db)):
     try:
-        result = add_locker(locker_room_id, db)
+        result = await add_locker(locker_room_id, db)
+        await broadcast_message("update")
         return result
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av garderobeskap: {str(e)}", status_code=500)
 
 
 @api.post("/lockers/multiple_lockers")
-def create_multiple_lockers_endpoint(locker_room_id: int, quantity: int, db: Session = Depends(get_db)):
+async def create_multiple_lockers_endpoint(locker_room_id: int, quantity: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å opprette flere nye autogenerert garderobeskap i et garderoberom.
     """
     try:
-        multiple_lockers = add_multiple_lockers(locker_room_id, quantity, db)
+        multiple_lockers = await add_multiple_lockers(locker_room_id, quantity, db)
+        await broadcast_message("update")
         return multiple_lockers
     except Exception as e:
         return fastapi_error_handler(f"Feil ved oppretting av Garderobeskap med id: {Locker.combi_id}, {str(e)}",
@@ -304,12 +391,10 @@ def create_multiple_lockers_endpoint(locker_room_id: int, quantity: int, db: Ses
 
 
 @api.post("/admin_users/")
-def create_admin_user(request: CreateUserRequest, db: Session = Depends(get_db)):
-    """
-    Oppretter en ny bruker med pin/passord og rolle.
-    """
+async def create_admin_user(request: CreateUserRequest = Body(...), db: Session = Depends(get_db)):
     try:
-        admin = create_admin(password=request.password, role=request.role, db=db)
+        admin = await create_admin(password=request.password, role=request.role, db=db)
+        await broadcast_message("admin_created")
         return {
             "message": "Bruker opprettet",
             "role": admin.role
@@ -348,12 +433,12 @@ def assign_after_closure(rfid_tag: str, locker_room_id: int, locker_id: int, db:
 
 
 @api.put("/lockers/{locker_id}/note")
-def update_locker_note_endpoint(locker_id: int, note: str, db: Session = Depends(get_db)):
+async def update_locker_note_endpoint(locker_id: int, note: str, db: Session = Depends(get_db)):
     """
     Endepunkt for å legge til eller oppdatere et notat på et garderobeskap.
     """
     try:
-        locker = add_note_to_locker(locker_id=locker_id, note=note, db=db)
+        locker = await add_note_to_locker(locker_id=locker_id, note=note, db=db)
         if locker is None:
             raise fastapi_error_handler(f"Garderobeskap med id: {Locker.combi_id} ikke funnet", status_code=404)
         return locker
@@ -363,54 +448,59 @@ def update_locker_note_endpoint(locker_id: int, note: str, db: Session = Depends
 
 # Denne skal nok byttes ut med temporary_unlock.
 @api.put("/lockers/{locker_id}/unlock")
-def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
+async def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
     """
-    Endepunkt for å låse opp et skap eksternt.
+    Endepunkt for å låse opp et skap eksternt og sette status til Ledig.
     """
     try:
         locker = db.query(Locker).filter(Locker.id == locker_id).first()
         if locker is None:
             raise fastapi_error_handler(f"Garderobeskap med id: {Locker.combi_id} ikke funnet.", status_code=404)
-        db.commit()
-        db.refresh(locker)  # Sikrer at endringer reflekteres i objektet
 
-        log_unlock_action(locker_id=locker.id, user_id=locker.user_id, db=db)
+        locker.status = "Ledig"  # ← SETT DENNE!
+        db.commit()
+        db.refresh(locker)
+
+        await log_unlock_action(locker_id=locker.id, user_id=locker.user_id, db=db)
+
+        # Valgfritt: broadcast oppdatering slik at websockets fanger det
+        await broadcast_message("update")
 
         return locker
     except Exception as e:
-        return fastapi_error_handler(f"Feil ved henting av garderoberom med id: {LockerRoom.id}, {str(e)}",
-                                     status_code=500)
+        return fastapi_error_handler(f"Feil ved opplåsing av skap: {str(e)}", status_code=500)
 
 
 @api.put("/lockers/temporary_unlock")
-def temporary_unlock_endpoint(user_id: int, db: Session = Depends(get_db)):
+async def temporary_unlock_endpoint(user_id: int, db: Session = Depends(get_db)):
     try:
         from backend.model.StandardUser import temporary_unlock
-        return temporary_unlock(user_id, db)
+        return await temporary_unlock(user_id, db)
     except Exception as e:
         return fastapi_error_handler(f"Feil ved midlertidig opplåsning: {str(e)}", status_code=500)
 
 
 @api.put("/lockers/lock_temporary_unlock")
-def lock_locker_after_use_endpoint(user_id: int, db: Session = Depends(get_db)):
+async def lock_locker_after_use_endpoint(user_id: int, db: Session = Depends(get_db)):
     try:
         from backend.model.StandardUser import lock_locker_after_use
-        return lock_locker_after_use(user_id, db)
+        return await lock_locker_after_use(user_id, db)
     except Exception as e:
         return fastapi_error_handler(f"Feil ved låsing av skap etter bruk: {str(e)}", status_code=500)
 
 
 @api.put("/lockers/reserve")
-def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Depends(get_db)):
+async def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Depends(get_db)):
     """
     Reserverer det ledige skapet med lavest nummer i et spesifikt garderoberom for en bruker.
     """
     try:
-        reserved_locker = reserve_locker(user_id=user_id, locker_room_id=locker_room_id, db=db)
+        reserved_locker = await reserve_locker(user_id=user_id, locker_room_id=locker_room_id, db=db)
         return reserved_locker
     except Exception as e:
         return fastapi_error_handler(f"Feil ved reservering av Garderobeskap med id: {Locker.combi_id}, {str(e)}",
                                      status_code=500)
+
 
 
 @api.put("/lockers/manual_release/")
@@ -437,42 +527,39 @@ def manual_release_locker_endpoint(locker_id: int, locker_room_id: int, db: Sess
 
 
 @api.delete("/lockers/{locker_id}")
-def remove_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
+async def remove_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
     """
     Sletter et gitt skap fra et garderoberom.
     """
     try:
-        locker = db.query(Locker).filter(Locker.id == locker_id).first()
-        if not locker:
-            raise fastapi_error_handler(f"Garderobeskap med id: {Locker.combi_id}, ikke funnet.", status_code=404)
-        db.delete(locker)
-        db.commit()
-        return {"message": f"Garderobeskap med id: {Locker.combi_id} har blitt slettet."}
+        from backend.model.Locker import remove_locker
+        result = await remove_locker(locker_id, db)
+        return result
     except Exception as e:
         return fastapi_error_handler(f"Feil ved sletting av garderobeskap med id: {Locker.combi_id}, {str(e)}",
                                      status_code=500)
 
 
 @api.delete("/locker_rooms/{room_id}/lockers")
-def remove_all_lockers_in_room_endpoint(room_id: int, db: Session = Depends(get_db)):
+async def remove_all_lockers_in_room_endpoint(room_id: int, db: Session = Depends(get_db)):
     """
     Sletter alle garderobeskap i et spesifikt garderoberom.
     """
     try:
         from backend.model.Locker import remove_all_lockers_in_room
-        result = remove_all_lockers_in_room(room_id, db)
+        result = await remove_all_lockers_in_room(room_id, db)
         return result
     except Exception as e:
         return fastapi_error_handler(f"Feil ved sletting av skap i garderoberom {room_id}: {str(e)}", status_code=500)
 
 
 @api.delete("/locker_rooms/{room_id}")
-def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
+async def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
     """
     Sletter et garderoberom samt alle skap tilknyttet det rommet.
     """
     try:
-        result = delete_locker_room(room_id, db)
+        result = await delete_locker_room(room_id, db)
         return {
             "message": f"Garderoberom med ID {room_id} og alle tilhørende skap er slettet.",
             "room_id": room_id
@@ -480,6 +567,14 @@ def delete_room_endpoint(room_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         return fastapi_error_handler(f"Feil ved sletting av garderoberom: {str(e)}", status_code=500)
 
+@api.delete("/admin_users/{admin_id}")
+async def delete_admin_user(admin_id: int, db: Session = Depends(get_db)):
+    try:
+        result = delete_admin(admin_id, db)
+        await broadcast_message("admin_deleted")  # Gir frontend beskjed om endring
+        return {"message": f"Admin med ID {admin_id} er slettet."}
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved sletting av admin: {str(e)}", status_code=500)
 
 
 ''' STATISTIC CALLS '''
@@ -493,6 +588,13 @@ def get_total_lockers(db: Session = Depends(get_db)):
         logging.error(f"Feil ved henting av total antall skap: {str(e)}")
         raise fastapi_error_handler("Kunne ikke hente total antall skap.", status_code=500)
 
+@api.get("/statistic/available_lockers")
+def get_total_available_lockers(db: Session = Depends(get_db)):
+    try:
+        count = db.query(Locker).filter(Locker.status.ilike("Ledig")).count()
+        return {"available_lockers": count}
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av ledige skap: {str(e)}", 500)
 
 @api.get("/statistic/available_lockers")
 def get_available_lockers(db: Session = Depends(get_db)):
@@ -504,13 +606,20 @@ def get_available_lockers(db: Session = Depends(get_db)):
         raise fastapi_error_handler("Kunne ikke hente ledige skap.", status_code=500)
 
 
+@api.get("/statistic/available_lockers_by_room/{room_id}")
+def get_available_lockers_by_room(room_id: int, db: Session = Depends(get_db)):
+    try:
+        return Statistic.available_lockers(room_id, db)
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved romspesifikk henting av ledige skap: {str(e)}", 500)
+
 @api.get("/statistic/occupied_lockers")
 def get_occupied_lockers(db: Session = Depends(get_db)):
     try:
-        return {"occupied_lockers": Statistic.occupied_lockers(db)}
+        count = Statistic.occupied_lockers(db)
+        return {"occupied_lockers": count}
     except Exception as e:
-        logging.error(f"Feil ved henting av opptatte skap: {str(e)}")
-        raise fastapi_error_handler("Kunne ikke hente opptatte skap.", status_code=500)
+        return fastapi_error_handler(f"Feil ved henting av opptatte skap: {str(e)}", 500)
 
 
 @api.get("/statistic/total_users")
@@ -534,20 +643,60 @@ def get_lockers_by_room(db: Session = Depends(get_db)):
         logging.error(f"Feil ved henting av skap per garderoberom: {str(e)}")
         raise fastapi_error_handler("Kunne ikke hente skap per garderoberom.", status_code=500)
 
+@api.get("/statistic/all_lockers")
+def get_all_lockers(db: Session = Depends(get_db)):
+    try:
+        return Statistic.all_lockers(db)
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av alle skap: {str(e)}", 500)
 
 @api.get("/statistic/most_opened_lockers")
-def get_most_opened_lockers(db: Session = Depends(get_db)):
-    results = db.query(
-        Locker.combi_id,
-        func.count(LockerLog.id).label("times_opened")
-    ).join(LockerLog, Locker.id == LockerLog.locker_id) \
-        .filter(LockerLog.action == "Låst opp") \
-        .group_by(Locker.combi_id) \
-        .order_by(func.count(LockerLog.id).desc()) \
-        .limit(10) \
-        .all()
+def get_most_opened_lockers(
+    period: str = "month",
+    db: Session = Depends(get_db)
+):
+    """
+    Returnerer ALLE skap, med antall åpninger og sist åpnet (ev. 'Aldri åpnet').
+    period: 'day', 'week', 'month' (default: month)
+    """
+    now = datetime.now()
+    if period == "day":
+        from_date = now - timedelta(days=1)
+    elif period == "week":
+        from_date = now - timedelta(weeks=1)
+    elif period == "month":
+        from_date = now - timedelta(days=30)
+    else:
+        from_date = None  # Da vises hele loggen
 
-    return [{"combi_id": combi_id, "times_opened": count} for combi_id, count in results]
+    # Venstre join for å få med ALLE skap
+    subq = db.query(
+        Locker.id.label("locker_id"),
+        Locker.combi_id.label("combi_id"),
+        func.count(LockerLog.id).label("times_opened"),
+        func.max(LockerLog.timestamp).label("last_opened")
+    ).outerjoin(
+        LockerLog,
+        (Locker.id == LockerLog.locker_id)
+        & (LockerLog.action == "Låst opp")
+        & ((LockerLog.timestamp >= from_date) if from_date else True)
+    ).group_by(Locker.id, Locker.combi_id).subquery()
+
+    results = db.query(
+        subq.c.combi_id,
+        subq.c.times_opened,
+        subq.c.last_opened
+    ).all()
+
+    # Returnér alle skap, med antall åpninger og sist åpnet (kan være None/"Aldri åpnet")
+    return [
+        {
+            "combi_id": combi_id,
+            "times_opened": times_opened or 0,
+            "last_opened": last_opened.isoformat() if last_opened else None
+        }
+        for combi_id, times_opened, last_opened in results
+    ]
 
 
 @api.get("/statistic/recent_log_entries")
@@ -591,6 +740,124 @@ def get_most_active_users(db: Session = Depends(get_db)):
         logging.error(f"Feil ved henting av mest aktive brukere: {str(e)}")
         raise fastapi_error_handler("Kunne ikke hente mest aktive brukere.", status_code=500)
 
+@api.get("/statistic/users_with_usage")
+def get_users_with_usage(db: Session = Depends(get_db)):
+    try:
+        all_users = db.query(StandardUser).all()
+        logs = Statistic.most_active_users(db)
+        log_map = {user["username"]: user["locker_count"] for user in logs}
+
+        result = []
+        for user in all_users:
+            result.append({
+                "username": user.rfid_tag,
+                "locker_count": log_map.get(user.rfid_tag, 0)
+            })
+        return result
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av brukere med aktivitetsdata: {str(e)}", 500)
+
+@api.get("/statistic/all_active_users_csv")
+def download_all_active_users_csv(db: Session = Depends(get_db)):
+    """
+    Endepunkt for å laste ned alle brukere og deres antall reserveringer som CSV.
+    """
+    # Hent alle brukere med deres rfid-tag og antall reserveringer (bruker samme logikk som /statistic/most_active_users)
+    results = db.query(
+        StandardUser.id,
+        StandardUser.rfid_tag,
+        func.count(LockerLog.id)
+    ).outerjoin(LockerLog, StandardUser.id == LockerLog.user_id)\
+     .group_by(StandardUser.id, StandardUser.rfid_tag)\
+     .order_by(func.count(LockerLog.id).desc()).all()
+
+    output = StringIO()
+    writer = csv.writer(output, delimiter=';')
+    writer.writerow(["Bruker-ID", "RFID-tag", "Antall reserveringer"])
+    for user_id, rfid_tag, count in results:
+        writer.writerow([user_id, rfid_tag or "-", count or 0])
+    output.seek(0)
+
+    filename = f"brukerliste_{datetime.now().strftime('%Y-%m-%d')}.csv"
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@api.get("/statistic/unique_users")
+def get_unique_users(db: Session = Depends(get_db)):
+    try:
+        from backend.model.Statistic import get_unique_users_by_period
+        return get_unique_users_by_period(db)
+    except Exception as e:
+        return fastapi_error_handler(f"Feil ved henting av unike brukere: {str(e)}", 500)
+
+# CSV-export endpoint for locker activity log
+@api.get("/statistic/locker_activity_log")
+def download_locker_activity_log_csv(period: str = "day", db: Session = Depends(get_db)):
+    """
+    Endepunkt for å laste ned skap-aktivitetlogg som CSV for 1 dag, 1 uke eller 1 måned.
+    """
+    now = datetime.now()
+    if period == "day":
+        from_date = now - timedelta(days=1)
+    elif period == "week":
+        from_date = now - timedelta(weeks=1)
+    elif period == "month":
+        from_date = now - timedelta(days=30)
+    else:
+        from_date = now - timedelta(days=1)  # default 1 dag
+
+    logs = db.query(LockerLog).filter(LockerLog.timestamp >= from_date).order_by(LockerLog.timestamp.desc()).all()
+
+    output = StringIO()
+    writer = csv.writer(output, delimiter=';')
+    writer.writerow(["Bruker-ID", "Skap-ID", "Handling", "Tidspunkt"])
+    for log in logs:
+        if log.timestamp:
+            ts = log.timestamp.strftime("%d/%m/%Y %H:%M:%S")
+        else:
+            ts = ""
+        writer.writerow([log.user_id or "Ukjent", log.locker_id, log.action, ts])
+    output.seek(0)
+
+    filename = f"skap_aktivitetlogg_{period}_{now.strftime('%Y-%m-%d')}.csv"
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@api.get("/statistic/hourly_load")
+def get_hourly_load(db: Session = Depends(get_db)):
+    """
+    Returnerer antall ganger skap har blitt åpnet (Låst opp) for hver time i døgnet de siste 30 dagene.
+    """
+    now = datetime.now()
+    from_date = now - timedelta(days=30)
+
+    # Hent alle logg-innslag siste 30 dager med action 'Låst opp'
+    logs = db.query(LockerLog).filter(
+        LockerLog.timestamp >= from_date,
+        LockerLog.action == "Låst opp"
+    ).all()
+
+    # Lag 24 tellere for hver time i døgnet
+    hourly_opens = [0] * 24
+
+    # Tell antall åpninger per time (uansett dag)
+    for log in logs:
+        if log.timestamp:
+            hour = log.timestamp.hour
+            hourly_opens[hour] += 1
+
+    # Returnér listen direkte (antall åpninger per time)
+    total_lockers = db.query(Locker).count()
+    return {
+        "hourly_avg": hourly_opens,
+        "total_lockers": total_lockers
+    }
 
 ''' BACKUP CALLS '''
 
@@ -653,7 +920,7 @@ async def release_expired_loop():
             if db:
                 db.close()
 
-        await asyncio.sleep(600)  # 10 minutter
+        await asyncio.sleep(5)  # 600 = 10 minutter
 
 
 if __name__ == "__main__":
