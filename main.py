@@ -28,7 +28,7 @@ from backend.auth.auth_handler import create_access_token, decode_access_token, 
 from backend.auth.auth_schema import Token, UserLogin
 from backend.websocket_broadcast import api as websocket_api
 
-from fastapi import FastAPI, Depends, Request, HTTPException, Query
+from fastapi import FastAPI, Depends, Request, HTTPException, Query, requests
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import UploadFile, File
