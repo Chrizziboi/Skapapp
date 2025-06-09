@@ -1,0 +1,49 @@
+.split-layout {
+    display: flex;
+    gap: 80px;
+    align-items: flex-start;
+    justify-content: center;
+    margin-top: 100px;
+    padding-bottom: 80px;
+}
+
+
+.admin-content-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.room-status-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+}
+
+.note-input {
+    width: 100%;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.note-save-button {
+    margin-top: 6px;
+    padding: 6px 12px;
+    border-radius: 50px;
+    background: #005AA9;
+    color: #fff;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.note-save-button:hover {
+    background: #003F7D;
+}

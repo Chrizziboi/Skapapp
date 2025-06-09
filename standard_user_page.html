@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ledige Skap</title>
+    <link rel="stylesheet" href="/static/styles/core.css" />
+    <link rel="stylesheet" href="/static/styles/standard_user_page.css">
+</head>
+<body>
+    <div class="header-box">
+        <h1>Garderobeoversikt</h1>
+    </div>
+    <div class="container">
+        <div id="room-list">
+            <!-- Rom-bokser blir lagt til med JS -->
+        </div>
+    </div>
+
+    <script>
+        function fetchAndDisplayRooms() {
+            const roomList = document.getElementById("room-list");
+
+            fetch("/locker_rooms/overview")
+                .then(response => response.json())
+                .then(rooms => {
+                    roomList.innerHTML = '';
+                    const colors = ['color-a', 'color-b', 'color-c', 'color-d', 'color-e', 'color-f', 'color-g'];
+                    rooms
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .forEach((room, i) => {
+                            const card = document.createElement('div');
+                            const colorClass = colors[i % colors.length];
+                            card.classList.add('room-card', colorClass);
+
+                            const percent = room.total ? Math.min(Math.round((room.occupied / room.total) * 100), 100) : 0;
+                            let fillClass = 'green';
+                            if (percent > 85) fillClass = 'red';
+                            else if (percent > 60) fillClass = 'orange';
+
+                            card.innerHTML = `
+                                <div class="room-card-title">${room.name}</div>
+                                <div class="room-card-status">${room.available} av ${room.total} skap ledige</div>
+                                <div class="room-progress">
+                                    <div class="room-progress-fill${fillClass ? ' ' + fillClass : ''}" style="width: ${percent}%" data-available="${room.available}" data-occupied="${room.occupied}" data-total="${room.total}"></div>
+                                </div>
+                            `;
+
+                            roomList.appendChild(card);
+                        });
+                })
+                .catch(error => console.error("Feil ved henting av rom:", error));
+        }
+
+        // WebSocket-oppsett
+        let socket;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        const reconnectDelay = 3000;
+
+        function connectWebSocket() {
+            if (socket) socket.close();
+
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates`;
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log("WebSocket tilkoblet (public page)");
+                reconnectAttempts = 0;
+            };
+
+            socket.onmessage = (event) => {
+                const message = event.data;
+                if (message === 'update') {
+                    console.log("Mottatt WebSocket update – henter på nytt...");
+                    fetchAndDisplayRooms();
+                }
+            };
+
+            socket.onclose = (event) => {
+                console.warn("WebSocket koblet fra");
+                if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    setTimeout(connectWebSocket, reconnectDelay);
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error("WebSocket-feil:", error);
+            };
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchAndDisplayRooms();
+            connectWebSocket();
+        });
+    </script>
+</body>
+</html>

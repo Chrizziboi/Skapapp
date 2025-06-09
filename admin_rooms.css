@@ -1,0 +1,479 @@
+/* Locker card styles for modal */
+.locker-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 16px;
+    margin: 8px 0;
+    text-align: left;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.locker-card p {
+    margin: 4px 0;
+    font-size: 15px;
+}
+
+.locker-card-buttons {
+    margin-top: 10px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-start;
+}
+
+.locker-card-buttons button {
+    flex: 1;
+    min-width: 100px;
+}
+
+.wardrobe-admin-layout {
+    display: grid;
+    grid-template-areas:
+        "create-room list"
+        "add-lockers list";
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 60px;
+    padding: 0 16px;
+    align-items: start;
+}
+
+.card {
+    width: 100%;
+    max-width: 500px;
+    padding: 32px;
+    border-radius: 24px;
+    text-align: center;
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #3D5744;
+}
+
+.card-left {
+    grid-area: create-room;
+}
+
+.card-bottom {
+    grid-area: add-lockers;
+}
+
+.card-right {
+    grid-area: list;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+
+.input-row,
+.dropdown-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    margin-top: 16px;
+}
+
+
+.room-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 16px;
+}
+
+.room-item {
+    background: var(--room-item-color, #ffffff);
+    padding: 12px;
+    border-radius: 999px;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* Move info button to the right side */
+    justify-content: space-between;
+}
+
+.right-list {
+    flex: 1;
+    min-width: 300px;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(60, 60, 60, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #F6F3EB;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
+    color: #3D5744;
+    font-family: inherit;
+    animation: slideUp 0.3s ease-out;
+    text-align: center;
+}
+
+.modal-content input {
+    display: none;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 28px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    color: #005AA9;
+    cursor: pointer;
+}
+#room-info-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 40px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 2000;
+    transition: opacity 0.3s ease;
+}
+
+#room-info-modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#room-info-box {
+    background: #F6F3EB;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
+    color: #3D5744;
+    font-family: inherit;
+    animation: slideUp 0.3s ease-out;
+    text-align: center;
+    z-index: 2100;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding-right: 12px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.scrollable-list {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+/* Stilren scrollbar for .scrollable-list */
+.scrollable-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollable-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.scrollable-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+.scrollable-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Removed duplicate #room-info-box block */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 2000;
+}
+
+/* Removed duplicate #room-info-box block */
+
+#close-info-box {
+    position: absolute;
+    top: 16px;
+    right: 24px;
+    font-size: 24px;
+    background: #ffffff;
+    border: 1px solid #005AA9;
+    color: #005AA9;
+    padding: 6px 12px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#close-info-box:hover {
+    background: #005AA9;
+    color: #ffffff;
+}
+/* Red-style button for delete/danger actions */
+.button-danger {
+    background: linear-gradient(to right, #e03131, #c92a2a);
+    color: white;
+    box-shadow: 0 6px 12px rgba(224, 49, 49, 0.4);
+}
+
+.button-danger:hover {
+    background: linear-gradient(to right, #c92a2a, #e03131);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(224, 49, 49, 0.5);
+}
+.confirmation-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.confirmation-box {
+    background: #F6F3EB;
+    padding: 32px;
+    border-radius: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    max-width: 400px;
+    text-align: center;
+    color: #3D5744;
+}
+
+.confirmation-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 24px;
+}
+
+.confirmation-buttons button {
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    background: #ffffff;
+    border: 1px solid #e03131;
+    color: #e03131;
+}
+
+.confirmation-buttons button:hover {
+    background: #e03131;
+    color: #ffffff;
+}
+
+.room-name-editable {
+    pointer-events: none;
+    user-select: none;
+    color: inherit;
+}
+
+.room-item.color-a { background: #dceaf7; color: #205084; } /* Pastell blå */
+.room-item.color-b { background: #d7eee0; color: #4E8561; } /* Pastell grønn */
+.room-item.color-c { background: #f4f1fa; color: #6c558c; } /* Pastell lilla */
+.room-item.color-d { background: #fcf7e0; color: #957639; } /* Pastell gul */
+.room-item.color-e { background: #faeaea; color: #9e3539; } /* Pastell rød/rosa */
+.room-item.color-f { background: #e9f7f5; color: #3d5744; } /* Pastell grønn-blå */
+.room-item.color-g { background: #f6f3eb; color: #205084; } /* Lys beige (Sunnaas bakgrunn) */
+
+@media (max-width: 768px) {
+    .wardrobe-admin-layout {
+        grid-template-areas:
+            "create-room"
+            "add-lockers"
+            "list";
+        grid-template-columns: 1fr;
+    }
+}
+/* Modal buttons and animations */
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 12px;
+}
+.modal-buttons button {
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.cancel-button {
+    border: 1px solid #005AA9;
+    background: #ffffff;
+    color: #005AA9;
+}
+
+.cancel-button:hover {
+    background: #005AA9;
+    color: #ffffff;
+}
+
+.delete-button {
+    background: #ffffff;
+    border: 1px solid #e03131;
+    color: #e03131;
+}
+
+.delete-button:hover {
+    background: #e03131;
+    color: #ffffff;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Note preview inside each locker card */
+.note-preview {
+    margin-top: 12px;
+    font-style: italic;
+    font-size: 14px;
+    color: #555;
+    text-align: left;
+}
+
+/* Notat-modal styling */
+#note-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(60, 60, 60, 0.3);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+#note-modal.hidden {
+    display: none;
+}
+
+#note-modal .modal-content {
+    background: #F6F3EB;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
+    color: #3D5744;
+    font-family: inherit;
+    animation: slideUp 0.3s ease-out;
+    text-align: center;
+}
+
+#note-modal textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    resize: vertical;
+    box-sizing: border-box;
+    margin-top: 16px;
+}
+#success-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+#success-modal.hidden {
+    display: none;
+}
+
+#success-modal .modal-content {
+    background: #F6F3EB;
+    border-radius: 16px;
+    padding: 24px 32px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+    color: #3D5744;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    font-size: 18px;
+}
+/* Hide the table header row above the locker cards */
+#locker-list thead {
+    display: none;
+}
+.info-section {
+    margin-top: 48px;
+    margin-bottom: 32px;
+}
+
+.input-field {
+    padding: 12px;
+    border: 1.5px solid #ccc;
+    border-radius: 999px;
+    font-size: 17px;
+    background: #fff;
+    width: 240px;
+    outline: none;
+    transition: border 0.2s;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+.input-field:focus {
+    border: 1.5px solid #005AA9;
+    background: #f7fafd;
+}
