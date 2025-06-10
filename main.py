@@ -445,7 +445,7 @@ async def update_locker_note_endpoint(locker_id: int, note: str, db: Session = D
 
 # Denne skal nok byttes ut med temporary_unlock.
 @api.put("/lockers/{locker_id}/unlock")
-async def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
+def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
     """
     Endepunkt for å låse opp et skap eksternt og sette status til Ledig.
     """
@@ -458,10 +458,10 @@ async def unlock_locker_endpoint(locker_id: int, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(locker)
 
-        await log_unlock_action(locker_id=locker.id, user_id=locker.user_id, db=db)
+        log_unlock_action(locker_id=locker.id, user_id=locker.user_id, db=db)
 
         # Valgfritt: broadcast oppdatering slik at websockets fanger det
-        await broadcast_message("update")
+        #await broadcast_message("update")
 
         return locker
     except Exception as e:
@@ -478,21 +478,21 @@ async def temporary_unlock_endpoint(user_id: int, db: Session = Depends(get_db))
 
 
 @api.put("/lockers/lock_temporary_unlock")
-async def lock_locker_after_use_endpoint(user_id: int, db: Session = Depends(get_db)):
+def lock_locker_after_use_endpoint(user_id: int, db: Session = Depends(get_db)):
     try:
         from backend.model.StandardUser import lock_locker_after_use
-        return await lock_locker_after_use(user_id, db)
+        return lock_locker_after_use(user_id, db)
     except Exception as e:
         return fastapi_error_handler(f"Feil ved låsing av skap etter bruk: {str(e)}", status_code=500)
 
 
 @api.put("/lockers/reserve")
-async def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Depends(get_db)):
+def reserve_locker_endpoint(user_id: int, locker_room_id: int, db: Session = Depends(get_db)):
     """
     Reserverer det ledige skapet med lavest nummer i et spesifikt garderoberom for en bruker.
     """
     try:
-        reserved_locker = await reserve_locker(user_id=user_id, locker_room_id=locker_room_id, db=db)
+        reserved_locker = reserve_locker(user_id=user_id, locker_room_id=locker_room_id, db=db)
         return reserved_locker
     except Exception as e:
         return fastapi_error_handler(f"Feil ved reservering av Garderobeskap med id: {Locker.combi_id}, {str(e)}",
