@@ -908,7 +908,7 @@ async def release_expired_loop():
         db = None
         try:
             db = SessionLocal()
-            released = release_expired_lockers_logic(db)
+            released = await release_expired_lockers_logic(db)
             if released:
                 print(f"[Bakgrunnsjobb] Frigjorde {len(released)} skap:", released)
         except Exception as e:
@@ -917,7 +917,7 @@ async def release_expired_loop():
             if db:
                 db.close()
 
-        await asyncio.sleep(5)  # 600 = 10 minutter
+        await asyncio.sleep(15)  # 600 = 10 minutter
 
 
 if __name__ == "__main__":
