@@ -4,7 +4,6 @@ from datetime import datetime as dt, UTC, timedelta
 
 from backend.model.Locker import Locker
 from database import Base
-from backend.websocket_broadcast import broadcast_message
 
 class LockerLog(Base):
     __tablename__ = "locker_logs"
@@ -15,16 +14,14 @@ class LockerLog(Base):
     action = Column(String)  # "Låst opp", "Låst" eller "Automatisk frigjort"
     timestamp = Column(DateTime, default=dt.now(UTC))
 
-async def log_action(locker_id: int, user_id: int | None, action: str, db: Session):
+def log_action(locker_id: int, user_id: int | None, action: str, db: Session):
     log = LockerLog(locker_id=locker_id, user_id=user_id, action=action, timestamp=dt.now(UTC))
     db.add(log)
     db.commit()
     db.refresh(log)
-    await broadcast_message("update")
-    return log
 
 
-async def log_unlock_action(locker_id: int, user_id: int, db: Session):
+def log_unlock_action(locker_id: int, user_id: int, db: Session):
     """
     Logger en Låst opp-hendelse.
     """
@@ -37,11 +34,10 @@ async def log_unlock_action(locker_id: int, user_id: int, db: Session):
     db.add(new_log)
     db.commit()
     db.refresh(new_log)
-    await broadcast_message("update")
     return new_log
 
 
-async def log_lock_action(locker_id: int, user_id: int, db: Session):
+def log_lock_action(locker_id: int, user_id: int, db: Session):
     """
     Logger en Låst-hendelse.
     """
@@ -54,10 +50,10 @@ async def log_lock_action(locker_id: int, user_id: int, db: Session):
     db.add(new_log)
     db.commit()
     db.refresh(new_log)
-    await broadcast_message("update")
     return new_log
 
-async def log_reserved_action(locker_id: int, user_id: int, db: Session):
+
+def log_reserved_action(locker_id: int, user_id: int, db: Session):
     """
     Logger en reserverings-hendelse.
     """
@@ -70,15 +66,15 @@ async def log_reserved_action(locker_id: int, user_id: int, db: Session):
     db.add(new_log)
     db.commit()
     db.refresh(new_log)
-    await broadcast_message("update")
     return new_log
 
-async def release_expired_lockers_logic(db: Session) -> list[str]:
+
+def release_expired_lockers_logic(db: Session) -> list[str]:
     """
     Frigjør skap som har vært 'Reservert' i over 15 timer.
     """
     released = []
-    expiration_time = dt.now(UTC) - timedelta(seconds=15)  # evt. seconds=15 for testing
+    expiration_time = dt.now(UTC) - timedelta(hours=15)  # evt. seconds=15 for testing
 
     occupied_lockers = db.query(Locker).filter(Locker.status.ilike("Opptatt")).all()
     print(f"[Automatisk Skapopplåser] Fant {len(occupied_lockers)} opptatte skap")
@@ -114,9 +110,6 @@ async def release_expired_lockers_logic(db: Session) -> list[str]:
 
             released.append(locker.combi_id)
             print(f"[Automatisk Skapopplåser] Frigjorde skap: {locker.combi_id}")
-
-    if released:
-        await broadcast_message("update")
 
     return released
 

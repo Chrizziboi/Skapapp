@@ -6,7 +6,6 @@ from database import Base
 from backend.model.Locker import Locker
 from backend.model.LockerRoom import LockerRoom
 from backend.model.LockerLog import log_unlock_action
-from backend.websocket_broadcast import broadcast_message
 
 
 class StandardUser(Base):
@@ -15,7 +14,7 @@ class StandardUser(Base):
     id = Column(Integer, primary_key=True, index=True)
     rfid_tag = Column(String, unique=True, nullable=True)
 
-async def create_standard_user(rfid_tag: str, db: Session):
+def create_standard_user(rfid_tag: str, db: Session):
     """
     Oppretter en ny standardbruker.
     """
@@ -27,9 +26,6 @@ async def create_standard_user(rfid_tag: str, db: Session):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-
-    await broadcast_message("update")
-
     return new_user
 
 def get_user_by_rfid_tag(rfid_tag: str, db: Session):
@@ -38,7 +34,7 @@ def get_user_by_rfid_tag(rfid_tag: str, db: Session):
     """
     return db.query(StandardUser).filter(StandardUser.rfid_tag == rfid_tag).first()
 
-async def reserve_locker(user_id: int, locker_room_id: int, db: Session):
+def reserve_locker(user_id: int, locker_room_id: int, db: Session):
     """
     Reserverer et ledig skap i et spesifikt garderoberom for en bruker.
     Brukeren kan kun ha ett skap om gangen.
@@ -78,17 +74,15 @@ async def reserve_locker(user_id: int, locker_room_id: int, db: Session):
     locker.user_id = user.id
     db.commit()
     from backend.model.LockerLog import log_reserved_action
-    await log_reserved_action(locker_id=locker.id, user_id=user.id, db=db)
+    log_reserved_action(locker_id=locker.id, user_id=user.id, db=db)
 
     db.refresh(locker)
-
-    await broadcast_message("update")
 
     return {
         "message": f"Garderobeskap {locker.combi_id} i rom '{room.name}' er nå reservert for bruker med RFID {user.id}."
     }
 
-async def unlock_locker(user_id: int, db: Session):
+def unlock_locker(user_id: int, db: Session):
     locker = db.query(Locker).filter(Locker.user_id == user_id, Locker.status == "Opptatt").first()
     if not locker:
         raise fastapi_error_handler("Ingen opptatt garderobeskap funnet for denne brukeren.", status_code=404)
@@ -98,37 +92,30 @@ async def unlock_locker(user_id: int, db: Session):
     db.commit()
     db.refresh(locker)
 
-    await log_unlock_action(locker_id=locker.combi_id, user_id=user_id, db=db)
-
-    await broadcast_message("update")
+    log_unlock_action(locker_id=locker.id, user_id=user_id, db=db)
 
     return {"message": f"Garderobeskap {locker.combi_id} er nå frigjort og tilgjengelig for andre brukere."}
 
 
-
-async def temporary_unlock(user_id: int, db: Session):
+def temporary_unlock(user_id: int, db: Session):
 
     locker = db.query(Locker).filter(Locker.user_id == user_id, Locker.status == "Opptatt").first()
     if not locker:
         raise fastapi_error_handler("Ingen skap funnet som er i bruk av denne brukeren.", status_code=404)
 
     from backend.model.LockerLog import log_action
-    await log_action(locker_id=locker.id, user_id=user_id, action="Låst opp", db=db)
-
-    await broadcast_message("update")
+    log_action(locker_id=locker.id, user_id=user_id, action="Låst opp", db=db)
 
     return {"message": f"Skap {locker.combi_id} er midlertidig åpnet for bruker {user_id}."}
 
 
-async def lock_locker_after_use(user_id: int, db: Session):
+def lock_locker_after_use(user_id: int, db: Session):
     locker = db.query(Locker).filter(Locker.user_id == user_id, Locker.status == "Opptatt").first()
     if not locker:
         raise fastapi_error_handler("Ingen opptatt skap funnet for denne brukeren.", status_code=404)
 
     from backend.model.LockerLog import log_lock_action
-    await log_lock_action(locker_id=locker.id, user_id=user_id, db=db)
-
-    await broadcast_message("update")
+    log_lock_action(locker_id=locker.id, user_id=user_id, db=db)
 
     return {"message": f"Skap {locker.combi_id} er nå låst igjen for bruker {user_id}."}
 
@@ -172,22 +159,6 @@ def free_or_unlock_locker(rfid_tag: str, locker_room_id: int, db: Session):
     }
 
 
-async def manual_release_locker(user_id: int, db: Session):
-    locker = db.query(Locker).filter(Locker.user_id == user_id, Locker.status == "Opptatt").first()
-    if not locker:
-        raise fastapi_error_handler("Ingen skap funnet som er i bruk av denne brukeren.", status_code=404)
-
-    locker.status = "Ledig"
-    locker.user_id = None
-    db.commit()
-    db.refresh(locker)
-
-    from backend.model.LockerLog import log_action
-    await log_action(locker_id=locker.id, user_id=user_id, action="Manuelt frigjort", db=db)
-
-    await broadcast_message("update")
-
-    return {"message": f"Skap {locker.combi_id} er manuelt frigjort av bruker {user_id}."}
 
 def assign_locker_after_manual_closure(rfid_tag: str, locker_room_id: int, locker_id: int, db: Session):
     """

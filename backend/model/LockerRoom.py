@@ -4,8 +4,6 @@ from sqlalchemy.orm import relationship, Session
 from backend.Service.ErrorHandler import fastapi_error_handler
 from database import Base
 from backend.model.Locker import Locker
-from backend.websocket_broadcast import broadcast_message
-
 
 class LockerRoom(Base):
     __tablename__ = "locker_rooms"
@@ -16,7 +14,7 @@ class LockerRoom(Base):
 
     lockers = relationship("Locker", back_populates="locker_rooms", cascade="all, delete-orphan")
 
-async def create_locker_room(name: str, db: Session):
+def create_locker_room(name: str, db: Session):
     """
     Oppretter et nytt garderoberom hvis det ikke allerede finnes.
     """
@@ -28,16 +26,13 @@ async def create_locker_room(name: str, db: Session):
     db.add(new_locker_room)
     db.commit()
     db.refresh(new_locker_room)
-
-    await broadcast_message("update")
-
     return {
         "message": f"Garderoberom '{new_locker_room.name}' opprettet.",
         "room_id": new_locker_room.id,
         "name": new_locker_room.name
     }
 
-async def delete_locker_room(room_id: int, db: Session):
+def delete_locker_room(room_id: int, db: Session):
     """
     Sletter et garderoberom samt alle skap tilknyttet det rommet.
     """
@@ -52,8 +47,6 @@ async def delete_locker_room(room_id: int, db: Session):
         # Slett selve rommet
         db.delete(room)
         db.commit()
-
-        await broadcast_message("update")
 
         return {"message": f"Garderoberom med id {room_id} og tilhørende skap er nå slettet."}
     except Exception as e:
