@@ -182,4 +182,3 @@ async def remove_all_lockers_in_room(locker_room_id: int, db: Session):
         db.rollback()
         raise fastapi_error_handler(f"Feil ved sletting av skap i rom: {str(e)}", status_code=500)
 
-

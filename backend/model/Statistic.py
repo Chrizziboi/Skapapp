@@ -190,4 +190,3 @@ def raspberry_occupied_locker(db: Session):
     ]
 
 
-
