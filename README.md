@@ -27,7 +27,7 @@ Dette prosjektet er en komplett løsning for administrasjon av låsbare skap ved
 
 ## Systemarkitektur
 
-* **Frontend**: React.js + HTML/CSS for visuell administrasjon
+* **Frontend**: Javascript + HTML/CSS for visuell administrasjon
 * **Backend**: FastAPI med Pydantic og SQLAlchemy
 * **Database**: SQLite lokalt lagret på Raspberry Pi
 * **Maskinvare**: Raspberry Pi + RFID-leser + relékort + magnetlås
