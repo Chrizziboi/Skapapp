@@ -58,9 +58,7 @@ def run_reader_helper():
     thread.start()
     print("[DEBUG] RFID-leser er startet i bakgrunnstråd.")
 
-
 setup_database()
-
 
 # Initialiser async funksjonalitet
 @asynccontextmanager
@@ -71,7 +69,6 @@ async def lifespan(_):
     #run_manual_release_thread()
     # print("[DEBUG] release_expired_loop STARTET")
     yield
-
 
 # Initialiser FastAPI
 api = FastAPI(lifespan=lifespan)

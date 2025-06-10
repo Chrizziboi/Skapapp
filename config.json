@@ -1,9 +1,11 @@
 {
   "locker_room_id": 1,
   "locker_gpio_map": {
-    "1": 21
+    "1": 21,
+    "2": 26
   },
   "locker_close_pin_map": {
-    "1": 20
+    "1": 20,
+    "2": 19
   }
 }
