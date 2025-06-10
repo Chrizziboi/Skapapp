@@ -63,11 +63,11 @@ npm start
 * **Python 3.13**
 * **FastAPI** - API-rammeverk med Swagger UI
 * **SQLite** - Lettvekts relasjonsdatabase
-* **React.js** - Dynamisk frontend
+* **Javascript** - Dynamisk frontend
 * **RPi.GPIO & serial** - Styring av maskinvare
 * **JWT** - Token-basert autentisering
 * **Pytest** - Automatisk testing
-
+* **Websockets** - Sanntidsoppdatering
 ## Bruk
 
 * Brukere autentiserer seg med RFID-kort
