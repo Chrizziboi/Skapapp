@@ -1,6 +1,25 @@
-{
-  "access_granted": true,
-  "locker_id": 1,
-  "message": "Skap 1 er manuelt frigjort.",
-  "pi_status": "Kunne ikke kontakte Pi: HTTPConnectionPool(host='%3cpi_ip%3e', port=8000): Max retries exceeded with url: /api/manual_release (Caused by NameResolutionError(\"<urllib3.connection.HTTPConnection object at 0xf4946cb0>: Failed to resolve '%3cpi_ip%3e' ([Errno -2] Name or service not known)\"))"
-}
+[RFID] Klar for skanning...
+[RFID] Funnet: 4293149116150
+[GJENBRUK] RFID 4293149116150 forsøker åpning av tidligere skap
+[Automatisk Skapopplåser] Fant 0 opptatte skap
+INFO:     127.0.0.1:59628 - "POST /scan_rfid/?rfid_tag=4293149116150&locker_room_id=1 HTTP/1.1" 200 OK
+[RFID] Kortet har ikke tilgang til skap
+[INNGANG] Skap 1 nettopp lukket – starter registrering
+[RFID] Klar for skanning...
+[Automatisk Skapopplåser] Fant 0 opptatte skap
+[RFID] Funnet: 4293149116150
+[STATUS] Registrerer skap 1 med RFID 4293149116150
+[Automatisk Skapopplåser] Fant 0 opptatte skap
+Error logged: Feil ved RFID-registrering etter lukking: 'coroutine' object has no attribute 'id'
+INFO:     127.0.0.1:59642 - "POST /assign_after_closure/?rfid_tag=4293149116150&locker_room_id=1&locker_id=1 HTTP/1.1" 500 Internal Server Error
+[RFID] Ikke godkjent – frigjør skap
+[RFID] Klar for skanning...
+^CINFO:     Shutting down
+INFO:     connection closed
+[RFID] Ingen RFID registrert
+[RFID] Klar for skanning...
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [16526]
+sys:1: RuntimeWarning: coroutine 'create_standard_user' was never awaited
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
